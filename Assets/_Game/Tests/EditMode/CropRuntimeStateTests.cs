@@ -3,8 +3,10 @@ using NUnit.Framework;
 
 namespace MyLittleFarm.Tests.EditMode
 {
+    /// <summary>Проверяет расчёт прогресса культуры только по сохранённым временным данным.</summary>
     public sealed class CropRuntimeStateTests
     {
+        /// <summary>Подтверждает правильные стадии в начале, середине, перед зрелостью и после неё.</summary>
         [Test]
         public void GrowthStages_AreCalculatedFromUtcTimestamp()
         {
@@ -22,6 +24,7 @@ namespace MyLittleFarm.Tests.EditMode
             Assert.That(crop.IsMature(18_000), Is.True);
         }
 
+        /// <summary>Гарантирует ограничение прогресса диапазоном от нуля до единицы.</summary>
         [Test]
         public void GrowthRatio_IsClampedForPastAndFutureTime()
         {

@@ -3,8 +3,10 @@ using MyLittleFarm.Core;
 
 namespace MyLittleFarm.Gameplay.Farming
 {
+    /// <summary>Отображает стадию роста культуры размером и цветом временной модели.</summary>
     public sealed class CropView : MonoBehaviour
     {
+        // Цвета соответствуют ростку, растущему растению и зрелому урожаю.
         private static readonly Color[] StageColors =
         {
             new Color(0.30f, 0.72f, 0.20f),
@@ -12,11 +14,13 @@ namespace MyLittleFarm.Gameplay.Farming
             new Color(0.95f, 0.42f, 0.08f)
         };
 
+        // Renderer меняет материал, currentStage предотвращает повторное обновление без изменений.
         private Renderer _renderer;
         private int _currentStage = -1;
 
         public static CropView Create(Vector3 position, Transform parent = null)
         {
+            // Создаёт декоративный цилиндр без физического коллайдера.
             var root = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
             root.name = "Carrot Crop";
             root.transform.SetParent(parent, false);
@@ -30,6 +34,7 @@ namespace MyLittleFarm.Gameplay.Farming
 
         public void SetStage(int stage, int stageCount)
         {
+            // Нормализованная стадия одновременно управляет высотой, шириной и цветом.
             if (_currentStage == stage)
             {
                 return;

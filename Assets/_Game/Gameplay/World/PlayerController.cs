@@ -3,20 +3,26 @@ using UnityEngine;
 
 namespace MyLittleFarm.Gameplay.World
 {
+    /// <summary>Перемещает и поворачивает игрока относительно направления изометрической камеры.</summary>
     [DefaultExecutionOrder(-150)]
     [RequireComponent(typeof(CharacterController))]
     public sealed class PlayerController : MonoBehaviour
     {
+        // Постоянное ускорение вниз имитирует гравитацию CharacterController.
         private const float Gravity = -20f;
 
+        // Зависимости предоставляют команды, физическое движение, ориентацию камеры и границы мира.
         private InputReader _input;
         private CharacterController _controller;
         private Transform _cameraTransform;
+        // Вертикальная скорость накапливает действие гравитации между кадрами.
         private float _verticalVelocity;
         private GridSystem _grid;
 
+        /// <summary>Горизонтальная скорость персонажа в мировых единицах за секунду.</summary>
         public float MoveSpeed { get; set; } = 4.5f;
 
+        /// <summary>Получает ввод и локальные компоненты после создания игрока.</summary>
         public void Configure(InputReader input)
         {
             _input = input;
@@ -26,11 +32,13 @@ namespace MyLittleFarm.Gameplay.World
 
         public void SetCamera(Transform cameraTransform)
         {
+            // Transform камеры нужен для движения в направлениях, понятных на экране.
             _cameraTransform = cameraTransform;
         }
 
         private void Update()
         {
+            // Направления камеры проецируются на горизонтальную плоскость XZ.
             if (_input == null || _cameraTransform == null)
             {
                 return;
@@ -43,6 +51,7 @@ namespace MyLittleFarm.Gameplay.World
             right.y = 0f;
             right.Normalize();
 
+            // Двумерный ввод преобразуется в трёхмерный вектор мирового движения.
             var move = forward * _input.Movement.y + right * _input.Movement.x;
             if (_input.BuildModeActive || _input.SuppressGameplayThisFrame) move = Vector3.zero;
             if (move.sqrMagnitude > 1f)
@@ -70,6 +79,7 @@ namespace MyLittleFarm.Gameplay.World
 
         public void Teleport(Vector3 position)
         {
+            // CharacterController временно выключается, иначе прямое изменение Transform игнорируется физикой.
             _verticalVelocity = 0;
             _controller.enabled = false;
             transform.position = position;

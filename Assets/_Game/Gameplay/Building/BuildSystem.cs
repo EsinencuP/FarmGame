@@ -9,35 +9,49 @@ using UnityEngine;
 
 namespace MyLittleFarm.Gameplay.Building
 {
+    /// <summary>
+    /// Управляет пользовательским режимом строительства: выбирает клетку курсором,
+    /// показывает предпросмотр, проверяет место и выполняет покупку, перенос или удаление.
+    /// </summary>
     [DefaultExecutionOrder(-175)]
     public sealed class BuildSystem : MonoBehaviour
     {
+        // Связывает стабильный id постройки с её текущим объектом в сцене.
         private readonly Dictionary<string, BuildingView> _views = new Dictionary<string, BuildingView>();
+        // Переиспользуемый буфер физической проверки исключает выделение массива каждый кадр.
         private readonly Collider[] _overlaps = new Collider[32];
+        // Layout является источником истины для размещения и занятости клеток.
         private BuildingLayout _layout;
+        // Зависимости дают доступ к сетке, посевам, деньгам, вводу и лучу камеры.
         private GridSystem _grid;
         private CropSystem _crops;
         private WalletSystem _wallet;
         private InputReader _input;
         private Camera _camera;
+        // Preview — временная геометрия, а два материала обозначают допустимое и запрещённое место.
         private GameObject _preview;
         private Renderer _previewRenderer;
         private Material _validPreviewMaterial;
         private Material _invalidPreviewMaterial;
+        // Делегат объединяет препятствия земли и посевов с проверками BuildingLayout.
         private Func<int, int, bool> _blocked;
+        // Состояние текущего сеанса строительства и выбранного объекта.
         private int _selected;
         private int _turns;
         private string _movingId;
         private string _deleteId;
         private Vector2Int _target;
         private bool _hasTarget;
+        // Ограничивает обновление текста подсказки десятью разами в секунду.
         private float _nextPromptAt;
 
+        // Публичное состояние читают контроллер игрока, селектор клетки и UI.
         public bool IsActive { get; private set; }
         public string CurrentPrompt { get; private set; } = string.Empty;
         public int Count => _layout?.Count ?? 0;
         public BuildingDefinition SelectedDefinition => BuildingDefinition.Catalog[_selected];
 
+        /// <summary>Подключает зависимости, создаёт пустой layout и объект предпросмотра.</summary>
         public void Configure(InputReader input, GridSystem grid, CropSystem crops, WalletSystem wallet, Camera camera)
         {
             _input = input; _grid = grid; _crops = crops; _wallet = wallet; _camera = camera;
@@ -49,6 +63,7 @@ namespace MyLittleFarm.Gameplay.Building
             _preview.transform.SetParent(transform, false);
             RuntimeMaterials.RemoveCollider(_preview);
             _previewRenderer = _preview.GetComponent<Renderer>();
+            // Материалы предпросмотра создаются один раз и затем переключаются без аллокаций.
             var materials = GetComponentInParent<RuntimeMaterials>();
             if (materials == null) materials = transform.root.gameObject.AddComponent<RuntimeMaterials>();
             _validPreviewMaterial = materials.Get(new Color(0.25f, 0.9f, 0.35f));
@@ -63,17 +78,23 @@ namespace MyLittleFarm.Gameplay.Building
             _preview.SetActive(false);
         }
 
+        /// <summary>Создаёт пустую модель размещения с размерами текущей сетки.</summary>
         private BuildingLayout NewLayout() => new BuildingLayout(_grid.Width, _grid.Height, BuildingDefinition.Catalog);
+        /// <summary>Сообщает layout, занята ли клетка препятствием или растением.</summary>
         private bool IsTerrainBlocked(int x, int z)
         {
             var position = new Vector2Int(x, z);
             return !_grid.TryGetCell(position, out var cell) || cell.State == GridCellState.Blocked || _crops.Contains(position);
         }
 
+        /// <summary>Возвращает признак занятости клетки постройкой.</summary>
         public bool IsOccupied(Vector2Int cell) => _layout != null && _layout.IsOccupied(cell.x, cell.y);
+        /// <summary>Возвращает копию постройки под указанной клеткой либо null.</summary>
         public BuildingRuntimeState GetAt(Vector2Int cell) => _layout.Get(_layout.BuildingAt(cell.x, cell.y));
+        /// <summary>Создаёт отделённый снимок всех построек для сохранения.</summary>
         public List<BuildingRuntimeState> Capture() => _layout.Capture();
 
+        /// <summary>Включает или выключает режим, сбрасывая незавершённый перенос и удаление.</summary>
         public void SetActive(bool active)
         {
             IsActive = active;
@@ -87,6 +108,7 @@ namespace MyLittleFarm.Gameplay.Building
 
         private void Update()
         {
+            // Обработка организована как конечный автомат: обычное размещение, перенос или подтверждение удаления.
             if (_input == null || _layout == null) return;
             if (_input.BuildTogglePressed) SetActive(!IsActive);
             if (!IsActive) return;
@@ -102,6 +124,7 @@ namespace MyLittleFarm.Gameplay.Building
                 _selected = _input.BuildSelection;
                 _movingId = null; _deleteId = null; _turns = 0;
             }
+            // Луч из позиции курсора пересекает горизонтальную плоскость фермы и переводится в клетку.
             _hasTarget = false;
             if (_input.HasPointer && _camera != null)
             {
@@ -111,6 +134,7 @@ namespace MyLittleFarm.Gameplay.Building
             }
             if (_deleteId != null)
             {
+                // В состоянии подтверждения остальные строительные действия временно недоступны.
                 _preview.SetActive(false);
                 var state = _layout.Get(_deleteId);
                 if (state == null) { _deleteId = null; return; }
@@ -125,6 +149,7 @@ namespace MyLittleFarm.Gameplay.Building
             }
             if (_hasTarget && _movingId == null && (_input.MoveBuildingPressed || _input.DeleteBuildingPressed))
             {
+                // Перенос и удаление начинаются только если под курсором действительно есть постройка.
                 var hovered = GetAt(_target);
                 if (hovered != null && _input.MoveBuildingPressed)
                 {
@@ -137,6 +162,7 @@ namespace MyLittleFarm.Gameplay.Building
             }
             if (_input.RotateBuildingPressed) _turns = (_turns + 1) % 4;
             var reasonText = "Наведите курсор на участок";
+            // Валидность влияет одновременно на цвет предпросмотра и возможность подтвердить действие.
             var valid = _hasTarget && CanPlace(SelectedDefinition.Id, _target, _turns, _movingId, out reasonText);
             if (valid && _movingId == null && _wallet.Coins < SelectedDefinition.Price)
             { valid = false; reasonText = "Недостаточно монет"; }
@@ -169,10 +195,11 @@ namespace MyLittleFarm.Gameplay.Building
 
         public bool CanPlace(string definitionId, Vector2Int cell, int turns, string ignoreId, out string reason)
         {
+            // Сначала выполняется дешёвая клеточная проверка, затем физическая проверка объёмом.
             if (!_layout.CanPlace(definitionId, cell.x, cell.y, turns, _blocked, ignoreId, out reason)) return false;
             var definition = _layout.Definition(definitionId);
             var center = BuildingView.Center(cell.x, cell.y, turns, definition, _grid);
-            // Include player and scene obstacles; exclude floor and the building being moved.
+            // Учитываем игрока и объекты сцены, но игнорируем переносимую постройку.
             Physics.SyncTransforms();
             var count = Physics.OverlapBoxNonAlloc(center + Vector3.up * (definition.Height * 0.5f + 0.05f),
                 new Vector3(definition.RotatedWidth(turns) * _grid.CellSize * 0.5f - 0.07f, definition.Height * 0.5f,
@@ -190,6 +217,7 @@ namespace MyLittleFarm.Gameplay.Building
 
         public bool TryPlace(string definitionId, Vector2Int cell, int turns, out string reason)
         {
+            // Деньги списываются только после всех проверок и успешного добавления в layout.
             if (!CanPlace(definitionId, cell, turns, null, out reason)) return false;
             var definition = _layout.Definition(definitionId);
             if (_wallet.Coins < definition.Price) { reason = "Недостаточно монет"; return false; }
@@ -204,6 +232,7 @@ namespace MyLittleFarm.Gameplay.Building
 
         public bool TryMove(string id, Vector2Int cell, int turns, out string reason)
         {
+            // Перенос бесплатный: меняются занятость layout и Transform существующего view.
             var state = _layout.Get(id);
             if (state == null) { reason = "Постройка не найдена"; return false; }
             if (!CanPlace(state.definitionId, cell, turns, id, out reason)
@@ -213,7 +242,7 @@ namespace MyLittleFarm.Gameplay.Building
             return true;
         }
 
-        // The UI calls this only after explicit confirmation.
+        /// <summary>Удаляет подтверждённую постройку и возвращает половину уплаченной цены.</summary>
         public bool TryRemove(string id, out string reason)
         {
             var state = _layout.Get(id);
@@ -231,6 +260,7 @@ namespace MyLittleFarm.Gameplay.Building
 
         public void ValidateSnapshot(List<BuildingRuntimeState> states, Func<int, int, bool> blocked)
         {
+            // Проверка строит отдельный layout, поэтому не затрагивает текущий мир.
             var candidate = NewLayout();
             foreach (var state in states)
                 if (!candidate.TryPlace(state, blocked, out var reason)) throw new InvalidDataException(reason);
@@ -238,6 +268,7 @@ namespace MyLittleFarm.Gameplay.Building
 
         public void Restore(List<BuildingRuntimeState> states)
         {
+            // Сначала целиком собирается кандидат; старые виды удаляются только после его успеха.
             var candidate = NewLayout();
             foreach (var state in states)
                 if (!candidate.TryPlace(state, _blocked, out var reason)) throw new InvalidDataException(reason);
@@ -251,6 +282,7 @@ namespace MyLittleFarm.Gameplay.Building
 
         public bool IsNearMarket(Vector3 position, float distance)
         {
+            // Позволяет торговой стойке работать как дополнительная точка продажи.
             foreach (var view in _views.Values)
             {
                 if (view.DefinitionId != "market") continue;
@@ -263,6 +295,7 @@ namespace MyLittleFarm.Gameplay.Building
 
         private void OnDisable()
         {
+            // Гарантированно снимает блокировку обычного управления при отключении компонента.
             if (_input != null) _input.BuildModeActive = false;
             IsActive = false;
             if (_preview != null) _preview.SetActive(false);

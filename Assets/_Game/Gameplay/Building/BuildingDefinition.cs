@@ -3,8 +3,10 @@ using System.Collections.Generic;
 
 namespace MyLittleFarm.Gameplay.Building
 {
+    /// <summary>Неизменяемые характеристики одного типа постройки из игрового каталога.</summary>
     public sealed class BuildingDefinition
     {
+        // Id сохраняется на диск; Name показывается игроку; размеры заданы в клетках.
         public string Id { get; }
         public string Name { get; }
         public int Width { get; }
@@ -12,6 +14,7 @@ namespace MyLittleFarm.Gameplay.Building
         public int Price { get; }
         public float Height { get; }
 
+        /// <summary>Создаёт проверенное описание типа постройки.</summary>
         public BuildingDefinition(string id, string name, int width, int depth, int price, float height)
         {
             if (string.IsNullOrWhiteSpace(id) || width < 1 || depth < 1 || price < 0
@@ -20,10 +23,12 @@ namespace MyLittleFarm.Gameplay.Building
             Id = id; Name = name; Width = width; Depth = depth; Price = price; Height = height;
         }
 
+        /// <summary>Возвращает ширину следа после поворота на указанное число четвертей оборота.</summary>
         public int RotatedWidth(int turns) => (turns & 1) == 0 ? Width : Depth;
+        /// <summary>Возвращает глубину следа после поворота на указанное число четвертей оборота.</summary>
         public int RotatedDepth(int turns) => (turns & 1) == 0 ? Depth : Width;
 
-        // Code-only prototype catalog; identifiers are part of the save format.
+        // Каталог прототипа хранится в коде; идентификаторы являются частью формата сохранения.
         public static IReadOnlyList<BuildingDefinition> Catalog { get; } = Array.AsReadOnly(new[]
         {
             new BuildingDefinition("house", "Дом", 2, 2, 20, 2.8f),

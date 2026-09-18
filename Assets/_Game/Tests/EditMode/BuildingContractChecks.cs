@@ -4,17 +4,23 @@ using MyLittleFarm.Gameplay.Building;
 
 namespace MyLittleFarm.Tests.EditMode
 {
-    // Runs unchanged in Unity and in Verify-Scripts.ps1, against the real domain implementation.
+    /// <summary>
+    /// Общие контрактные проверки настоящей модели BuildingLayout. Один и тот же код запускается
+    /// Unity Test Runner и автономным Verify-Scripts.ps1 без подмены реализации.
+    /// </summary>
     public static class BuildingContractChecks
     {
+        /// <summary>Выполняет детерминированные проверки и возвращает число успешных утверждений.</summary>
         public static int Run()
         {
+            // Счётчик подтверждает, что длинный случайный сценарий действительно был выполнен полностью.
             var assertions = 0;
             Action<bool, string> check = (condition, message) =>
             {
                 assertions++;
                 if (!condition) throw new InvalidOperationException(message);
             };
+            // Начальные проверки покрывают размеры, границы, поворот, занятость и владение копиями.
             var layout = new BuildingLayout(8, 8, BuildingDefinition.Catalog);
             var storage = BuildingDefinition.Catalog[1];
             check(storage.RotatedWidth(1) == 1 && storage.RotatedDepth(1) == 2, "Quarter turn swaps dimensions");
@@ -52,7 +58,7 @@ namespace MyLittleFarm.Tests.EditMode
             check(layout.Count == 0 && !layout.IsOccupied(2, 2), "Remove releases cells");
             check(!layout.TryRemove("first", out _), "No second deletion/refund");
 
-            // Deterministic sequence plus an independent occupancy oracle after every operation.
+            // Фиксированный seed делает 1000 операций воспроизводимыми, независимый массив служит эталоном занятости.
             var random = new Random(1729);
             for (var step = 0; step < 1000; step++)
             {
@@ -88,6 +94,7 @@ namespace MyLittleFarm.Tests.EditMode
 
         private static BuildingRuntimeState State(string id, string definitionId, int x, int z, int turns)
         {
+            // Фабрика тестового состояния подставляет настоящую цену из рабочего каталога.
             var price = 0;
             foreach (var definition in BuildingDefinition.Catalog)
                 if (definition.Id == definitionId) price = definition.Price;

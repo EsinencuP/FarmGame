@@ -9,17 +9,24 @@ using UnityEngine.UI;
 
 namespace MyLittleFarm.Core
 {
+    /// <summary>
+    /// Точка сборки прототипа: создаёт системы, игровые объекты и передаёт зависимости между ними.
+    /// Сцена остаётся минимальной, потому что вся конфигурация Stage 0 формируется во время запуска.
+    /// </summary>
     public sealed class GameBootstrap : MonoBehaviour
     {
+        // Базовые размеры участка задаются централизованно для сетки и всех зависящих систем.
         private const int GridWidth = 8;
         private const int GridHeight = 8;
         private const float CellSize = 1.5f;
 
+        // Защищает от повторного создания объектов при повторном вызове BuildPrototype.
         private bool _isBuilt;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void EnsurePrototypeExists()
         {
+            // Автоматически создаёт корень только в рабочей сцене Prototype и не вмешивается в тестовые сцены.
             if (SceneManager.GetActiveScene().name != "Prototype") return;
             if (FindFirstObjectByType<GameBootstrap>() != null)
             {
@@ -32,11 +39,13 @@ namespace MyLittleFarm.Core
 
         private void Awake()
         {
+            // Unity вызывает Awake один раз после появления компонента в сцене.
             BuildPrototype();
         }
 
         public void BuildPrototype()
         {
+            // Порядок важен: сначала источники данных, потом объекты, которые на них ссылаются.
             if (_isBuilt)
             {
                 return;
@@ -98,6 +107,7 @@ namespace MyLittleFarm.Core
 
         private T CreateSystem<T>(string objectName) where T : Component
         {
+            // Создаёт именованный дочерний объект-контейнер и добавляет требуемый компонент системы.
             var systemObject = new GameObject(objectName);
             systemObject.transform.SetParent(transform, false);
             return systemObject.AddComponent<T>();
@@ -105,6 +115,7 @@ namespace MyLittleFarm.Core
 
         private PlayerController CreatePlayer(Vector3 position, InputReader input)
         {
+            // Капсула служит временной моделью; CharacterController обеспечивает движение и столкновения.
             var playerObject = GameObject.CreatePrimitive(PrimitiveType.Capsule);
             playerObject.name = "Player";
             playerObject.transform.SetParent(transform, false);
@@ -125,6 +136,7 @@ namespace MyLittleFarm.Core
 
         private static IsometricCameraController CreateCamera(InputReader input, Transform player)
         {
+            // Создаёт основную камеру и настраивает слежение за Transform игрока.
             var cameraObject = new GameObject("Isometric Camera");
             cameraObject.tag = "MainCamera";
             var camera = cameraObject.AddComponent<Camera>();
@@ -141,6 +153,7 @@ namespace MyLittleFarm.Core
 
         private Transform CreateSaleCrate(Vector3 position)
         {
+            // Временный куб обозначает стационарную точку продажи урожая.
             var crate = GameObject.CreatePrimitive(PrimitiveType.Cube);
             crate.name = "Sale Crate";
             crate.transform.SetParent(transform, false);
@@ -152,6 +165,7 @@ namespace MyLittleFarm.Core
 
         private static void CreateLighting(Transform parent)
         {
+            // Не создаёт второе солнце, если сцена уже содержит направленный или иной источник света.
             if (FindFirstObjectByType<Light>() != null)
             {
                 return;
@@ -169,6 +183,7 @@ namespace MyLittleFarm.Core
 
         private void CreateHud(InventorySystem inventory, WalletSystem wallet, InteractionSystem interaction, BuildSystem buildings)
         {
+            // HUD собирается программно и сразу получает ссылки на данные и подсказки действий.
             var canvasObject = new GameObject("Prototype HUD");
             canvasObject.transform.SetParent(transform, false);
             var canvas = canvasObject.AddComponent<Canvas>();
@@ -201,6 +216,7 @@ namespace MyLittleFarm.Core
 
         private static Transform CreatePanel(Transform parent)
         {
+            // Создаёт полупрозрачный фон для показателей экономики.
             var panelObject = new GameObject("Stats Panel", typeof(RectTransform), typeof(Image));
             panelObject.transform.SetParent(parent, false);
             var image = panelObject.GetComponent<Image>();
@@ -216,6 +232,7 @@ namespace MyLittleFarm.Core
 
         private static Text CreateText(Transform parent, string name, int fontSize, TextAnchor alignment, Color color)
         {
+            // Общая фабрика гарантирует одинаковую настройку всех текстовых элементов HUD.
             var textObject = new GameObject(name, typeof(RectTransform), typeof(Text));
             textObject.transform.SetParent(parent, false);
             var text = textObject.GetComponent<Text>();
@@ -236,6 +253,7 @@ namespace MyLittleFarm.Core
             Vector2 anchoredPosition,
             Vector2 size)
         {
+            // Применяет якоря, позицию и размер RectTransform в одном месте.
             rect.anchorMin = anchorMin;
             rect.anchorMax = anchorMax;
             rect.pivot = anchorMin == anchorMax ? anchorMin : new Vector2(0.5f, 0.5f);

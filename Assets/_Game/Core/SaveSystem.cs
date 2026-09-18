@@ -9,30 +9,42 @@ using UnityEngine;
 
 namespace MyLittleFarm.Core
 {
+    /// <summary>
+    /// Создаёт, проверяет и восстанавливает полный снимок игры. Запись выполняется атомарно,
+    /// чтобы прерванное сохранение не уничтожило предыдущий корректный файл.
+    /// </summary>
     public sealed class SaveSystem : MonoBehaviour
     {
+        // Текущая версия схемы; версия 1 поддерживается как наследуемый формат без построек.
         public const int CurrentSaveVersion = 2;
 
+        // Пауза между автоматическими сохранениями в секундах реального времени.
         private const float AutosaveIntervalSeconds = 180f;
 
+        // Ссылки на системы, состояние которых входит в единый снимок.
         private InputReader _input;
         private PlayerController _player;
         private GridSystem _grid;
         private CropSystem _crops;
         private InventorySystem _inventory;
         private WalletSystem _wallet;
+        // Время следующего автосохранения по шкале unscaledTime.
         private float _nextAutosaveAt;
         private BuildSystem _buildings;
+        // false блокирует автозапись после ошибки чтения, чтобы не затереть повреждённый файл.
         private bool _persistenceEnabled;
 
+        /// <summary>Загружает существующий файл или разрешает сохранение новой игры.</summary>
         public void StartPersistence()
         {
             // A failed load must not be overwritten by autosave or application quit.
             _persistenceEnabled = !File.Exists(SavePath) || LoadFromDisk();
         }
 
+        /// <summary>Платформенно безопасный путь постоянного файла сохранения.</summary>
         public string SavePath => Path.Combine(Application.persistentDataPath, "my-little-farm-save.json");
 
+        /// <summary>Передаёт зависимости и запускает отсчёт до первого автосохранения.</summary>
         public void Configure(
             InputReader input,
             PlayerController player,
@@ -55,6 +67,7 @@ namespace MyLittleFarm.Core
 
         private void Update()
         {
+            // Загрузка имеет приоритет над ручным сохранением и автосохранением в одном кадре.
             if (_input == null)
             {
                 return;
@@ -81,6 +94,7 @@ namespace MyLittleFarm.Core
 
         public SaveData Capture()
         {
+            // Каждая система возвращает отделённую копию данных, пригодную для сериализации.
             var position = _player.transform.position;
             return new SaveData
             {
@@ -97,8 +111,10 @@ namespace MyLittleFarm.Core
 
         public void Restore(SaveData data)
         {
+            // Валидация идёт до первой мутации, поэтому некорректный файл не портит текущий мир.
             Validate(data);
 
+            // Восстановление соблюдает зависимости: земля → посевы → постройки → игрок.
             _crops.ClearAll();
             _grid.Restore(data.gridCells);
             _inventory.Restore(data.inventory);
@@ -110,6 +126,7 @@ namespace MyLittleFarm.Core
 
         public void SaveToDisk()
         {
+            // Обёртка для рабочего пути обновляет HUD и состояние автосохранения.
             if (SaveToPath(SavePath))
             {
                 _persistenceEnabled = true;
@@ -124,6 +141,7 @@ namespace MyLittleFarm.Core
 
         public bool LoadFromDisk()
         {
+            // Ошибка чтения отключает автоматическую перезапись до успешного ручного сохранения/загрузки.
             if (LoadFromPath(SavePath))
             {
                 _persistenceEnabled = true;
@@ -142,6 +160,7 @@ namespace MyLittleFarm.Core
 
         public bool SaveToPath(string path)
         {
+            // Публичный вариант с произвольным путём используется интеграционными тестами.
             try
             {
                 if (string.IsNullOrWhiteSpace(path))
@@ -149,7 +168,7 @@ namespace MyLittleFarm.Core
                     throw new ArgumentException("Save path is required.", nameof(path));
                 }
 
-                var snapshot = Capture();
+                var snapshot = Capture(); // Состояние на один согласованный момент времени.
                 Validate(snapshot);
                 var json = JsonUtility.ToJson(snapshot, true);
                 Validate(JsonUtility.FromJson<SaveData>(json));
@@ -165,6 +184,7 @@ namespace MyLittleFarm.Core
 
         public bool LoadFromPath(string path)
         {
+            // Файл сначала полностью читается и проверяется, затем применяется к игровым системам.
             if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
             {
                 return false;
@@ -185,6 +205,7 @@ namespace MyLittleFarm.Core
 
         private static void WriteAtomically(string path, string contents)
         {
+            // Новые данные сначала попадают во временный файл; старый файл становится резервной копией.
             var directory = Path.GetDirectoryName(path);
             if (!string.IsNullOrEmpty(directory))
             {
@@ -207,6 +228,7 @@ namespace MyLittleFarm.Core
 
         private void Validate(SaveData data)
         {
+            // Защита охватывает версию, числа, размеры коллекций, дубликаты и связи между подсистемами.
             if (data == null)
             {
                 throw new InvalidDataException("Save data is empty.");
@@ -237,6 +259,7 @@ namespace MyLittleFarm.Core
                 || data.inventory.Count > 128)
                 throw new InvalidDataException("Save contains too many entries.");
 
+            // Множества обеспечивают проверку уникальности за O(1) на элемент.
             var itemIds = new HashSet<string>(StringComparer.Ordinal);
             foreach (var item in data.inventory)
             {
@@ -249,6 +272,7 @@ namespace MyLittleFarm.Core
                 }
             }
 
+            // Словарь одновременно обнаруживает повтор клетки и даёт состояние для проверки посева.
             var savedCells = new Dictionary<Vector2Int, GridCellState>();
             foreach (var cell in data.gridCells)
             {
@@ -266,6 +290,7 @@ namespace MyLittleFarm.Core
                 }
             }
 
+            // Позиции посевов нужны также для запрета сохранённых построек поверх растений.
             var cropPositions = new HashSet<Vector2Int>();
             foreach (var crop in data.crops)
             {
@@ -284,11 +309,13 @@ namespace MyLittleFarm.Core
 
             _buildings?.ValidateSnapshot(data.buildings, (x, z) =>
             {
+                // Для проверки снимка используется только снимок, а не текущее состояние сцены.
                 var cell = new Vector2Int(x, z);
                 return cropPositions.Contains(cell) || (savedCells.TryGetValue(cell, out var state) && state == GridCellState.Blocked);
             });
             foreach (var building in data.buildings)
             {
+                // Дополнительно запрещаем загружать игрока внутри коллайдера сохранённой постройки.
                 BuildingDefinition definition = null;
                 foreach (var candidate in BuildingDefinition.Catalog)
                     if (candidate.Id == building.definitionId) { definition = candidate; break; }
@@ -302,10 +329,12 @@ namespace MyLittleFarm.Core
             }
         }
 
+        /// <summary>Отсекает NaN и бесконечность, которые разрушают мировые координаты.</summary>
         private static bool IsFinite(float value) => !float.IsNaN(value) && !float.IsInfinity(value);
 
         private void OnApplicationQuit()
         {
+            // Автосохранение при выходе разрешено только после успешного запуска подсистемы хранения.
             if (_persistenceEnabled && _player != null)
             {
                 SaveToDisk();

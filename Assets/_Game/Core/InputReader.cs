@@ -3,12 +3,18 @@ using UnityEngine.InputSystem;
 
 namespace MyLittleFarm.Core
 {
+    /// <summary>
+    /// Единственная точка чтения клавиатуры и мыши. Остальные системы получают уже готовые
+    /// игровые команды и не зависят напрямую от Input System.
+    /// </summary>
     [DefaultExecutionOrder(-200)]
     public sealed class InputReader : MonoBehaviour
     {
+        // Непрерывные значения управления, которые действуют всё время удержания клавиши или движения мыши.
         public Vector2 Movement { get; private set; }
         public float ZoomDelta { get; private set; }
         public float OrbitDelta { get; private set; }
+        // Однокадровые команды: true только в кадре, когда соответствующая кнопка была нажата.
         public bool InteractPressed { get; private set; }
         public bool RotateLeftPressed { get; private set; }
         public bool RotateRightPressed { get; private set; }
@@ -20,14 +26,18 @@ namespace MyLittleFarm.Core
         public bool DeleteBuildingPressed { get; private set; }
         public bool CancelPressed { get; private set; }
         public bool ConfirmPressed { get; private set; }
+        // Индекс выбранной постройки: 0–3 для клавиш 1–4, -1 если выбор не менялся.
         public int BuildSelection { get; private set; } = -1;
+        // Текущая экранная позиция указателя нужна строительной системе для луча из камеры.
         public Vector2 PointerPosition { get; private set; }
         public bool HasPointer { get; private set; }
+        // Состояния совместного доступа не дают движению и обычному взаимодействию сработать в режиме строительства.
         public bool BuildModeActive { get; internal set; }
         public bool SuppressGameplayThisFrame { get; internal set; }
 
         private void Update()
         {
+            // Устройства могут отсутствовать, поэтому каждое чтение защищено проверкой на null.
             var keyboard = Keyboard.current;
             var mouse = Mouse.current;
             SuppressGameplayThisFrame = false;
@@ -66,6 +76,7 @@ namespace MyLittleFarm.Core
 
         private static float ReadAxis(bool negative, bool positive)
         {
+            // Одновременное нажатие противоположных направлений взаимно их отменяет.
             if (negative == positive)
             {
                 return 0f;

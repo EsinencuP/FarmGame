@@ -1,23 +1,43 @@
-param([string]$ProjectRoot = (Split-Path -Parent $PSScriptRoot))
+# Автономная проверка синтаксиса C#, принадлежности сборкам и чистой логики строительства.
+# Скрипт ничего не устанавливает и не изменяет внутри Unity-проекта.
+param(
+    # Корень Unity-проекта; по умолчанию вычисляется относительно папки Verification.
+    [string]$ProjectRoot = (Split-Path -Parent $PSScriptRoot)
+)
+
+# Любая ошибка завершает проверку, а строгий режим обнаруживает опечатки в переменных.
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 
-# Uses the compiler already bundled with PowerShell 7. No downloads or Unity API stubs.
+# Используется компилятор, уже встроенный в PowerShell 7: без загрузок и заглушек Unity API.
 if ($PSVersionTable.PSVersion.Major -lt 7) { throw 'Run this script with PowerShell 7 (pwsh).' }
+# roslyn хранит путь к анализатору синтаксиса C#.
 $roslyn = Join-Path $PSHOME 'Microsoft.CodeAnalysis.CSharp.dll'
 if (-not (Test-Path -LiteralPath $roslyn)) { throw 'Bundled C# compiler not found.' }
 Add-Type -Path (Join-Path $PSHOME 'Microsoft.CodeAnalysis.dll')
 Add-Type -Path $roslyn
 
+# gameRoot ограничивает поиск игровым кодом, files содержит найденные C#-скрипты.
 $gameRoot = Join-Path $ProjectRoot 'Assets/_Game'
 $files = @(Get-ChildItem -LiteralPath $gameRoot -Recurse -Filter '*.cs')
+# Каждый новый C#-файл обязан кратко объяснять назначение своего основного типа.
+$missingSummaries = @($files | Where-Object {
+    [IO.File]::ReadAllText($_.FullName) -notmatch '///\s*<summary>'
+})
+if ($missingSummaries.Count -gt 0) {
+    throw "Scripts without explanatory summary comments: $($missingSummaries.FullName -join ', ')"
+}
+# errors накапливает все ошибки, чтобы один запуск показал полный результат.
 $errors = @()
+# options фиксирует ту же версию синтаксиса C# 9, на которую рассчитан проект.
 $options = [Microsoft.CodeAnalysis.CSharp.CSharpParseOptions]::Default.WithLanguageVersion(
     [Microsoft.CodeAnalysis.CSharp.LanguageVersion]::CSharp9)
 foreach ($file in $files) {
+    # Каждый файл разбирается отдельно с исходным путём для понятной диагностики.
     $tree = [Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree]::ParseText(
         [IO.File]::ReadAllText($file.FullName), $options, $file.FullName)
     $errors += @($tree.GetDiagnostics() | Where-Object Severity -eq 'Error')
+    # Ближайший asmdef вверх по дереву определяет владельца скрипта по правилам Unity.
     $directory = $file.Directory
     $assembly = @()
     while ($directory -and $directory.FullName.StartsWith($gameRoot, [StringComparison]::OrdinalIgnoreCase)) {
@@ -27,6 +47,7 @@ foreach ($file in $files) {
     }
     if ($assembly.Count -ne 1) { throw "No unique assembly owner: $($file.FullName)" }
     $definition = Get-Content -LiteralPath $assembly[0].FullName -Raw | ConvertFrom-Json
+    # Ожидаемая сборка зависит от расположения runtime, EditMode или PlayMode-файла.
     $expected = if ($file.FullName -match '[\\/]Tests[\\/]EditMode[\\/]') { 'MyLittleFarm.EditModeTests' }
         elseif ($file.FullName -match '[\\/]Tests[\\/]PlayMode[\\/]') { 'MyLittleFarm.PlayModeTests' }
         else { 'MyLittleFarm.Runtime' }
@@ -34,11 +55,14 @@ foreach ($file in $files) {
 }
 if ($errors.Count -gt 0) { $errors | ForEach-Object { Write-Output $_ }; throw 'C# syntax errors found.' }
 Write-Output "PASS: C# 9 syntax and assembly ownership for $($files.Count) scripts."
+Write-Output "PASS: all $($files.Count) scripts contain explanatory summary comments."
 
+# Эти файлы не зависят от UnityEngine и компилируются как настоящая доменная реализация.
 $domain = @('Gameplay/Building/BuildingDefinition.cs', 'Gameplay/Building/BuildingRuntimeState.cs',
     'Gameplay/Building/BuildingLayout.cs', 'Tests/EditMode/BuildingContractChecks.cs') |
     ForEach-Object { Join-Path $gameRoot $_ }
 Add-Type -Path $domain
+# assertions подтверждает объём реально выполненных контрактных проверок.
 $assertions = [MyLittleFarm.Tests.EditMode.BuildingContractChecks]::Run()
 Write-Output "PASS: actual building domain compiled; $assertions assertions, including 1000 deterministic random operations."
 Write-Output 'NOT RUN: Unity assembly compilation, EditMode/PlayMode tests, rendering and input. These require Unity Editor.'

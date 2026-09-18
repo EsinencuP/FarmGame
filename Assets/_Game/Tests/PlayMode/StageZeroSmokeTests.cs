@@ -12,11 +12,14 @@ using UnityEngine.TestTools;
 
 namespace MyLittleFarm.Tests.PlayMode
 {
+    /// <summary>Дымовые тесты подтверждают, что Stage 0 собирается в связный игровой цикл.</summary>
     public sealed class StageZeroSmokeTests : FarmPlayModeFixture
     {
+        /// <summary>Проходит путь обработки земли, посадки, сбора, продажи и восстановления снимка.</summary>
         [UnityTest]
         public IEnumerator Prototype_CompletesFarmSellAndSaveRestoreLoop()
         {
+            // Farm уже создан изолированной фикстурой; повторный вызов проверяет идемпотентность bootstrap.
             yield return null;
 
             var bootstrap = Farm;
@@ -27,6 +30,7 @@ namespace MyLittleFarm.Tests.PlayMode
                 Has.Length.EqualTo(1),
                 "Bootstrap must be idempotent");
 
+            // Ищем все основные системы, чтобы ранняя ошибка сборки давала точное сообщение теста.
             var grid = UnityEngine.Object.FindFirstObjectByType<GridSystem>();
             var soil = UnityEngine.Object.FindFirstObjectByType<SoilSystem>();
             var crops = UnityEngine.Object.FindFirstObjectByType<CropSystem>();
@@ -60,6 +64,7 @@ namespace MyLittleFarm.Tests.PlayMode
             selector.RefreshSelection();
             Assert.That(selector.HasSelection, Is.True);
 
+            // Посадка датируется прошлым, чтобы в том же тесте получить зрелый урожай.
             var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
             var position = selector.SelectedPosition;
             Assert.That(interaction.InteractWithCell(position, now - 9_000), Is.True, "Till soil");
@@ -81,6 +86,7 @@ namespace MyLittleFarm.Tests.PlayMode
             Assert.That(snapshot.saveVersion, Is.EqualTo(SaveSystem.CurrentSaveVersion));
         }
 
+        /// <summary>Проверяет запись файла и восстановление всех данных фермы и игрока.</summary>
         [UnityTest]
         public IEnumerator SaveFile_RestoresGridCropInventoryMoneyAndPlayer()
         {
@@ -93,6 +99,7 @@ namespace MyLittleFarm.Tests.PlayMode
             var wallet = UnityEngine.Object.FindFirstObjectByType<WalletSystem>();
             var player = UnityEngine.Object.FindFirstObjectByType<PlayerController>();
             var save = UnityEngine.Object.FindFirstObjectByType<SaveSystem>();
+            // Уникальный временный путь исключает влияние параллельных и прошлых запусков теста.
             var path = Path.Combine(Application.temporaryCachePath, $"stage-zero-{Guid.NewGuid():N}.json");
 
             try
@@ -132,6 +139,7 @@ namespace MyLittleFarm.Tests.PlayMode
 
         private static void DeleteIfPresent(string path)
         {
+            // Удаляет только явно переданный тестовый файл, если он был создан.
             if (File.Exists(path))
             {
                 File.Delete(path);

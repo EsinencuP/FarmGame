@@ -4,8 +4,10 @@ using UnityEngine;
 
 namespace MyLittleFarm.Tests.EditMode
 {
+    /// <summary>Проверяет атомарность и сохранность данных инвентаря, кошелька и продажи.</summary>
     public sealed class EconomyTests
     {
+        /// <summary>Переполнение баланса не должно удалять урожай или менять деньги.</summary>
         [Test]
         public void OverflowDoesNotLoseCropsOrChangeWallet()
         {
@@ -27,6 +29,7 @@ namespace MyLittleFarm.Tests.EditMode
             finally { Object.DestroyImmediate(root); }
         }
 
+        /// <summary>Обычная продажа удаляет весь товар и начисляет точную стоимость.</summary>
         [Test]
         public void SellingCarrots_RemovesItemsAndAddsCoins()
         {
@@ -53,6 +56,7 @@ namespace MyLittleFarm.Tests.EditMode
             }
         }
 
+        /// <summary>Снимок инвентаря восстанавливает оба количества после промежуточных изменений.</summary>
         [Test]
         public void InventoryCaptureAndRestore_PreservesCounts()
         {

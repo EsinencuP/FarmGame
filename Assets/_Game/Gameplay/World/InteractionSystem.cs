@@ -6,11 +6,17 @@ using UnityEngine;
 
 namespace MyLittleFarm.Gameplay.World
 {
+    /// <summary>
+    /// Координатор обычного действия игрока: продажа, сбор урожая, обработка земли и посадка.
+    /// Сам не хранит состояние, а вызывает специализированные системы в нужном порядке.
+    /// </summary>
     [DefaultExecutionOrder(-50)]
     public sealed class InteractionSystem : MonoBehaviour
     {
+        // Максимальная горизонтальная дистанция до стационарной или построенной точки продажи.
         private const float SellingDistance = 2.4f;
 
+        // Зависимости предоставляют ввод, положение игрока, выбранную клетку и игровые данные.
         private InputReader _input;
         private Transform _player;
         private Transform _saleCrate;
@@ -20,10 +26,13 @@ namespace MyLittleFarm.Gameplay.World
         private CropSystem _crops;
         private InventorySystem _inventory;
         private SellingSystem _selling;
+        // Ограничивает перестроение текста подсказки десятью разами в секунду.
         private float _nextPromptAt;
 
+        /// <summary>Актуальная подсказка, которую отображает InteractionPromptUI.</summary>
         public string CurrentPrompt { get; private set; } = string.Empty;
 
+        /// <summary>Подключает все системы, необходимые для обработки контекстного действия.</summary>
         public void Configure(
             InputReader input,
             Transform player,
@@ -48,6 +57,7 @@ namespace MyLittleFarm.Gameplay.World
 
         private void Update()
         {
+            // Строительный режим полностью перехватывает ту же кнопку взаимодействия.
             if (_input == null || _input.BuildModeActive || _input.SuppressGameplayThisFrame) return;
             if (Time.unscaledTime >= _nextPromptAt || _input.InteractPressed)
             {
@@ -62,6 +72,7 @@ namespace MyLittleFarm.Gameplay.World
 
         public bool Interact(long nowUnixMs)
         {
+            // Продажа рядом с торговой точкой имеет приоритет над действием с клеткой.
             if (_input != null && (_input.BuildModeActive || _input.SuppressGameplayThisFrame)) return false;
             if (IsNearSaleCrate())
             {
@@ -78,6 +89,7 @@ namespace MyLittleFarm.Gameplay.World
 
         public bool InteractWithCell(Vector2Int position, long nowUnixMs)
         {
+            // Постройка или отсутствующая клетка запрещают земледельческое действие.
             if (_input != null && _input.BuildModeActive) return false;
             if (_grid.IsOccupied(position) || !_grid.TryGetCell(position, out var cell))
             {
@@ -86,6 +98,7 @@ namespace MyLittleFarm.Gameplay.World
 
             if (_crops.TryGet(position, out var crop))
             {
+                // Растение имеет первый приоритет: зрелое собирается, незрелое остаётся на месте.
                 if (_inventory.GetAmount(InventorySystem.CarrotId) > int.MaxValue - CropSystem.PrototypeYield) return false;
                 if (!_crops.TryHarvest(position, nowUnixMs, out var yield))
                 {
@@ -99,6 +112,7 @@ namespace MyLittleFarm.Gameplay.World
 
             if (cell.State == GridCellState.Soil)
             {
+                // Первое действие переводит исходную землю в обработанную.
                 var tilled = _soil.Till(position);
                 if (tilled)
                 {
@@ -110,6 +124,7 @@ namespace MyLittleFarm.Gameplay.World
 
             if (cell.State == GridCellState.Tilled)
             {
+                // Семя снимается перед посадкой и возвращается, если посадка неожиданно не удалась.
                 if (!_inventory.TryRemove(InventorySystem.CarrotSeedId, 1))
                 {
                     GameEvents.RaiseStatusChanged("Семена закончились");
@@ -130,6 +145,7 @@ namespace MyLittleFarm.Gameplay.World
 
         private string BuildPrompt()
         {
+            // Формирует текст по тому же приоритету, что и реальное действие, чтобы подсказка не вводила в заблуждение.
             if (IsNearSaleCrate())
             {
                 var amount = _inventory.GetAmount(InventorySystem.CarrotId);
@@ -166,6 +182,7 @@ namespace MyLittleFarm.Gameplay.World
 
         private bool IsNearSaleCrate()
         {
+            // Построенная торговая стойка и исходный ящик используют одно правило дистанции по плоскости XZ.
             if (_player != null && _grid.Buildings != null && _grid.Buildings.IsNearMarket(_player.position, SellingDistance)) return true;
             if (_player == null || _saleCrate == null)
             {

@@ -3,9 +3,11 @@ using UnityEngine;
 
 namespace MyLittleFarm.Gameplay.World
 {
+    /// <summary>Удерживает изометрическую камеру вокруг игрока и обрабатывает поворот и масштаб.</summary>
     [RequireComponent(typeof(Camera))]
     public sealed class IsometricCameraController : MonoBehaviour
     {
+        // Input задаёт команды, target — игрок, yaw — угол вокруг него, distance — масштаб обзора.
         private InputReader _input;
         private Transform _target;
         private float _yaw = 45f;
@@ -13,6 +15,7 @@ namespace MyLittleFarm.Gameplay.World
 
         public void Configure(InputReader input, Transform target)
         {
+            // После получения цели камера сразу занимает правильное положение без первого скачка.
             _input = input;
             _target = target;
             SnapToTarget();
@@ -20,6 +23,7 @@ namespace MyLittleFarm.Gameplay.World
 
         private void LateUpdate()
         {
+            // LateUpdate выполняется после движения игрока, поэтому камера следует за актуальной позицией.
             if (_input == null || _target == null)
             {
                 return;
@@ -42,6 +46,7 @@ namespace MyLittleFarm.Gameplay.World
 
         private void SnapToTarget()
         {
+            // Камера смотрит немного выше основания игрока под постоянным углом 38 градусов.
             var lookPoint = _target.position + Vector3.up * 0.8f;
             var rotation = Quaternion.Euler(38f, _yaw, 0f);
             transform.position = lookPoint + rotation * (Vector3.back * _distance);
@@ -49,4 +54,3 @@ namespace MyLittleFarm.Gameplay.World
         }
     }
 }
-

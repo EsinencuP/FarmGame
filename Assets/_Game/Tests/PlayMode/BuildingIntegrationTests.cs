@@ -12,19 +12,24 @@ using UnityEngine.TestTools;
 
 namespace MyLittleFarm.Tests.PlayMode
 {
+    /// <summary>Проверяет совместную работу строительства с физикой, экономикой, фермой и сохранением.</summary>
     public sealed class BuildingIntegrationTests : FarmPlayModeFixture
     {
+        /// <summary>Ищет систему внутри изолированного корня текущего теста.</summary>
         private T System<T>() where T : Component => Farm.GetComponentInChildren<T>();
 
+        /// <summary>Проверяет полный цикл постройки, переноса, отмены, удаления и восстановления.</summary>
         [UnityTest]
         public IEnumerator PlacementMoveCancelDeleteAndSavePreserveEconomyAndTerrain()
         {
+            // Все зависимости извлекаются из одного созданного bootstrap-объекта.
             var build = System<BuildSystem>();
             var wallet = System<WalletSystem>();
             var grid = System<GridSystem>();
             var soil = System<SoilSystem>();
             var crops = System<CropSystem>();
             var save = System<SaveSystem>();
+            // Origin — исходный угол дома размером 2x2 клетки.
             var origin = new Vector2Int(0, 3);
             Assert.That(soil.Till(origin), Is.True);
             Assert.That(build.TryPlace("house", origin, 0, out var reason), Is.True, reason);
@@ -47,10 +52,12 @@ namespace MyLittleFarm.Tests.PlayMode
             build.SetActive(false);
             Assert.That(wallet.Coins, Is.EqualTo(5), "Move and cancellation are free");
 
+            // Отдельная клетка с культурой проверяет конфликт строительства и земледелия.
             var cropCell = new Vector2Int(6, 6);
             soil.Till(cropCell);
             crops.Plant(cropCell, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
             Assert.That(build.TryPlace("flowerbed", cropCell, 0, out _), Is.False, "Crops block placement");
+            // Snapshot также используется для искусственного создания повреждённого дубликата.
             var snapshot = save.Capture();
             var path = Path.Combine(Application.temporaryCachePath, "building-test-" + Guid.NewGuid().ToString("N") + ".json");
             try
@@ -79,6 +86,7 @@ namespace MyLittleFarm.Tests.PlayMode
             yield return null;
         }
 
+        /// <summary>Игрок и произвольный коллайдер должны запретить покупку без списания денег.</summary>
         [UnityTest]
         public IEnumerator PlayerAndExternalObstaclesBlockPlacementWithoutCharging()
         {
@@ -97,6 +105,7 @@ namespace MyLittleFarm.Tests.PlayMode
             yield return null;
         }
 
+        /// <summary>Подтверждает снятие старой подсветки и повторное использование общих материалов.</summary>
         [UnityTest]
         public IEnumerator SelectionClearsPreviousTileAndMaterialsAreShared()
         {
@@ -113,6 +122,7 @@ namespace MyLittleFarm.Tests.PlayMode
             yield return null;
         }
 
+        /// <summary>Проверяет миграцию версии 1 и принцип «проверить до изменения мира».</summary>
         [UnityTest]
         public IEnumerator LegacySaveLoadsAndInvalidSaveLeavesWorldIntact()
         {
