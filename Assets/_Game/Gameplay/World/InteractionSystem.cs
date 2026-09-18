@@ -1,0 +1,180 @@
+using System;
+using MyLittleFarm.Core;
+using MyLittleFarm.Gameplay.Economy;
+using MyLittleFarm.Gameplay.Farming;
+using UnityEngine;
+
+namespace MyLittleFarm.Gameplay.World
+{
+    [DefaultExecutionOrder(-50)]
+    public sealed class InteractionSystem : MonoBehaviour
+    {
+        private const float SellingDistance = 2.4f;
+
+        private InputReader _input;
+        private Transform _player;
+        private Transform _saleCrate;
+        private CellSelector _selector;
+        private GridSystem _grid;
+        private SoilSystem _soil;
+        private CropSystem _crops;
+        private InventorySystem _inventory;
+        private SellingSystem _selling;
+        private float _nextPromptAt;
+
+        public string CurrentPrompt { get; private set; } = string.Empty;
+
+        public void Configure(
+            InputReader input,
+            Transform player,
+            Transform saleCrate,
+            CellSelector selector,
+            GridSystem grid,
+            SoilSystem soil,
+            CropSystem crops,
+            InventorySystem inventory,
+            SellingSystem selling)
+        {
+            _input = input;
+            _player = player;
+            _saleCrate = saleCrate;
+            _selector = selector;
+            _grid = grid;
+            _soil = soil;
+            _crops = crops;
+            _inventory = inventory;
+            _selling = selling;
+        }
+
+        private void Update()
+        {
+            if (_input == null || _input.BuildModeActive || _input.SuppressGameplayThisFrame) return;
+            if (Time.unscaledTime >= _nextPromptAt || _input.InteractPressed)
+            {
+                CurrentPrompt = BuildPrompt();
+                _nextPromptAt = Time.unscaledTime + 0.1f;
+            }
+            if (_input != null && _input.InteractPressed)
+            {
+                Interact(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
+            }
+        }
+
+        public bool Interact(long nowUnixMs)
+        {
+            if (_input != null && (_input.BuildModeActive || _input.SuppressGameplayThisFrame)) return false;
+            if (IsNearSaleCrate())
+            {
+                return _selling.SellAllCarrots() > 0;
+            }
+
+            if (!_selector.HasSelection)
+            {
+                return false;
+            }
+
+            return InteractWithCell(_selector.SelectedPosition, nowUnixMs);
+        }
+
+        public bool InteractWithCell(Vector2Int position, long nowUnixMs)
+        {
+            if (_input != null && _input.BuildModeActive) return false;
+            if (_grid.IsOccupied(position) || !_grid.TryGetCell(position, out var cell))
+            {
+                return false;
+            }
+
+            if (_crops.TryGet(position, out var crop))
+            {
+                if (_inventory.GetAmount(InventorySystem.CarrotId) > int.MaxValue - CropSystem.PrototypeYield) return false;
+                if (!_crops.TryHarvest(position, nowUnixMs, out var yield))
+                {
+                    return false;
+                }
+
+                _inventory.Add(InventorySystem.CarrotId, yield);
+                GameEvents.RaiseStatusChanged($"Собрано: {yield} моркови");
+                return true;
+            }
+
+            if (cell.State == GridCellState.Soil)
+            {
+                var tilled = _soil.Till(position);
+                if (tilled)
+                {
+                    GameEvents.RaiseStatusChanged("Земля обработана");
+                }
+
+                return tilled;
+            }
+
+            if (cell.State == GridCellState.Tilled)
+            {
+                if (!_inventory.TryRemove(InventorySystem.CarrotSeedId, 1))
+                {
+                    GameEvents.RaiseStatusChanged("Семена закончились");
+                    return false;
+                }
+
+                if (_crops.Plant(position, nowUnixMs))
+                {
+                    GameEvents.RaiseStatusChanged("Морковь посажена");
+                    return true;
+                }
+
+                _inventory.Add(InventorySystem.CarrotSeedId, 1);
+            }
+
+            return false;
+        }
+
+        private string BuildPrompt()
+        {
+            if (IsNearSaleCrate())
+            {
+                var amount = _inventory.GetAmount(InventorySystem.CarrotId);
+                return amount > 0
+                    ? $"E / ЛКМ — продать всю морковь ({amount})"
+                    : "Ящик продажи — урожая пока нет";
+            }
+
+            if (!_selector.HasSelection || !_grid.TryGetCell(_selector.SelectedPosition, out var cell))
+            {
+                return "Подойдите к грядке";
+            }
+
+            if (_crops.TryGet(_selector.SelectedPosition, out var crop))
+            {
+                return crop.IsMature(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds())
+                    ? "E / ЛКМ — собрать морковь"
+                    : $"Морковь растёт — {Mathf.RoundToInt(crop.GetGrowthRatio(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()) * 100f)}%";
+            }
+
+            if (_grid.IsOccupied(_selector.SelectedPosition) || cell.State == GridCellState.Blocked)
+                return "Клетка занята  B — строительство";
+
+            if (cell.State == GridCellState.Soil)
+            {
+                return "E / ЛКМ — обработать землю";
+            }
+
+            var seeds = _inventory.GetAmount(InventorySystem.CarrotSeedId);
+            return seeds > 0
+                ? $"E / ЛКМ — посадить морковь  Семена: {seeds}"
+                : "Семена закончились";
+        }
+
+        private bool IsNearSaleCrate()
+        {
+            if (_player != null && _grid.Buildings != null && _grid.Buildings.IsNearMarket(_player.position, SellingDistance)) return true;
+            if (_player == null || _saleCrate == null)
+            {
+                return false;
+            }
+
+            var offset = _player.position - _saleCrate.position;
+            offset.y = 0f;
+            return offset.sqrMagnitude <= SellingDistance * SellingDistance;
+        }
+    }
+}

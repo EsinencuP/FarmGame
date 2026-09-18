@@ -1,0 +1,24 @@
+{
+  "name": "MyLittleFarm.EditModeTests",
+  "rootNamespace": "MyLittleFarm.Tests.EditMode",
+  "references": [
+    "MyLittleFarm.Runtime"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": false,
+  "defineConstraints": [
+    "UNITY_INCLUDE_TESTS"
+  ],
+  "versionDefines": [],
+  "noEngineReferences": false,
+  "optionalUnityReferences": [
+    "TestAssemblies"
+  ]
+}
+

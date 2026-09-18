@@ -1,0 +1,22 @@
+{
+  "name": "MyLittleFarm.PlayModeTests",
+  "rootNamespace": "MyLittleFarm.Tests.PlayMode",
+  "references": [
+    "MyLittleFarm.Runtime"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": false,
+  "defineConstraints": [
+    "UNITY_INCLUDE_TESTS"
+  ],
+  "versionDefines": [],
+  "noEngineReferences": false,
+  "optionalUnityReferences": [
+    "TestAssemblies"
+  ]
+}
+
