@@ -48,7 +48,8 @@ foreach ($file in $files) {
     if ($assembly.Count -ne 1) { throw "No unique assembly owner: $($file.FullName)" }
     $definition = Get-Content -LiteralPath $assembly[0].FullName -Raw | ConvertFrom-Json
     # Ожидаемая сборка зависит от расположения runtime, EditMode или PlayMode-файла.
-    $expected = if ($file.FullName -match '[\\/]Tests[\\/]EditMode[\\/]') { 'MyLittleFarm.EditModeTests' }
+    $expected = if ($file.FullName -match '[\\/]Editor[\\/]') { 'MyLittleFarm.Editor' }
+        elseif ($file.FullName -match '[\\/]Tests[\\/]EditMode[\\/]') { 'MyLittleFarm.EditModeTests' }
         elseif ($file.FullName -match '[\\/]Tests[\\/]PlayMode[\\/]') { 'MyLittleFarm.PlayModeTests' }
         else { 'MyLittleFarm.Runtime' }
     if ($definition.name -ne $expected) { throw "Wrong assembly for $($file.Name): $($definition.name)" }
@@ -56,6 +57,17 @@ foreach ($file in $files) {
 if ($errors.Count -gt 0) { $errors | ForEach-Object { Write-Output $_ }; throw 'C# syntax errors found.' }
 Write-Output "PASS: C# 9 syntax and assembly ownership for $($files.Count) scripts."
 Write-Output "PASS: all $($files.Count) scripts contain explanatory summary comments."
+
+# Рабочий bootstrap не должен снова получить автоматический runtime-генератор всей сцены.
+$bootstrapSource = [IO.File]::ReadAllText((Join-Path $gameRoot 'Core/GameBootstrap.cs'))
+if ($bootstrapSource -match 'RuntimeInitializeOnLoadMethod\(RuntimeInitializeLoadType\.AfterSceneLoad\)') {
+    throw 'GameBootstrap must bind baked objects instead of generating the scene after load.'
+}
+$bakerPath = Join-Path $gameRoot 'Editor/PrototypeSceneBaker.cs'
+if (-not (Test-Path -LiteralPath $bakerPath)) {
+    throw 'Prototype scene baker is missing.'
+}
+Write-Output 'PASS: runtime scene auto-generation is disabled and the Edit Mode baker is present.'
 
 # Эти файлы не зависят от UnityEngine и компилируются как настоящая доменная реализация.
 $domain = @('Gameplay/Building/BuildingDefinition.cs', 'Gameplay/Building/BuildingRuntimeState.cs',

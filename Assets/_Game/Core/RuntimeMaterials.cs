@@ -26,7 +26,11 @@ namespace MyLittleFarm.Core
         {
             // Находит владельца кэша в корне объекта и назначает sharedMaterial без копирования.
             var owner = renderer.GetComponentInParent<RuntimeMaterials>();
-            if (owner == null) owner = renderer.transform.root.gameObject.AddComponent<RuntimeMaterials>();
+            if (owner == null)
+            {
+                throw new MissingComponentException(
+                    $"{renderer.name} has no RuntimeMaterials owner in its parent hierarchy.");
+            }
             renderer.sharedMaterial = owner.Get(color);
         }
 

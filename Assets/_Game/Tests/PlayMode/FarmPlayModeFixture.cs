@@ -31,8 +31,9 @@ namespace MyLittleFarm.Tests.PlayMode
             }
             _testScene = SceneManager.CreateScene("Farm test " + Guid.NewGuid().ToString("N"));
             SceneManager.SetActiveScene(_testScene);
-            // A non-Prototype scene does not start persistence or read the player's save.
+            // Пустая тестовая сцена явно вызывает генератор и не читает пользовательское сохранение.
             Farm = new GameObject("Test Farm").AddComponent<GameBootstrap>();
+            Farm.BuildPrototype();
             yield return null;
         }
 

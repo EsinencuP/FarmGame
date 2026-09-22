@@ -19,8 +19,17 @@ namespace MyLittleFarm.Gameplay.World
         private float _verticalVelocity;
         private GridSystem _grid;
 
-        /// <summary>Горизонтальная скорость персонажа в мировых единицах за секунду.</summary>
-        public float MoveSpeed { get; set; } = 4.5f;
+        // Параметры сериализуются, поэтому после выгрузки сцены настраиваются через Inspector.
+        [SerializeField, Min(0f)] private float walkSpeed = 4.5f;
+        [SerializeField, Min(0f)] private float runSpeed = 7.5f;
+        [SerializeField, Min(0f)] private float jumpHeight = 1.35f;
+
+        /// <summary>Скорость обычного движения в мировых единицах за секунду.</summary>
+        public float WalkSpeed { get => walkSpeed; set => walkSpeed = Mathf.Max(0f, value); }
+        /// <summary>Скорость при удержании Shift.</summary>
+        public float RunSpeed { get => runSpeed; set => runSpeed = Mathf.Max(0f, value); }
+        /// <summary>Высота прыжка, из которой рассчитывается начальная вертикальная скорость.</summary>
+        public float JumpHeight { get => jumpHeight; set => jumpHeight = Mathf.Max(0f, value); }
 
         /// <summary>Получает ввод и локальные компоненты после создания игрока.</summary>
         public void Configure(InputReader input)
@@ -67,8 +76,22 @@ namespace MyLittleFarm.Gameplay.World
                     14f * Time.deltaTime);
             }
 
-            _verticalVelocity = _controller.isGrounded ? -1f : _verticalVelocity + Gravity * Time.deltaTime;
-            var velocity = move * MoveSpeed + Vector3.up * _verticalVelocity;
+            // На земле небольшая отрицательная скорость удерживает CharacterController в контакте с поверхностью.
+            var isGrounded = _controller.isGrounded;
+            if (isGrounded && _verticalVelocity < 0f)
+            {
+                _verticalVelocity = -2f;
+            }
+
+            // Прыжок выключен в режиме строительства вместе с горизонтальным управлением.
+            if (isGrounded && _input.JumpPressed && !_input.BuildModeActive && !_input.SuppressGameplayThisFrame)
+            {
+                _verticalVelocity = Mathf.Sqrt(JumpHeight * -2f * Gravity);
+            }
+
+            _verticalVelocity += Gravity * Time.deltaTime;
+            var horizontalSpeed = _input.SprintHeld ? RunSpeed : WalkSpeed;
+            var velocity = move * horizontalSpeed + Vector3.up * _verticalVelocity;
             _controller.Move(velocity * Time.deltaTime);
             if (_grid != null)
             {

@@ -110,6 +110,7 @@ namespace MyLittleFarm.Tests.PlayMode
         public IEnumerator SelectionClearsPreviousTileAndMaterialsAreShared()
         {
             var grid = System<GridSystem>();
+            var selector = System<CellSelector>();
             grid.TryGetCell(new Vector2Int(0, 0), out var first);
             grid.TryGetCell(new Vector2Int(1, 0), out var second);
             grid.TryGetCell(new Vector2Int(2, 0), out var untouched);
@@ -119,6 +120,23 @@ namespace MyLittleFarm.Tests.PlayMode
             Assert.That(second.Renderer.sharedMaterial, Is.Not.SameAs(first.Renderer.sharedMaterial));
             grid.Select(null);
             Assert.That(second.Renderer.sharedMaterial, Is.SameAs(first.Renderer.sharedMaterial));
+
+            // Выбор мировой точки проверяет тот же финальный шаг, который использует луч от курсора.
+            var hoveredPosition = new Vector2Int(4, 5);
+            Assert.That(selector.SelectWorldPoint(grid.CellToWorld(hoveredPosition)), Is.True);
+            Assert.That(selector.SelectedPosition, Is.EqualTo(hoveredPosition));
+            Assert.That(selector.SelectWorldPoint(new Vector3(1000f, 0f, 1000f)), Is.False);
+            yield return null;
+        }
+
+        /// <summary>Выгруженные клетки содержат сериализуемые координаты для повторного подключения.</summary>
+        [UnityTest]
+        public IEnumerator GeneratedFixtureContainsPersistentGridMarkers()
+        {
+            var grid = System<GridSystem>();
+            var markers = grid.GetComponentsInChildren<GridCellView>(true);
+            Assert.That(markers, Has.Length.EqualTo(grid.Width * grid.Height));
+            Assert.That(markers[0].GetComponent<Renderer>(), Is.Not.Null);
             yield return null;
         }
 

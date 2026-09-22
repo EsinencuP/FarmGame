@@ -10,8 +10,8 @@ using UnityEngine.UI;
 namespace MyLittleFarm.Core
 {
     /// <summary>
-    /// Точка сборки прототипа: создаёт системы, игровые объекты и передаёт зависимости между ними.
-    /// Сцена остаётся минимальной, потому что вся конфигурация Stage 0 формируется во время запуска.
+    /// Точка подключения прототипа: в Play Mode связывает объекты, уже сохранённые в сцене.
+    /// Создание и выгрузка иерархии выполняются заранее редакторским PrototypeSceneBaker.
     /// </summary>
     public sealed class GameBootstrap : MonoBehaviour
     {
@@ -23,31 +23,42 @@ namespace MyLittleFarm.Core
         // Защищает от повторного создания объектов при повторном вызове BuildPrototype.
         private bool _isBuilt;
 
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
-        private static void EnsurePrototypeExists()
+        private void Awake()
         {
-            // Автоматически создаёт корень только в рабочей сцене Prototype и не вмешивается в тестовые сцены.
-            if (SceneManager.GetActiveScene().name != "Prototype") return;
-            if (FindFirstObjectByType<GameBootstrap>() != null)
+            // В рабочей сцене Play Mode разрешено только подключение уже выгруженной иерархии.
+            if (!Application.isPlaying)
             {
                 return;
             }
 
-            var root = new GameObject("My Little Farm — Stage 0");
-            root.AddComponent<GameBootstrap>();
+            if (GetComponentInChildren<GridSystem>(true) != null)
+            {
+                InitializeBakedScene();
+            }
+            else if (SceneManager.GetActiveScene().name == "Prototype")
+            {
+                Debug.LogError(
+                    "Prototype scene is not baked. Use Tools/My Little Farm/Bake Prototype Scene in Edit Mode.",
+                    this);
+            }
         }
 
-        private void Awake()
-        {
-            // Unity вызывает Awake один раз после появления компонента в сцене.
-            BuildPrototype();
-        }
-
+        /// <summary>
+        /// Создаёт иерархию только для редакторской выгрузки и изолированных тестов.
+        /// Рабочая сцена не вызывает этот метод при обычном запуске.
+        /// </summary>
         public void BuildPrototype()
         {
             // Порядок важен: сначала источники данных, потом объекты, которые на них ссылаются.
             if (_isBuilt)
             {
+                return;
+            }
+
+            // Если сцена уже выгружена, метод становится безопасным повторным подключением без дубликатов.
+            if (GetComponentInChildren<GridSystem>(true) != null)
+            {
+                InitializeBakedScene();
                 return;
             }
 
@@ -57,7 +68,7 @@ namespace MyLittleFarm.Core
 
             var input = gameObject.AddComponent<InputReader>();
             var grid = CreateSystem<GridSystem>("Grid System");
-            grid.Configure(GridWidth, GridHeight, CellSize);
+            grid.Configure(GridWidth, GridHeight, CellSize, true);
 
             var inventory = CreateSystem<InventorySystem>("Inventory System");
             inventory.ConfigurePrototypeInventory();
@@ -78,10 +89,10 @@ namespace MyLittleFarm.Core
             player.SetCamera(cameraController.transform);
 
             var buildings = CreateSystem<BuildSystem>("Building System");
-            buildings.Configure(input, grid, crops, wallet, cameraController.GetComponent<Camera>());
+            buildings.Configure(input, grid, crops, wallet, cameraController.GetComponent<Camera>(), true);
 
             var selector = CreateSystem<CellSelector>("Cell Selector");
-            selector.Configure(grid, player.transform);
+            selector.Configure(grid, player.transform, input, cameraController.GetComponent<Camera>());
             var saleCrate = CreateSaleCrate(new Vector3(2.5f, 0.55f, -7f));
             saleCrate.SetParent(transform, true);
 
@@ -102,7 +113,10 @@ namespace MyLittleFarm.Core
 
             CreateHud(inventory, wallet, interaction, buildings);
             GameEvents.RaiseStatusChanged("Прототип готов: обработайте клетку перед персонажем");
-            if (SceneManager.GetActiveScene().name == "Prototype") saveSystem.StartPersistence();
+            if (Application.isPlaying && SceneManager.GetActiveScene().name == "Prototype")
+            {
+                saveSystem.StartPersistence();
+            }
         }
 
         private T CreateSystem<T>(string objectName) where T : Component
@@ -199,7 +213,7 @@ namespace MyLittleFarm.Core
             SetRect(stats.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(38f, -34f), new Vector2(300f, 150f));
 
             var help = CreateText(canvasObject.transform, "Help", 21, TextAnchor.UpperRight, Color.white);
-            help.text = "WASD — движение   Q / Shift+E — камера   Колесо — zoom\nE / ЛКМ — действие   B — строительство   F5 — сохранить   F9 — загрузить";
+            help.text = "WASD — движение   Shift — бег   Space — прыжок   Q / Shift+E — камера\nE / ЛКМ — действие   B — строительство   F5 — сохранить   F9 — загрузить";
             SetRect(help.rectTransform, new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-32f, -28f), new Vector2(800f, 70f));
 
             var prompt = CreateText(canvasObject.transform, "Interaction Prompt", 24, TextAnchor.MiddleCenter, Color.white);
@@ -259,6 +273,115 @@ namespace MyLittleFarm.Core
             rect.pivot = anchorMin == anchorMax ? anchorMin : new Vector2(0.5f, 0.5f);
             rect.anchoredPosition = anchoredPosition;
             rect.sizeDelta = size;
+        }
+
+        /// <summary>Находит сохранённые компоненты сцены и заново передаёт все runtime-зависимости.</summary>
+        private void InitializeBakedScene()
+        {
+            if (_isBuilt)
+            {
+                return;
+            }
+
+            _isBuilt = true;
+            RequireComponent<RuntimeMaterials>(gameObject);
+            var input = RequireComponent<InputReader>(gameObject);
+            var grid = RequireChild<GridSystem>();
+            grid.Configure(GridWidth, GridHeight, CellSize);
+
+            var inventory = RequireChild<InventorySystem>();
+            inventory.ConfigurePrototypeInventory();
+            var wallet = RequireChild<WalletSystem>();
+            wallet.Configure(25);
+            var selling = RequireChild<SellingSystem>();
+            selling.Configure(inventory, wallet);
+
+            var soil = RequireChild<SoilSystem>();
+            soil.Configure(grid);
+            var crops = RequireChild<CropSystem>();
+            crops.Configure(grid);
+            var player = RequireChild<PlayerController>();
+            player.Configure(input);
+            RuntimeMaterials.Paint(player.GetComponent<Renderer>(), new Color(0.20f, 0.46f, 0.82f));
+            var cameraController = RequireChild<IsometricCameraController>();
+            cameraController.Configure(input, player.transform);
+            player.SetCamera(cameraController.transform);
+
+            var buildings = RequireChild<BuildSystem>();
+            buildings.Configure(input, grid, crops, wallet, cameraController.GetComponent<Camera>());
+            var selector = RequireChild<CellSelector>();
+            selector.Configure(grid, player.transform, input, cameraController.GetComponent<Camera>());
+            var saleCrate = FindNamedTransform("Sale Crate");
+            RuntimeMaterials.Paint(saleCrate.GetComponent<Renderer>(), new Color(0.88f, 0.52f, 0.12f));
+
+            var interaction = RequireChild<InteractionSystem>();
+            interaction.Configure(input, player.transform, saleCrate, selector, grid, soil, crops, inventory, selling);
+            var saveSystem = RequireChild<SaveSystem>();
+            saveSystem.Configure(input, player, grid, crops, inventory, wallet, buildings);
+
+            var hud = RequireChild<HUDController>();
+            hud.Configure(inventory, wallet, FindNamedComponent<Text>("Stats"), FindNamedComponent<Text>("Status"));
+            RequireChild<InteractionPromptUI>().Configure(
+                interaction,
+                FindNamedComponent<Text>("Interaction Prompt"),
+                buildings);
+
+            GameEvents.RaiseStatusChanged("Прототип готов: наведите курсор на клетку");
+            if (Application.isPlaying && SceneManager.GetActiveScene().name == "Prototype")
+            {
+                saveSystem.StartPersistence();
+            }
+        }
+
+        /// <summary>Возвращает обязательный компонент на корне или сообщает о повреждённой выгрузке.</summary>
+        private static T RequireComponent<T>(GameObject owner) where T : Component
+        {
+            var component = owner.GetComponent<T>();
+            if (component == null)
+            {
+                throw new MissingComponentException($"Baked scene is missing {typeof(T).Name} on {owner.name}.");
+            }
+
+            return component;
+        }
+
+        /// <summary>Возвращает обязательный компонент из дочерней иерархии, включая выключенные объекты.</summary>
+        private T RequireChild<T>() where T : Component
+        {
+            var component = GetComponentInChildren<T>(true);
+            if (component == null)
+            {
+                throw new MissingComponentException($"Baked scene is missing {typeof(T).Name}.");
+            }
+
+            return component;
+        }
+
+        /// <summary>Находит дочерний Transform по сохранённому имени объекта.</summary>
+        private Transform FindNamedTransform(string objectName)
+        {
+            foreach (var child in GetComponentsInChildren<Transform>(true))
+            {
+                if (child.name == objectName)
+                {
+                    return child;
+                }
+            }
+
+            throw new MissingReferenceException($"Baked scene is missing object '{objectName}'.");
+        }
+
+        /// <summary>Находит компонент нужного типа на дочернем объекте с заданным именем.</summary>
+        private T FindNamedComponent<T>(string objectName) where T : Component
+        {
+            var target = FindNamedTransform(objectName);
+            var component = target.GetComponent<T>();
+            if (component == null)
+            {
+                throw new MissingComponentException($"Object '{objectName}' is missing {typeof(T).Name}.");
+            }
+
+            return component;
         }
     }
 }

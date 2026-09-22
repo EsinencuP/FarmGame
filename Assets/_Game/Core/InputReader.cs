@@ -12,6 +12,9 @@ namespace MyLittleFarm.Core
     {
         // Непрерывные значения управления, которые действуют всё время удержания клавиши или движения мыши.
         public Vector2 Movement { get; private set; }
+        // SprintHeld действует всё время удержания Shift, JumpPressed — один кадр нажатия пробела.
+        public bool SprintHeld { get; private set; }
+        public bool JumpPressed { get; private set; }
         public float ZoomDelta { get; private set; }
         public float OrbitDelta { get; private set; }
         // Однокадровые команды: true только в кадре, когда соответствующая кнопка была нажата.
@@ -66,6 +69,8 @@ namespace MyLittleFarm.Core
                 : 0f;
 
             var shift = keyboard != null && (keyboard.leftShiftKey.isPressed || keyboard.rightShiftKey.isPressed);
+            SprintHeld = shift;
+            JumpPressed = keyboard != null && keyboard.spaceKey.wasPressedThisFrame;
             InteractPressed = (keyboard != null && keyboard.eKey.wasPressedThisFrame && !shift)
                 || (mouse != null && mouse.leftButton.wasPressedThisFrame);
             RotateLeftPressed = keyboard != null && keyboard.qKey.wasPressedThisFrame;

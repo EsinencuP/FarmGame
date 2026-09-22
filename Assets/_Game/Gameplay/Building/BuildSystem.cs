@@ -52,23 +52,43 @@ namespace MyLittleFarm.Gameplay.Building
         public BuildingDefinition SelectedDefinition => BuildingDefinition.Catalog[_selected];
 
         /// <summary>Подключает зависимости, создаёт пустой layout и объект предпросмотра.</summary>
-        public void Configure(InputReader input, GridSystem grid, CropSystem crops, WalletSystem wallet, Camera camera)
+        public void Configure(
+            InputReader input,
+            GridSystem grid,
+            CropSystem crops,
+            WalletSystem wallet,
+            Camera camera,
+            bool allowSceneCreation = false)
         {
             _input = input; _grid = grid; _crops = crops; _wallet = wallet; _camera = camera;
             _layout = NewLayout();
             _blocked = IsTerrainBlocked;
             grid.Buildings = this;
-            _preview = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            // При запуске выгруженной сцены переиспользуем сохранённый preview; создаём его только при выгрузке/в тесте.
+            var existingPreview = transform.Find("Building preview");
+            if (existingPreview == null && !allowSceneCreation)
+            {
+                throw new InvalidOperationException("Baked building preview is missing. Rebuild Prototype scene in Edit Mode.");
+            }
+            _preview = existingPreview == null ? GameObject.CreatePrimitive(PrimitiveType.Cube) : existingPreview.gameObject;
             _preview.name = "Building preview";
             _preview.transform.SetParent(transform, false);
             RuntimeMaterials.RemoveCollider(_preview);
             _previewRenderer = _preview.GetComponent<Renderer>();
             // Материалы предпросмотра создаются один раз и затем переключаются без аллокаций.
             var materials = GetComponentInParent<RuntimeMaterials>();
-            if (materials == null) materials = transform.root.gameObject.AddComponent<RuntimeMaterials>();
+            if (materials == null)
+            {
+                throw new MissingComponentException("Building System has no RuntimeMaterials owner.");
+            }
             _validPreviewMaterial = materials.Get(new Color(0.25f, 0.9f, 0.35f));
             _invalidPreviewMaterial = materials.Get(new Color(0.95f, 0.20f, 0.16f));
-            var front = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            var existingFront = _preview.transform.Find("Preview front");
+            if (existingFront == null && !allowSceneCreation)
+            {
+                throw new InvalidOperationException("Baked preview direction marker is missing.");
+            }
+            var front = existingFront == null ? GameObject.CreatePrimitive(PrimitiveType.Cube) : existingFront.gameObject;
             front.name = "Preview front";
             front.transform.SetParent(_preview.transform, false);
             front.transform.localPosition = new Vector3(0, 0.55f, -0.46f);

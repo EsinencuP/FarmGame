@@ -41,7 +41,7 @@ namespace MyLittleFarm.Gameplay.World
             return position;
         }
 
-        public void Configure(int width, int height, float cellSize)
+        public void Configure(int width, int height, float cellSize, bool allowSceneCreation = false)
         {
             // Повторная конфигурация запрещена, иначе словарь и визуальные клетки разойдутся.
             if (_cells.Count != 0) throw new System.InvalidOperationException("Grid is already configured.");
@@ -52,6 +52,44 @@ namespace MyLittleFarm.Gameplay.World
             _cellSize = cellSize;
             _origin = new Vector3(-width * cellSize * 0.5f, 0f, -height * cellSize * 0.5f);
 
+            // В выгруженной сцене клетки уже существуют и несут координаты в GridCellView.
+            var existingViews = GetComponentsInChildren<GridCellView>(true);
+            if (existingViews.Length > 0)
+            {
+                foreach (var view in existingViews)
+                {
+                    if (!_cells.TryAdd(view.Position, new GridCell(view.Position, view.State, view.gameObject)))
+                    {
+                        throw new System.InvalidOperationException($"Duplicate grid cell {view.Position}.");
+                    }
+
+                    RuntimeMaterials.Paint(view.GetComponent<Renderer>(),
+                        view.State == GridCellState.Tilled ? TilledColor : SoilColor);
+                }
+
+                if (_cells.Count != width * height)
+                {
+                    throw new System.InvalidOperationException(
+                        $"Baked grid contains {_cells.Count} cells instead of {width * height}.");
+                }
+
+                // Рамка не входит в словарь клеток, поэтому её материал восстанавливается отдельно.
+                var border = transform.Find("Farm Grid/Grass Border");
+                if (border != null && border.TryGetComponent<Renderer>(out var borderRenderer))
+                {
+                    RuntimeMaterials.Paint(borderRenderer, new Color(0.24f, 0.45f, 0.18f));
+                }
+
+                return;
+            }
+
+            if (!allowSceneCreation)
+            {
+                throw new System.InvalidOperationException(
+                    "Baked grid objects are missing. Rebuild Prototype scene in Edit Mode.");
+            }
+
+            // Создание разрешено только editor baker и тестовой фикстуре.
             var root = new GameObject("Farm Grid").transform;
             root.SetParent(transform, false);
 
@@ -68,6 +106,7 @@ namespace MyLittleFarm.Gameplay.World
                     tile.transform.localScale = new Vector3(cellSize - 0.06f, 0.14f, cellSize - 0.06f);
                     RuntimeMaterials.Paint(tile.GetComponent<Renderer>(), SoilColor);
                     RuntimeMaterials.RemoveCollider(tile);
+                    tile.AddComponent<GridCellView>().Configure(position, GridCellState.Soil);
                     _cells.Add(position, new GridCell(position, GridCellState.Soil, tile));
                 }
             }

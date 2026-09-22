@@ -61,7 +61,7 @@ namespace MyLittleFarm.Tests.PlayMode
 
             player.Teleport(grid.CellToWorld(new Vector2Int(0, 0)) + Vector3.up * 1.1f);
             player.transform.rotation = Quaternion.LookRotation(Vector3.forward, Vector3.up);
-            selector.RefreshSelection();
+            selector.SelectWorldPoint(player.transform.position + player.transform.forward * 1.35f);
             Assert.That(selector.HasSelection, Is.True);
 
             // Посадка датируется прошлым, чтобы в том же тесте получить зрелый урожай.
