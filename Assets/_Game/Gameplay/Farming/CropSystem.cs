@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using MyLittleFarm.Gameplay.World;
+using MyLittleFarm.Core.Grid;
 using UnityEngine;
 
 namespace MyLittleFarm.Gameplay.Farming
@@ -53,9 +53,7 @@ namespace MyLittleFarm.Gameplay.Farming
         public bool Plant(Vector2Int position, long plantedAtUnixMs)
         {
             // Посадка допустима на свободной обработанной клетке без существующего посева.
-            if (_grid.IsOccupied(position) || _crops.ContainsKey(position)
-                || !_grid.TryGetCell(position, out var cell)
-                || cell.State != GridCellState.Tilled)
+            if (_crops.ContainsKey(position) || !_grid.CanPlant(position))
             {
                 return false;
             }
@@ -70,6 +68,8 @@ namespace MyLittleFarm.Gameplay.Farming
                 stageCount = 3
             };
             AddCrop(crop);
+            _grid.SetCellType(position, CellType.Planted);
+            _grid.SetCellOccupant(position, CropOccupantId(position));
             return true;
         }
 
@@ -89,6 +89,8 @@ namespace MyLittleFarm.Gameplay.Farming
                 Destroy(view.gameObject);
             }
 
+            _grid.SetCellOccupant(position, null);
+            _grid.SetCellType(position, CellType.Tilled);
             yield = PrototypeYield;
             return true;
         }
@@ -124,7 +126,8 @@ namespace MyLittleFarm.Gameplay.Farming
 
             foreach (var crop in crops)
             {
-                if (_grid.TryGetCell(crop.Position, out var cell) && cell.State == GridCellState.Tilled)
+                if (_grid.GetCellType(crop.Position) == CellType.Planted
+                    && _grid.GetCell(crop.Position).occupantId == CropOccupantId(crop.Position))
                 {
                     AddCrop(new CropRuntimeState { x = crop.x, z = crop.z, cropId = crop.cropId,
                         plantedAtUnixMs = crop.plantedAtUnixMs, growDurationSeconds = crop.growDurationSeconds, stageCount = crop.stageCount });
@@ -155,6 +158,9 @@ namespace MyLittleFarm.Gameplay.Farming
             _views.Add(crop.Position, view);
             view.SetStage(crop.GetStage(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()), crop.stageCount);
         }
+
+        /// <summary>Строит стабильный ID владельца клетки для связи разреженного грида с CropSystem.</summary>
+        public static string CropOccupantId(Vector2Int position) => $"crop:{position.x}:{position.y}";
 
         private void RefreshViews(long nowUnixMs)
         {

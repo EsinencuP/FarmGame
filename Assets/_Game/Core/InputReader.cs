@@ -26,6 +26,9 @@ namespace MyLittleFarm.Core
         public bool DeleteBuildingPressed { get; private set; }
         public bool CancelPressed { get; private set; }
         public bool ConfirmPressed { get; private set; }
+        // SprintHeld действует при удержании Shift, JumpPressed — только в кадре нажатия пробела.
+        public bool SprintHeld { get; private set; }
+        public bool JumpPressed { get; private set; }
         // Индекс выбранной постройки: 0–3 для клавиш 1–4, -1 если выбор не менялся.
         public int BuildSelection { get; private set; } = -1;
         // Текущая экранная позиция указателя нужна строительной системе для луча из камеры.
@@ -66,6 +69,8 @@ namespace MyLittleFarm.Core
                 : 0f;
 
             var shift = keyboard != null && (keyboard.leftShiftKey.isPressed || keyboard.rightShiftKey.isPressed);
+            SprintHeld = shift;
+            JumpPressed = keyboard != null && keyboard.spaceKey.wasPressedThisFrame;
             InteractPressed = (keyboard != null && keyboard.eKey.wasPressedThisFrame && !shift)
                 || (mouse != null && mouse.leftButton.wasPressedThisFrame);
             RotateLeftPressed = keyboard != null && keyboard.qKey.wasPressedThisFrame;
@@ -86,4 +91,3 @@ namespace MyLittleFarm.Core
         }
     }
 }
-

@@ -1,4 +1,4 @@
-using MyLittleFarm.Gameplay.World;
+using MyLittleFarm.Core.Grid;
 using UnityEngine;
 
 namespace MyLittleFarm.Gameplay.Farming
@@ -17,13 +17,13 @@ namespace MyLittleFarm.Gameplay.Farming
 
         public bool Till(Vector2Int position)
         {
-            // Обработать можно только свободную клетку в исходном состоянии Soil.
-            if (_grid.IsOccupied(position) || !_grid.TryGetCell(position, out var cell) || cell.State != GridCellState.Soil)
+            // GridSystem одновременно проверяет тип клетки и отсутствие владельца.
+            if (!_grid.CanTill(position))
             {
                 return false;
             }
 
-            _grid.SetCellState(position, GridCellState.Tilled);
+            _grid.SetCellType(position, CellType.Tilled);
             return true;
         }
     }

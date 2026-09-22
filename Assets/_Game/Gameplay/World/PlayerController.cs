@@ -11,23 +11,24 @@ namespace MyLittleFarm.Gameplay.World
         // Постоянное ускорение вниз имитирует гравитацию CharacterController.
         private const float Gravity = -20f;
 
-        // Зависимости предоставляют команды, физическое движение, ориентацию камеры и границы мира.
+        // Зависимости предоставляют команды, физическое движение и ориентацию камеры.
         private InputReader _input;
         private CharacterController _controller;
         private Transform _cameraTransform;
         // Вертикальная скорость накапливает действие гравитации между кадрами.
         private float _verticalVelocity;
-        private GridSystem _grid;
+        [SerializeField, Min(0.1f)] private float walkSpeed = 4.5f;
+        [SerializeField, Min(0.1f)] private float runSpeed = 7.5f;
+        [SerializeField, Min(0.1f)] private float jumpHeight = 1.35f;
 
-        /// <summary>Горизонтальная скорость персонажа в мировых единицах за секунду.</summary>
-        public float MoveSpeed { get; set; } = 4.5f;
+        /// <summary>Обычная горизонтальная скорость в мировых единицах за секунду.</summary>
+        public float MoveSpeed { get => walkSpeed; set => walkSpeed = value; }
 
         /// <summary>Получает ввод и локальные компоненты после создания игрока.</summary>
         public void Configure(InputReader input)
         {
             _input = input;
             _controller = GetComponent<CharacterController>();
-            _grid = GetComponentInParent<GameBootstrap>()?.GetComponentInChildren<GridSystem>();
         }
 
         public void SetCamera(Transform cameraTransform)
@@ -67,14 +68,21 @@ namespace MyLittleFarm.Gameplay.World
                     14f * Time.deltaTime);
             }
 
-            _verticalVelocity = _controller.isGrounded ? -1f : _verticalVelocity + Gravity * Time.deltaTime;
-            var velocity = move * MoveSpeed + Vector3.up * _verticalVelocity;
-            _controller.Move(velocity * Time.deltaTime);
-            if (_grid != null)
+            // Небольшая отрицательная скорость удерживает контроллер на земле; прыжок задаёт скорость из высоты.
+            if (_controller.isGrounded)
             {
-                var safePosition = _grid.ClampToGround(transform.position);
-                if (safePosition != transform.position) Teleport(safePosition);
+                _verticalVelocity = -1f;
+                if (_input.JumpPressed && !_input.BuildModeActive && !_input.SuppressGameplayThisFrame)
+                    _verticalVelocity = Mathf.Sqrt(jumpHeight * -2f * Gravity);
             }
+            else
+            {
+                _verticalVelocity += Gravity * Time.deltaTime;
+            }
+
+            var horizontalSpeed = _input.SprintHeld ? runSpeed : walkSpeed;
+            var velocity = move * horizontalSpeed + Vector3.up * _verticalVelocity;
+            _controller.Move(velocity * Time.deltaTime);
         }
 
         public void Teleport(Vector3 position)
@@ -87,5 +95,3 @@ namespace MyLittleFarm.Gameplay.World
         }
     }
 }
-
-

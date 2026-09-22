@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using MyLittleFarm.Gameplay.Farming;
 using MyLittleFarm.Gameplay.World;
 using MyLittleFarm.Gameplay.Building;
+using MyLittleFarm.Core.Grid;
 
 namespace MyLittleFarm.Core
 {
@@ -18,6 +19,8 @@ namespace MyLittleFarm.Core
         public PlayerPositionData player = new PlayerPositionData();
         public int coins;
         public List<InventoryEntryData> inventory = new List<InventoryEntryData>();
+        public GridSaveData grid = new GridSaveData();
+        // gridCells читается только при миграции файлов версий 1–2 со старой фиксированной сетки.
         public List<GridCellSaveData> gridCells = new List<GridCellSaveData>();
         public List<CropRuntimeState> crops = new List<CropRuntimeState>();
         public List<BuildingRuntimeState> buildings = new List<BuildingRuntimeState>();

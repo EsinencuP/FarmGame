@@ -3,6 +3,7 @@ using MyLittleFarm.Gameplay.Building;
 using UnityEngine.SceneManagement;
 using MyLittleFarm.Gameplay.Farming;
 using MyLittleFarm.Gameplay.World;
+using MyLittleFarm.Core.Grid;
 using MyLittleFarm.UI;
 using UnityEngine;
 using UnityEngine.UI;
@@ -15,10 +16,10 @@ namespace MyLittleFarm.Core
     /// </summary>
     public sealed class GameBootstrap : MonoBehaviour
     {
-        // Базовые размеры участка задаются централизованно для сетки и всех зависящих систем.
-        private const int GridWidth = 8;
-        private const int GridHeight = 8;
-        private const float CellSize = 1.5f;
+        // Геометрия стартового чанка должна совпадать с размером tilemap-блока сцены.
+        private const int ChunkSizeX = 10;
+        private const int ChunkSizeZ = 10;
+        private const float CellSize = 1f;
 
         // Защищает от повторного создания объектов при повторном вызове BuildPrototype.
         private bool _isBuilt;
@@ -68,7 +69,9 @@ namespace MyLittleFarm.Core
 
             var input = gameObject.AddComponent<InputReader>();
             var grid = CreateSystem<GridSystem>("Grid System");
-            grid.Configure(GridWidth, GridHeight, CellSize, true);
+            grid.Configure(CellSize, ChunkSizeX, ChunkSizeZ, true);
+            CreateStartChunk(transform);
+            grid.RegisterSceneChunks(GetComponentsInChildren<TilemapChunk>(true));
 
             var inventory = CreateSystem<InventorySystem>("Inventory System");
             inventory.ConfigurePrototypeInventory();
@@ -93,7 +96,7 @@ namespace MyLittleFarm.Core
 
             var selector = CreateSystem<CellSelector>("Cell Selector");
             selector.Configure(grid, player.transform, input, cameraController.GetComponent<Camera>());
-            var saleCrate = CreateSaleCrate(new Vector3(2.5f, 0.55f, -7f));
+            var saleCrate = CreateSaleCrate(new Vector3(8.5f, 0.55f, 1.5f));
             saleCrate.SetParent(transform, true);
 
             var interaction = CreateSystem<InteractionSystem>("Interaction System");
@@ -175,6 +178,26 @@ namespace MyLittleFarm.Core
             crate.transform.localScale = new Vector3(1.7f, 1.1f, 1.4f);
             RuntimeMaterials.Paint(crate.GetComponent<Renderer>(), new Color(0.88f, 0.52f, 0.12f));
             return crate.transform;
+        }
+
+        /// <summary>
+        /// Создаёт один стартовый ассет-блок для editor baker и тестовой сцены. В Play Mode
+        /// рабочая сцена использует уже сохранённый объект и этот метод не вызывается.
+        /// </summary>
+        private static void CreateStartChunk(Transform parent)
+        {
+            var chunkObject = new GameObject("TileBlock_Start");
+            chunkObject.transform.SetParent(parent, false);
+            chunkObject.transform.position = Vector3.zero;
+            chunkObject.AddComponent<TilemapChunk>();
+
+            // Дочерний куб имитирует tilemap-ассет: pivot родителя остаётся в нижнем левом углу чанка.
+            var surface = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            surface.name = "Terrain Surface";
+            surface.transform.SetParent(chunkObject.transform, false);
+            surface.transform.localPosition = new Vector3(ChunkSizeX * CellSize * 0.5f, -0.25f, ChunkSizeZ * CellSize * 0.5f);
+            surface.transform.localScale = new Vector3(ChunkSizeX * CellSize, 0.5f, ChunkSizeZ * CellSize);
+            RuntimeMaterials.Paint(surface.GetComponent<Renderer>(), new Color(0.24f, 0.45f, 0.18f));
         }
 
         private static void CreateLighting(Transform parent)
@@ -287,7 +310,8 @@ namespace MyLittleFarm.Core
             RequireComponent<RuntimeMaterials>(gameObject);
             var input = RequireComponent<InputReader>(gameObject);
             var grid = RequireChild<GridSystem>();
-            grid.Configure(GridWidth, GridHeight, CellSize);
+            grid.Configure(CellSize, ChunkSizeX, ChunkSizeZ);
+            grid.RegisterSceneChunks(GetComponentsInChildren<TilemapChunk>(true));
 
             var inventory = RequireChild<InventorySystem>();
             inventory.ConfigurePrototypeInventory();

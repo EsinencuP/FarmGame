@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.IO;
 using MyLittleFarm.Core;
+using MyLittleFarm.Core.Grid;
 using MyLittleFarm.Gameplay.Economy;
 using MyLittleFarm.Gameplay.Farming;
 using MyLittleFarm.Gameplay.World;
@@ -15,6 +16,25 @@ namespace MyLittleFarm.Tests.PlayMode
     /// <summary>Дымовые тесты подтверждают, что Stage 0 собирается в связный игровой цикл.</summary>
     public sealed class StageZeroSmokeTests : FarmPlayModeFixture
     {
+        /// <summary>Проверяет отрицательные координаты, границы чанков и незагруженную область мира.</summary>
+        [UnityTest]
+        public IEnumerator GridV2_ConvertsNegativeCoordinatesAndStoresOnlyLoadedChunks()
+        {
+            yield return null;
+            var grid = UnityEngine.Object.FindFirstObjectByType<GridSystem>();
+            var negativeWorld = new Vector3(-0.01f, 0f, -10.01f);
+            var cell = grid.WorldToGrid(negativeWorld);
+            Assert.That(cell, Is.EqualTo(new Vector2Int(-1, -11)));
+            Assert.That(grid.GridToChunk(cell), Is.EqualTo(new Vector2Int(-1, -2)));
+            Assert.That(grid.GridToLocalCell(cell), Is.EqualTo(new Vector2Int(9, 9)));
+            Assert.That(grid.ChunkLocalToGrid(grid.GridToChunk(cell), grid.GridToLocalCell(cell)), Is.EqualTo(cell));
+            Assert.That(grid.GetCellType(cell), Is.EqualTo(CellType.OutOfBounds));
+
+            grid.InitializeChunk(new Vector2Int(-1, -2), CellType.Dirt);
+            Assert.That(grid.GetCellType(cell), Is.EqualTo(CellType.Dirt));
+            Assert.That(grid.CanTill(cell), Is.True);
+        }
+
         /// <summary>Проходит путь обработки земли, посадки, сбора, продажи и восстановления снимка.</summary>
         [UnityTest]
         public IEnumerator Prototype_CompletesFarmSellAndSaveRestoreLoop()
@@ -45,8 +65,9 @@ namespace MyLittleFarm.Tests.PlayMode
             var hud = UnityEngine.Object.FindFirstObjectByType<HUDController>();
 
             Assert.That(grid, Is.Not.Null);
-            Assert.That(grid.Width, Is.EqualTo(8));
-            Assert.That(grid.Height, Is.EqualTo(8));
+            Assert.That(grid.ChunkSizeX, Is.EqualTo(10));
+            Assert.That(grid.ChunkSizeZ, Is.EqualTo(10));
+            Assert.That(grid.LoadedChunkCount, Is.EqualTo(1));
             Assert.That(soil, Is.Not.Null);
             Assert.That(crops, Is.Not.Null);
             Assert.That(inventory, Is.Not.Null);
@@ -73,7 +94,7 @@ namespace MyLittleFarm.Tests.PlayMode
             Assert.That(inventory.GetAmount(InventorySystem.CarrotId), Is.EqualTo(CropSystem.PrototypeYield));
 
             var coinsBeforeSale = wallet.Coins;
-            player.Teleport(new Vector3(2.5f, 1.1f, -7f));
+            player.Teleport(new Vector3(8.5f, 1.1f, 1.5f));
             Assert.That(interaction.Interact(now), Is.True, "Sell harvested crop");
             Assert.That(wallet.Coins, Is.GreaterThan(coinsBeforeSale));
 
@@ -110,13 +131,13 @@ namespace MyLittleFarm.Tests.PlayMode
                 Assert.That(crops.Plant(plantedPosition, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()), Is.True);
                 inventory.Add(InventorySystem.CarrotId, 3);
                 wallet.SetCoins(73);
-                player.Teleport(new Vector3(1.5f, 1.1f, -2.5f));
+                player.Teleport(new Vector3(1.5f, 1.1f, 2.5f));
 
                 Assert.That(save.SaveToPath(path), Is.True);
                 Assert.That(File.Exists(path), Is.True);
 
                 crops.ClearAll();
-                grid.Restore(null);
+                grid.Deserialize(null);
                 inventory.Restore(null);
                 wallet.SetCoins(0);
                 player.Teleport(Vector3.zero);
@@ -126,8 +147,8 @@ namespace MyLittleFarm.Tests.PlayMode
                 Assert.That(inventory.GetAmount(InventorySystem.CarrotId), Is.EqualTo(3));
                 Assert.That(crops.Contains(plantedPosition), Is.True);
                 Assert.That(grid.TryGetCell(plantedPosition, out var cell), Is.True);
-                Assert.That(cell.State, Is.EqualTo(GridCellState.Tilled));
-                Assert.That(player.transform.position, Is.EqualTo(new Vector3(1.5f, 1.1f, -2.5f)));
+                Assert.That(cell.type, Is.EqualTo(CellType.Planted));
+                Assert.That(player.transform.position, Is.EqualTo(new Vector3(1.5f, 1.1f, 2.5f)));
             }
             finally
             {

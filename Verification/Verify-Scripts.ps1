@@ -69,6 +69,23 @@ if (-not (Test-Path -LiteralPath $bakerPath)) {
 }
 Write-Output 'PASS: runtime scene auto-generation is disabled and the Edit Mode baker is present.'
 
+# GridSystem v2 обязан жить в Core/Grid и выбирать поверхность без аллокаций через RaycastNonAlloc.
+$gridPath = Join-Path $gameRoot 'Core/Grid/GridSystem.cs'
+$selectorPath = Join-Path $gameRoot 'Core/Grid/CellSelector.cs'
+$chunkPath = Join-Path $gameRoot 'Core/Grid/TilemapChunk.cs'
+foreach ($requiredPath in @($gridPath, $selectorPath, $chunkPath)) {
+    if (-not (Test-Path -LiteralPath $requiredPath)) { throw "GridSystem v2 script is missing: $requiredPath" }
+}
+$gridSource = [IO.File]::ReadAllText($gridPath)
+$selectorSource = [IO.File]::ReadAllText($selectorPath)
+if ($gridSource -notmatch 'Dictionary<Vector2Int, ChunkData>' -or $gridSource -notmatch 'GridToLocalCell') {
+    throw 'GridSystem v2 chunk storage or negative-coordinate conversion is missing.'
+}
+if ($selectorSource -notmatch 'RaycastNonAlloc' -or $selectorSource -match 'new Plane\(') {
+    throw 'CellSelector must raycast baked TilemapChunk colliders without per-frame allocations.'
+}
+Write-Output 'PASS: world-scale chunk grid and non-allocating terrain selection contracts are present.'
+
 # Эти файлы не зависят от UnityEngine и компилируются как настоящая доменная реализация.
 $domain = @('Gameplay/Building/BuildingDefinition.cs', 'Gameplay/Building/BuildingRuntimeState.cs',
     'Gameplay/Building/BuildingLayout.cs', 'Tests/EditMode/BuildingContractChecks.cs') |

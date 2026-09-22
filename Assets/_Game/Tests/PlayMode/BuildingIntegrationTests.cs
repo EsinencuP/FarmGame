@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.IO;
 using MyLittleFarm.Core;
+using MyLittleFarm.Core.Grid;
 using MyLittleFarm.Gameplay.Building;
 using MyLittleFarm.Gameplay.Economy;
 using MyLittleFarm.Gameplay.Farming;
@@ -31,7 +32,6 @@ namespace MyLittleFarm.Tests.PlayMode
             var save = System<SaveSystem>();
             // Origin — исходный угол дома размером 2x2 клетки.
             var origin = new Vector2Int(0, 3);
-            Assert.That(soil.Till(origin), Is.True);
             Assert.That(build.TryPlace("house", origin, 0, out var reason), Is.True, reason);
             Assert.That(wallet.Coins, Is.EqualTo(5));
             Assert.That(build.Count, Is.EqualTo(1));
@@ -43,10 +43,10 @@ namespace MyLittleFarm.Tests.PlayMode
             Assert.That(wallet.Coins, Is.EqualTo(5));
             var id = build.GetAt(origin).id;
             Assert.That(build.TryMove(id, new Vector2Int(1, 3), 1, out reason), Is.True, reason);
-            Assert.That(build.TryMove(id, new Vector2Int(7, 7), 0, out _), Is.False);
+            Assert.That(build.TryMove(id, new Vector2Int(10, 10), 0, out _), Is.False, "Unloaded chunk blocks placement");
             Assert.That(grid.IsOccupied(origin), Is.False);
             Assert.That(grid.TryGetCell(origin, out var underlying), Is.True);
-            Assert.That(underlying.State, Is.EqualTo(GridCellState.Tilled), "Moving preserves underlying terrain");
+            Assert.That(underlying.type, Is.EqualTo(CellType.Grass), "Moving frees the old footprint");
             Assert.That(build.GetAt(new Vector2Int(1, 3)).quarterTurns, Is.EqualTo(1));
             build.SetActive(true);
             build.SetActive(false);
@@ -105,21 +105,19 @@ namespace MyLittleFarm.Tests.PlayMode
             yield return null;
         }
 
-        /// <summary>Подтверждает снятие старой подсветки и повторное использование общих материалов.</summary>
+        /// <summary>Подтверждает перемещение единого маркера подсветки между клетками.</summary>
         [UnityTest]
         public IEnumerator SelectionClearsPreviousTileAndMaterialsAreShared()
         {
             var grid = System<GridSystem>();
             var selector = System<CellSelector>();
-            grid.TryGetCell(new Vector2Int(0, 0), out var first);
-            grid.TryGetCell(new Vector2Int(1, 0), out var second);
-            grid.TryGetCell(new Vector2Int(2, 0), out var untouched);
-            grid.Select(first.Position);
-            grid.Select(second.Position);
-            Assert.That(first.Renderer.sharedMaterial, Is.SameAs(untouched.Renderer.sharedMaterial));
-            Assert.That(second.Renderer.sharedMaterial, Is.Not.SameAs(first.Renderer.sharedMaterial));
+            var marker = grid.transform.Find("Cell Selection").gameObject;
+            grid.Select(new Vector2Int(0, 0));
+            Assert.That(marker.activeSelf, Is.True);
+            grid.Select(new Vector2Int(1, 0));
+            Assert.That(marker.transform.position.x, Is.EqualTo(1.5f).Within(0.001f));
             grid.Select(null);
-            Assert.That(second.Renderer.sharedMaterial, Is.SameAs(first.Renderer.sharedMaterial));
+            Assert.That(marker.activeSelf, Is.False);
 
             // Выбор мировой точки проверяет тот же финальный шаг, который использует луч от курсора.
             var hoveredPosition = new Vector2Int(4, 5);
@@ -129,14 +127,15 @@ namespace MyLittleFarm.Tests.PlayMode
             yield return null;
         }
 
-        /// <summary>Выгруженные клетки содержат сериализуемые координаты для повторного подключения.</summary>
+        /// <summary>Выгруженная сцена содержит постоянный TilemapChunk с физической поверхностью.</summary>
         [UnityTest]
         public IEnumerator GeneratedFixtureContainsPersistentGridMarkers()
         {
             var grid = System<GridSystem>();
-            var markers = grid.GetComponentsInChildren<GridCellView>(true);
-            Assert.That(markers, Has.Length.EqualTo(grid.Width * grid.Height));
-            Assert.That(markers[0].GetComponent<Renderer>(), Is.Not.Null);
+            var chunks = Farm.GetComponentsInChildren<TilemapChunk>(true);
+            Assert.That(chunks, Has.Length.EqualTo(1));
+            Assert.That(chunks[0].GetComponentInChildren<Collider>(), Is.Not.Null);
+            Assert.That(grid.LoadedChunkCount, Is.EqualTo(1));
             yield return null;
         }
 
@@ -157,6 +156,7 @@ namespace MyLittleFarm.Tests.PlayMode
             Assert.Throws<InvalidDataException>(() => save.Restore(invalid));
             Assert.That(wallet.Coins, Is.EqualTo(25));
             invalid = save.Capture();
+            invalid.saveVersion = 2;
             invalid.gridCells.Add(new GridCellSaveData { x = 0, z = 0, state = (GridCellState)999 });
             Assert.Throws<InvalidDataException>(() => save.Restore(invalid));
             yield return null;

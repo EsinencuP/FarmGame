@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using MyLittleFarm.Core;
+using MyLittleFarm.Gameplay.Building;
 using UnityEngine;
 
 namespace MyLittleFarm.Core.Grid
@@ -41,6 +42,11 @@ namespace MyLittleFarm.Core.Grid
         public int ChunkSizeZ => chunkSizeZ;
         public int LoadedChunkCount => _chunks.Count;
         public Vector2Int? SelectedCell => _selected;
+        // Ссылка позволяет UI и взаимодействию быстро узнать строительный режим и занятость layout.
+        public BuildSystem Buildings { get; internal set; }
+
+        /// <summary>Проверяет клеточную занятость через данные грида, включая культуры и постройки.</summary>
+        public bool IsOccupied(Vector2Int gridPosition) => GetCell(gridPosition).occupantId != null;
 
         /// <summary>Сообщает подписчикам только о фактическом изменении типа клетки.</summary>
         public event Action<Vector2Int, CellType> OnCellChanged;
@@ -61,6 +67,18 @@ namespace MyLittleFarm.Core.Grid
         {
             // Сбрасываем singleton только если уничтожается его текущий владелец.
             if (Instance == this) Instance = null;
+        }
+
+        private void OnDisable()
+        {
+            // Неактивная ферма не должна блокировать GridSystem из другой тестовой или загруженной сцены.
+            if (Instance == this) Instance = null;
+        }
+
+        private void OnEnable()
+        {
+            // При повторном включении объект снова становится доступен сценовым TilemapChunk.
+            if (Instance == null || Instance == this) Instance = this;
         }
 
         /// <summary>
@@ -176,7 +194,9 @@ namespace MyLittleFarm.Core.Grid
         public void RegisterSceneChunk(TilemapChunk sceneChunk)
         {
             if (sceneChunk == null) throw new ArgumentNullException(nameof(sceneChunk));
-            if (!_sceneChunks.Contains(sceneChunk)) _sceneChunks.Add(sceneChunk);
+            // Повторный Start того же компонента не должен сбрасывать уже загруженное сохранение.
+            if (_sceneChunks.Contains(sceneChunk)) return;
+            _sceneChunks.Add(sceneChunk);
             sceneChunk.ApplyTo(this);
         }
 

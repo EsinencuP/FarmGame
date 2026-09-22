@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using MyLittleFarm.Core;
+using MyLittleFarm.Core.Grid;
 using MyLittleFarm.Gameplay.Economy;
 using MyLittleFarm.Gameplay.Farming;
-using MyLittleFarm.Gameplay.World;
 using UnityEngine;
 
 namespace MyLittleFarm.Gameplay.Building
@@ -33,8 +33,6 @@ namespace MyLittleFarm.Gameplay.Building
         private Renderer _previewRenderer;
         private Material _validPreviewMaterial;
         private Material _invalidPreviewMaterial;
-        // Делегат объединяет препятствия земли и посевов с проверками BuildingLayout.
-        private Func<int, int, bool> _blocked;
         // Состояние текущего сеанса строительства и выбранного объекта.
         private int _selected;
         private int _turns;
@@ -62,7 +60,6 @@ namespace MyLittleFarm.Gameplay.Building
         {
             _input = input; _grid = grid; _crops = crops; _wallet = wallet; _camera = camera;
             _layout = NewLayout();
-            _blocked = IsTerrainBlocked;
             grid.Buildings = this;
             // При запуске выгруженной сцены переиспользуем сохранённый preview; создаём его только при выгрузке/в тесте.
             var existingPreview = transform.Find("Building preview");
@@ -98,13 +95,18 @@ namespace MyLittleFarm.Gameplay.Building
             _preview.SetActive(false);
         }
 
-        /// <summary>Создаёт пустую модель размещения с размерами текущей сетки.</summary>
-        private BuildingLayout NewLayout() => new BuildingLayout(_grid.Width, _grid.Height, BuildingDefinition.Catalog);
-        /// <summary>Сообщает layout, занята ли клетка препятствием или растением.</summary>
-        private bool IsTerrainBlocked(int x, int z)
+        /// <summary>Создаёт пустую модель размещения без искусственных границ мира.</summary>
+        private static BuildingLayout NewLayout() => new BuildingLayout(BuildingDefinition.Catalog);
+
+        /// <summary>Сообщает layout, запрещает ли GridSystem строительство на клетке.</summary>
+        private bool IsTerrainBlocked(int x, int z, string ignoreId = null)
         {
             var position = new Vector2Int(x, z);
-            return !_grid.TryGetCell(position, out var cell) || cell.State == GridCellState.Blocked || _crops.Contains(position);
+            var cell = _grid.GetCell(position);
+            // При переносе собственный footprint разрешён, но клетки других владельцев остаются занятыми.
+            if (ignoreId != null && cell.occupantId == ignoreId
+                && (cell.type == CellType.Building || cell.type == CellType.BuildingEdge)) return false;
+            return !_grid.CanBuild(position) || _crops.Contains(position);
         }
 
         /// <summary>Возвращает признак занятости клетки постройкой.</summary>
@@ -216,7 +218,8 @@ namespace MyLittleFarm.Gameplay.Building
         public bool CanPlace(string definitionId, Vector2Int cell, int turns, string ignoreId, out string reason)
         {
             // Сначала выполняется дешёвая клеточная проверка, затем физическая проверка объёмом.
-            if (!_layout.CanPlace(definitionId, cell.x, cell.y, turns, _blocked, ignoreId, out reason)) return false;
+            if (!_layout.CanPlace(definitionId, cell.x, cell.y, turns,
+                    (x, z) => IsTerrainBlocked(x, z, ignoreId), ignoreId, out reason)) return false;
             var definition = _layout.Definition(definitionId);
             var center = BuildingView.Center(cell.x, cell.y, turns, definition, _grid);
             // Учитываем игрока и объекты сцены, но игнорируем переносимую постройку.
@@ -243,8 +246,10 @@ namespace MyLittleFarm.Gameplay.Building
             if (_wallet.Coins < definition.Price) { reason = "Недостаточно монет"; return false; }
             var state = new BuildingRuntimeState { id = Guid.NewGuid().ToString("N"), definitionId = definitionId,
                 x = cell.x, z = cell.y, quarterTurns = turns, paidCost = definition.Price };
-            if (!_layout.TryPlace(state, _blocked, out reason)) return false;
+            if (!_layout.TryPlace(state, (x, z) => IsTerrainBlocked(x, z), out reason)) return false;
             _views.Add(state.id, BuildingView.Create(transform, definition, state, _grid));
+            _grid.OccupyWithBuilding(cell,
+                new Vector2Int(definition.RotatedWidth(turns), definition.RotatedDepth(turns)), state.id);
             _wallet.TrySpend(definition.Price);
             reason = "Постройка размещена";
             return true;
@@ -256,7 +261,13 @@ namespace MyLittleFarm.Gameplay.Building
             var state = _layout.Get(id);
             if (state == null) { reason = "Постройка не найдена"; return false; }
             if (!CanPlace(state.definitionId, cell, turns, id, out reason)
-                || !_layout.TryMove(id, cell.x, cell.y, turns, _blocked, out reason)) return false;
+                || !_layout.TryMove(id, cell.x, cell.y, turns,
+                    (x, z) => IsTerrainBlocked(x, z, id), out reason)) return false;
+            var definition = _layout.Definition(state.definitionId);
+            _grid.FreeBuilding(new Vector2Int(state.x, state.z),
+                new Vector2Int(definition.RotatedWidth(state.quarterTurns), definition.RotatedDepth(state.quarterTurns)), id);
+            _grid.OccupyWithBuilding(cell,
+                new Vector2Int(definition.RotatedWidth(turns), definition.RotatedDepth(turns)), id);
             _views[id].Apply(_layout.Get(id), _layout.Definition(state.definitionId), _grid);
             reason = "Постройка перенесена";
             return true;
@@ -270,6 +281,9 @@ namespace MyLittleFarm.Gameplay.Building
             var refund = state.paidCost / 2;
             if ((long)_wallet.Coins + refund > int.MaxValue) { reason = "Кошелёк заполнен"; return false; }
             _layout.TryRemove(id, out _);
+            var definition = _layout.Definition(state.definitionId);
+            _grid.FreeBuilding(new Vector2Int(state.x, state.z),
+                new Vector2Int(definition.RotatedWidth(state.quarterTurns), definition.RotatedDepth(state.quarterTurns)), id);
             _views[id].gameObject.SetActive(false);
             Destroy(_views[id].gameObject);
             _views.Remove(id);
@@ -291,13 +305,19 @@ namespace MyLittleFarm.Gameplay.Building
             // Сначала целиком собирается кандидат; старые виды удаляются только после его успеха.
             var candidate = NewLayout();
             foreach (var state in states)
-                if (!candidate.TryPlace(state, _blocked, out var reason)) throw new InvalidDataException(reason);
+                if (!candidate.TryPlace(state, (x, z) => IsTerrainBlocked(x, z, state.id), out var reason))
+                    throw new InvalidDataException(reason);
             SetActive(false);
             foreach (var view in _views.Values) { view.gameObject.SetActive(false); Destroy(view.gameObject); }
             _views.Clear();
             _layout = candidate;
             foreach (var state in candidate.Capture())
+            {
+                var definition = candidate.Definition(state.definitionId);
+                _grid.OccupyWithBuilding(new Vector2Int(state.x, state.z),
+                    new Vector2Int(definition.RotatedWidth(state.quarterTurns), definition.RotatedDepth(state.quarterTurns)), state.id);
                 _views.Add(state.id, BuildingView.Create(transform, candidate.Definition(state.definitionId), state, _grid));
+            }
         }
 
         public bool IsNearMarket(Vector3 position, float distance)

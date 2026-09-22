@@ -9,9 +9,6 @@ namespace MyLittleFarm.Gameplay.Building
     /// </summary>
     public sealed class BuildingLayout
     {
-        // Размеры ограничивают допустимую область размещения.
-        private readonly int _width;
-        private readonly int _depth;
         // Каталог описывает типы, buildings хранит экземпляры, occupied быстро находит владельца клетки.
         private readonly Dictionary<string, BuildingDefinition> _definitions = new Dictionary<string, BuildingDefinition>();
         private readonly Dictionary<string, BuildingRuntimeState> _buildings = new Dictionary<string, BuildingRuntimeState>();
@@ -20,11 +17,10 @@ namespace MyLittleFarm.Gameplay.Building
         /// <summary>Количество размещённых экземпляров.</summary>
         public int Count => _buildings.Count;
 
-        /// <summary>Создаёт пустую раскладку указанного размера и копирует ссылки на неизменяемые определения.</summary>
-        public BuildingLayout(int width, int depth, IEnumerable<BuildingDefinition> definitions)
+        /// <summary>Создаёт пустую неограниченную раскладку и копирует ссылки на определения построек.</summary>
+        public BuildingLayout(IEnumerable<BuildingDefinition> definitions)
         {
-            if (width < 1 || depth < 1) throw new ArgumentOutOfRangeException(nameof(width));
-            _width = width; _depth = depth;
+            if (definitions == null) throw new ArgumentNullException(nameof(definitions));
             foreach (var definition in definitions) _definitions.Add(definition.Id, definition);
         }
 
@@ -40,7 +36,7 @@ namespace MyLittleFarm.Gameplay.Building
         /// <summary>Возвращает копию состояния постройки, защищая внутренние данные от внешней мутации.</summary>
         public BuildingRuntimeState Get(string id) => id != null && _buildings.TryGetValue(id, out var value) ? value.Copy() : null;
 
-        /// <summary>Проверяет тип, поворот, границы, внутреннюю занятость и внешние блокирующие условия.</summary>
+        /// <summary>Проверяет тип, поворот, переполнение координат, занятость и внешние условия.</summary>
         public bool CanPlace(string definitionId, int x, int z, int turns, Func<int, int, bool> blocked,
             string ignoreId, out string reason)
         {
@@ -49,8 +45,8 @@ namespace MyLittleFarm.Gameplay.Building
             { reason = "Неизвестный объект или поворот"; return false; }
             var width = definition.RotatedWidth(turns);
             var depth = definition.RotatedDepth(turns);
-            if (x < 0 || z < 0 || width > _width || depth > _depth || x > _width - width || z > _depth - depth)
-            { reason = "За границей участка"; return false; }
+            if ((long)x + width - 1 > int.MaxValue || (long)z + depth - 1 > int.MaxValue)
+            { reason = "Координата постройки слишком велика"; return false; }
             // Каждая клетка прямоугольного следа должна быть свободна.
             for (var dz = 0; dz < depth; dz++)
                 for (var dx = 0; dx < width; dx++)

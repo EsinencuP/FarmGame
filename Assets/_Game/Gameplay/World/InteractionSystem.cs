@@ -1,5 +1,6 @@
 using System;
 using MyLittleFarm.Core;
+using MyLittleFarm.Core.Grid;
 using MyLittleFarm.Gameplay.Economy;
 using MyLittleFarm.Gameplay.Farming;
 using UnityEngine;
@@ -91,7 +92,7 @@ namespace MyLittleFarm.Gameplay.World
         {
             // Постройка или отсутствующая клетка запрещают земледельческое действие.
             if (_input != null && _input.BuildModeActive) return false;
-            if (_grid.IsOccupied(position) || !_grid.TryGetCell(position, out var cell))
+            if (!_grid.TryGetCell(position, out var cell))
             {
                 return false;
             }
@@ -110,7 +111,7 @@ namespace MyLittleFarm.Gameplay.World
                 return true;
             }
 
-            if (cell.State == GridCellState.Soil)
+            if (_grid.CanTill(position))
             {
                 // Первое действие переводит исходную землю в обработанную.
                 var tilled = _soil.Till(position);
@@ -122,7 +123,7 @@ namespace MyLittleFarm.Gameplay.World
                 return tilled;
             }
 
-            if (cell.State == GridCellState.Tilled)
+            if (_grid.CanPlant(position))
             {
                 // Семя снимается перед посадкой и возвращается, если посадка неожиданно не удалась.
                 if (!_inventory.TryRemove(InventorySystem.CarrotSeedId, 1))
@@ -166,18 +167,24 @@ namespace MyLittleFarm.Gameplay.World
                     : $"Морковь растёт — {Mathf.RoundToInt(crop.GetGrowthRatio(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()) * 100f)}%";
             }
 
-            if (_grid.IsOccupied(_selector.SelectedPosition) || cell.State == GridCellState.Blocked)
+            if (cell.occupantId != null || cell.type == CellType.Locked || cell.type == CellType.Water
+                || cell.type == CellType.Rock || cell.type == CellType.Building || cell.type == CellType.BuildingEdge)
                 return "Клетка занята  B — строительство";
 
-            if (cell.State == GridCellState.Soil)
+            if (_grid.CanTill(_selector.SelectedPosition))
             {
                 return "E / ЛКМ — обработать землю";
             }
 
-            var seeds = _inventory.GetAmount(InventorySystem.CarrotSeedId);
-            return seeds > 0
-                ? $"E / ЛКМ — посадить морковь  Семена: {seeds}"
-                : "Семена закончились";
+            if (_grid.CanPlant(_selector.SelectedPosition))
+            {
+                var seeds = _inventory.GetAmount(InventorySystem.CarrotSeedId);
+                return seeds > 0
+                    ? $"E / ЛКМ — посадить морковь  Семена: {seeds}"
+                    : "Семена закончились";
+            }
+
+            return "Для этой клетки пока нет действия";
         }
 
         private bool IsNearSaleCrate()
@@ -195,4 +202,3 @@ namespace MyLittleFarm.Gameplay.World
         }
     }
 }
-

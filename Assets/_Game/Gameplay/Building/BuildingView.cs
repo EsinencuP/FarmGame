@@ -1,5 +1,5 @@
 using MyLittleFarm.Core;
-using MyLittleFarm.Gameplay.World;
+using MyLittleFarm.Core.Grid;
 using UnityEngine;
 
 namespace MyLittleFarm.Gameplay.Building
