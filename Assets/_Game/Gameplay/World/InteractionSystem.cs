@@ -14,8 +14,11 @@ namespace MyLittleFarm.Gameplay.World
     [DefaultExecutionOrder(-50)]
     public sealed class InteractionSystem : MonoBehaviour
     {
-        // Максимальная горизонтальная дистанция до стационарной или построенной точки продажи.
-        private const float SellingDistance = 2.4f;
+        [Header("Interaction")]
+        [Tooltip("Максимальная горизонтальная дистанция до точки продажи.")]
+        [SerializeField, Min(0.1f)] private float sellingDistance = 2.4f;
+        [Tooltip("Интервал пересборки контекстной подсказки в секундах.")]
+        [SerializeField, Min(0.02f)] private float promptRefreshInterval = 0.1f;
 
         // Зависимости предоставляют ввод, положение игрока, выбранную клетку и игровые данные.
         private InputReader _input;
@@ -63,7 +66,7 @@ namespace MyLittleFarm.Gameplay.World
             if (Time.unscaledTime >= _nextPromptAt || _input.InteractPressed)
             {
                 CurrentPrompt = BuildPrompt();
-                _nextPromptAt = Time.unscaledTime + 0.1f;
+                _nextPromptAt = Time.unscaledTime + promptRefreshInterval;
             }
             if (_input != null && _input.InteractPressed)
             {
@@ -100,7 +103,7 @@ namespace MyLittleFarm.Gameplay.World
             if (_crops.TryGet(position, out var crop))
             {
                 // Растение имеет первый приоритет: зрелое собирается, незрелое остаётся на месте.
-                if (_inventory.GetAmount(InventorySystem.CarrotId) > int.MaxValue - CropSystem.PrototypeYield) return false;
+                if (_inventory.GetAmount(InventorySystem.CarrotId) > int.MaxValue - _crops.YieldAmount) return false;
                 if (!_crops.TryHarvest(position, nowUnixMs, out var yield))
                 {
                     return false;
@@ -190,7 +193,8 @@ namespace MyLittleFarm.Gameplay.World
         private bool IsNearSaleCrate()
         {
             // Построенная торговая стойка и исходный ящик используют одно правило дистанции по плоскости XZ.
-            if (_player != null && _grid.Buildings != null && _grid.Buildings.IsNearMarket(_player.position, SellingDistance)) return true;
+            if (_player != null && _grid.Buildings != null
+                && _grid.Buildings.IsNearMarket(_player.position, sellingDistance)) return true;
             if (_player == null || _saleCrate == null)
             {
                 return false;
@@ -198,7 +202,7 @@ namespace MyLittleFarm.Gameplay.World
 
             var offset = _player.position - _saleCrate.position;
             offset.y = 0f;
-            return offset.sqrMagnitude <= SellingDistance * SellingDistance;
+            return offset.sqrMagnitude <= sellingDistance * sellingDistance;
         }
     }
 }

@@ -91,7 +91,7 @@ namespace MyLittleFarm.Tests.PlayMode
             Assert.That(interaction.InteractWithCell(position, now - 9_000), Is.True, "Till soil");
             Assert.That(interaction.InteractWithCell(position, now - 9_000), Is.True, "Plant seed");
             Assert.That(interaction.InteractWithCell(position, now), Is.True, "Harvest mature crop");
-            Assert.That(inventory.GetAmount(InventorySystem.CarrotId), Is.EqualTo(CropSystem.PrototypeYield));
+            Assert.That(inventory.GetAmount(InventorySystem.CarrotId), Is.EqualTo(crops.YieldAmount));
 
             var coinsBeforeSale = wallet.Coins;
             player.Teleport(new Vector3(8.5f, 1.1f, 1.5f));

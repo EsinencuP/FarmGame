@@ -16,10 +16,40 @@ namespace MyLittleFarm.Core
     /// </summary>
     public sealed class GameBootstrap : MonoBehaviour
     {
-        // Геометрия стартового чанка должна совпадать с размером tilemap-блока сцены.
-        private const int ChunkSizeX = 10;
-        private const int ChunkSizeZ = 10;
-        private const float CellSize = 1f;
+        [Header("Prototype World Bake")]
+        [Tooltip("Размер клетки, который будет записан в GridSystem при следующей выгрузке сцены.")]
+        [SerializeField, Min(0.01f)] private float bakedCellSize = 1f;
+        [Tooltip("Ширина стартового чанка в клетках.")]
+        [SerializeField, Min(1)] private int bakedChunkSizeX = 10;
+        [Tooltip("Глубина стартового чанка в клетках.")]
+        [SerializeField, Min(1)] private int bakedChunkSizeZ = 10;
+        [Tooltip("Толщина временной поверхности стартового чанка.")]
+        [SerializeField, Min(0.01f)] private float terrainThickness = 0.5f;
+        [SerializeField] private Color terrainColor = new Color(0.24f, 0.45f, 0.18f);
+
+        [Header("New Game")]
+        [Tooltip("Стартовый баланс до загрузки существующего сохранения.")]
+        [SerializeField, Min(0)] private int startingCoins = 25;
+        [Tooltip("Стартовая клетка персонажа в новой игре.")]
+        [SerializeField] private Vector2Int playerStartCell = new Vector2Int(3, 0);
+        [Tooltip("Высота центра персонажа над плоскостью грида при создании.")]
+        [SerializeField, Min(0f)] private float playerStartHeight = 1.1f;
+        [SerializeField] private Color playerColor = new Color(0.20f, 0.46f, 0.82f);
+        [Tooltip("Мировая позиция стартового ящика продажи.")]
+        [SerializeField] private Vector3 saleCratePosition = new Vector3(8.5f, 0.55f, 1.5f);
+        [SerializeField] private Vector3 saleCrateScale = new Vector3(1.7f, 1.1f, 1.4f);
+        [SerializeField] private Color saleCrateColor = new Color(0.88f, 0.52f, 0.12f);
+
+        [Header("Baked Camera")]
+        [SerializeField, Range(10f, 120f)] private float cameraFieldOfView = 46f;
+        [SerializeField, Min(0.01f)] private float cameraNearClip = 0.1f;
+        [SerializeField, Min(1f)] private float cameraFarClip = 250f;
+        [SerializeField] private Color cameraBackgroundColor = new Color(0.58f, 0.77f, 0.92f);
+
+        [Header("Baked Lighting")]
+        [SerializeField] private Vector3 sunEulerAngles = new Vector3(48f, -32f, 0f);
+        [SerializeField, Min(0f)] private float sunIntensity = 1.25f;
+        [SerializeField] private Color sunColor = new Color(1f, 0.93f, 0.78f);
 
         // Защищает от повторного создания объектов при повторном вызове BuildPrototype.
         private bool _isBuilt;
@@ -69,14 +99,14 @@ namespace MyLittleFarm.Core
 
             var input = gameObject.AddComponent<InputReader>();
             var grid = CreateSystem<GridSystem>("Grid System");
-            grid.Configure(CellSize, ChunkSizeX, ChunkSizeZ, true);
+            grid.Configure(bakedCellSize, bakedChunkSizeX, bakedChunkSizeZ, true);
             CreateStartChunk(transform);
             grid.RegisterSceneChunks(GetComponentsInChildren<TilemapChunk>(true));
 
             var inventory = CreateSystem<InventorySystem>("Inventory System");
             inventory.ConfigurePrototypeInventory();
             var wallet = CreateSystem<WalletSystem>("Wallet System");
-            wallet.Configure(25);
+            wallet.Configure(startingCoins);
             var selling = CreateSystem<SellingSystem>("Selling System");
             selling.Configure(inventory, wallet);
 
@@ -85,7 +115,7 @@ namespace MyLittleFarm.Core
             var crops = CreateSystem<CropSystem>("Crop System");
             crops.Configure(grid);
 
-            var player = CreatePlayer(grid.CellToWorld(new Vector2Int(3, 0)) + Vector3.up * 1.1f, input);
+            var player = CreatePlayer(grid.CellToWorld(playerStartCell) + Vector3.up * playerStartHeight, input);
             player.transform.SetParent(transform, true);
             var cameraController = CreateCamera(input, player.transform);
             cameraController.transform.SetParent(transform, true);
@@ -96,7 +126,7 @@ namespace MyLittleFarm.Core
 
             var selector = CreateSystem<CellSelector>("Cell Selector");
             selector.Configure(grid, player.transform, input, cameraController.GetComponent<Camera>());
-            var saleCrate = CreateSaleCrate(new Vector3(8.5f, 0.55f, 1.5f));
+            var saleCrate = CreateSaleCrate(saleCratePosition);
             saleCrate.SetParent(transform, true);
 
             var interaction = CreateSystem<InteractionSystem>("Interaction System");
@@ -138,7 +168,7 @@ namespace MyLittleFarm.Core
             playerObject.transform.SetParent(transform, false);
             playerObject.transform.position = position;
             RuntimeMaterials.RemoveCollider(playerObject);
-            RuntimeMaterials.Paint(playerObject.GetComponent<Renderer>(), new Color(0.20f, 0.46f, 0.82f));
+            RuntimeMaterials.Paint(playerObject.GetComponent<Renderer>(), playerColor);
 
             var controller = playerObject.AddComponent<CharacterController>();
             controller.height = 2f;
@@ -151,16 +181,16 @@ namespace MyLittleFarm.Core
             return player;
         }
 
-        private static IsometricCameraController CreateCamera(InputReader input, Transform player)
+        private IsometricCameraController CreateCamera(InputReader input, Transform player)
         {
             // Создаёт основную камеру и настраивает слежение за Transform игрока.
             var cameraObject = new GameObject("Isometric Camera");
             cameraObject.tag = "MainCamera";
             var camera = cameraObject.AddComponent<Camera>();
-            camera.fieldOfView = 46f;
-            camera.nearClipPlane = 0.1f;
-            camera.farClipPlane = 250f;
-            camera.backgroundColor = new Color(0.58f, 0.77f, 0.92f);
+            camera.fieldOfView = cameraFieldOfView;
+            camera.nearClipPlane = cameraNearClip;
+            camera.farClipPlane = Mathf.Max(cameraNearClip + 0.01f, cameraFarClip);
+            camera.backgroundColor = cameraBackgroundColor;
             camera.clearFlags = CameraClearFlags.Skybox;
             cameraObject.AddComponent<AudioListener>();
             var controller = cameraObject.AddComponent<IsometricCameraController>();
@@ -175,8 +205,8 @@ namespace MyLittleFarm.Core
             crate.name = "Sale Crate";
             crate.transform.SetParent(transform, false);
             crate.transform.position = position;
-            crate.transform.localScale = new Vector3(1.7f, 1.1f, 1.4f);
-            RuntimeMaterials.Paint(crate.GetComponent<Renderer>(), new Color(0.88f, 0.52f, 0.12f));
+            crate.transform.localScale = saleCrateScale;
+            RuntimeMaterials.Paint(crate.GetComponent<Renderer>(), saleCrateColor);
             return crate.transform;
         }
 
@@ -184,7 +214,7 @@ namespace MyLittleFarm.Core
         /// Создаёт один стартовый ассет-блок для editor baker и тестовой сцены. В Play Mode
         /// рабочая сцена использует уже сохранённый объект и этот метод не вызывается.
         /// </summary>
-        private static void CreateStartChunk(Transform parent)
+        private void CreateStartChunk(Transform parent)
         {
             var chunkObject = new GameObject("TileBlock_Start");
             chunkObject.transform.SetParent(parent, false);
@@ -195,12 +225,18 @@ namespace MyLittleFarm.Core
             var surface = GameObject.CreatePrimitive(PrimitiveType.Cube);
             surface.name = "Terrain Surface";
             surface.transform.SetParent(chunkObject.transform, false);
-            surface.transform.localPosition = new Vector3(ChunkSizeX * CellSize * 0.5f, -0.25f, ChunkSizeZ * CellSize * 0.5f);
-            surface.transform.localScale = new Vector3(ChunkSizeX * CellSize, 0.5f, ChunkSizeZ * CellSize);
-            RuntimeMaterials.Paint(surface.GetComponent<Renderer>(), new Color(0.24f, 0.45f, 0.18f));
+            surface.transform.localPosition = new Vector3(
+                bakedChunkSizeX * bakedCellSize * 0.5f,
+                -terrainThickness * 0.5f,
+                bakedChunkSizeZ * bakedCellSize * 0.5f);
+            surface.transform.localScale = new Vector3(
+                bakedChunkSizeX * bakedCellSize,
+                terrainThickness,
+                bakedChunkSizeZ * bakedCellSize);
+            RuntimeMaterials.Paint(surface.GetComponent<Renderer>(), terrainColor);
         }
 
-        private static void CreateLighting(Transform parent)
+        private void CreateLighting(Transform parent)
         {
             // Не создаёт второе солнце, если сцена уже содержит направленный или иной источник света.
             if (FindFirstObjectByType<Light>() != null)
@@ -210,11 +246,11 @@ namespace MyLittleFarm.Core
 
             var sun = new GameObject("Sun");
             sun.transform.SetParent(parent, false);
-            sun.transform.rotation = Quaternion.Euler(48f, -32f, 0f);
+            sun.transform.rotation = Quaternion.Euler(sunEulerAngles);
             var light = sun.AddComponent<Light>();
             light.type = LightType.Directional;
-            light.intensity = 1.25f;
-            light.color = new Color(1f, 0.93f, 0.78f);
+            light.intensity = sunIntensity;
+            light.color = sunColor;
             light.shadows = LightShadows.Soft;
         }
 
@@ -310,13 +346,14 @@ namespace MyLittleFarm.Core
             RequireComponent<RuntimeMaterials>(gameObject);
             var input = RequireComponent<InputReader>(gameObject);
             var grid = RequireChild<GridSystem>();
-            grid.Configure(CellSize, ChunkSizeX, ChunkSizeZ);
+            // Runtime использует значения самого GridSystem, которые дизайнер меняет в его Inspector.
+            grid.ConfigureFromInspector();
             grid.RegisterSceneChunks(GetComponentsInChildren<TilemapChunk>(true));
 
             var inventory = RequireChild<InventorySystem>();
             inventory.ConfigurePrototypeInventory();
             var wallet = RequireChild<WalletSystem>();
-            wallet.Configure(25);
+            wallet.Configure(startingCoins);
             var selling = RequireChild<SellingSystem>();
             selling.Configure(inventory, wallet);
 
@@ -326,7 +363,7 @@ namespace MyLittleFarm.Core
             crops.Configure(grid);
             var player = RequireChild<PlayerController>();
             player.Configure(input);
-            RuntimeMaterials.Paint(player.GetComponent<Renderer>(), new Color(0.20f, 0.46f, 0.82f));
+            RuntimeMaterials.Paint(player.GetComponent<Renderer>(), playerColor);
             var cameraController = RequireChild<IsometricCameraController>();
             cameraController.Configure(input, player.transform);
             player.SetCamera(cameraController.transform);
@@ -336,7 +373,7 @@ namespace MyLittleFarm.Core
             var selector = RequireChild<CellSelector>();
             selector.Configure(grid, player.transform, input, cameraController.GetComponent<Camera>());
             var saleCrate = FindNamedTransform("Sale Crate");
-            RuntimeMaterials.Paint(saleCrate.GetComponent<Renderer>(), new Color(0.88f, 0.52f, 0.12f));
+            RuntimeMaterials.Paint(saleCrate.GetComponent<Renderer>(), saleCrateColor);
 
             var interaction = RequireChild<InteractionSystem>();
             interaction.Configure(input, player.transform, saleCrate, selector, grid, soil, crops, inventory, selling);

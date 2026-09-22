@@ -18,8 +18,11 @@ namespace MyLittleFarm.Core
     {
         // Версия 3 вводит world-scale чанки; версии 1–2 мигрируются при чтении.
         public const int CurrentSaveVersion = 3;
-        private const float AutosaveIntervalSeconds = 180f;
         private const int MaxCollectionEntries = 100_000;
+
+        [Header("Persistence")]
+        [Tooltip("Интервал автоматического сохранения в секундах реального времени.")]
+        [SerializeField, Min(10f)] private float autosaveIntervalSeconds = 180f;
 
         // Все зависимости передаются bootstrap, поэтому Update не выполняет поиски по сцене.
         private InputReader _input;
@@ -48,7 +51,7 @@ namespace MyLittleFarm.Core
             _wallet = wallet;
             _buildings = buildings;
             _persistenceEnabled = false;
-            _nextAutosaveAt = Time.unscaledTime + AutosaveIntervalSeconds;
+            _nextAutosaveAt = Time.unscaledTime + autosaveIntervalSeconds;
         }
 
         /// <summary>Загружает существующий файл или разрешает сохранение новой игры.</summary>
@@ -66,7 +69,7 @@ namespace MyLittleFarm.Core
             if (_persistenceEnabled && Time.unscaledTime >= _nextAutosaveAt)
             {
                 SaveToDisk();
-                _nextAutosaveAt = Time.unscaledTime + AutosaveIntervalSeconds;
+                _nextAutosaveAt = Time.unscaledTime + autosaveIntervalSeconds;
             }
         }
 
@@ -107,7 +110,7 @@ namespace MyLittleFarm.Core
             if (SaveToPath(SavePath))
             {
                 _persistenceEnabled = true;
-                _nextAutosaveAt = Time.unscaledTime + AutosaveIntervalSeconds;
+                _nextAutosaveAt = Time.unscaledTime + autosaveIntervalSeconds;
                 GameEvents.RaiseStatusChanged("Игра сохранена  F9 — загрузить");
             }
             else GameEvents.RaiseStatusChanged("Не удалось сохранить игру");
@@ -119,7 +122,7 @@ namespace MyLittleFarm.Core
             if (LoadFromPath(SavePath))
             {
                 _persistenceEnabled = true;
-                _nextAutosaveAt = Time.unscaledTime + AutosaveIntervalSeconds;
+                _nextAutosaveAt = Time.unscaledTime + autosaveIntervalSeconds;
                 GameEvents.RaiseStatusChanged("Сохранение загружено");
                 return true;
             }
@@ -254,7 +257,7 @@ namespace MyLittleFarm.Core
             {
                 if (crop == null || crop.cropId != CropSystem.PrototypeCropId
                     || !IsFinite(crop.growDurationSeconds) || crop.growDurationSeconds <= 0f
-                    || crop.stageCount != 3 || crop.plantedAtUnixMs < 0 || !positions.Add(crop.Position)
+                    || crop.stageCount < 2 || crop.plantedAtUnixMs < 0 || !positions.Add(crop.Position)
                     || !cells.TryGetValue(crop.Position, out var cell) || cell.type != CellType.Planted
                     || cell.occupantId != CropSystem.CropOccupantId(crop.Position))
                     throw new InvalidDataException("Crop state does not match its grid cell.");

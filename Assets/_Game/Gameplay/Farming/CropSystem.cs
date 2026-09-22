@@ -8,10 +8,20 @@ namespace MyLittleFarm.Gameplay.Farming
     /// <summary>Управляет посевами, их ростом, сбором, визуальными объектами и снимками сохранения.</summary>
     public sealed class CropSystem : MonoBehaviour
     {
-        // Параметры единственной культуры прототипа используются при посадке и сборе.
+        // ID является частью сохранения и не меняется через Inspector.
         public const string PrototypeCropId = "carrot";
-        public const float PrototypeGrowDurationSeconds = 8f;
-        public const int PrototypeYield = 2;
+        public const float DefaultGrowDurationSeconds = 8f;
+        public const int DefaultYield = 2;
+
+        [Header("Crop Settings")]
+        [Tooltip("Время полного роста новой культуры в секундах реального времени.")]
+        [SerializeField, Min(0.1f)] private float growDurationSeconds = DefaultGrowDurationSeconds;
+        [Tooltip("Количество моркови, получаемое при сборе зрелой культуры.")]
+        [SerializeField, Min(1)] private int yieldAmount = DefaultYield;
+        [Tooltip("Количество визуальных стадий роста культуры.")]
+        [SerializeField, Min(2)] private int stageCount = 3;
+        [Tooltip("Интервал обновления внешнего вида растущих культур.")]
+        [SerializeField, Min(0.02f)] private float viewRefreshInterval = 0.25f;
 
         // Отдельные словари разделяют игровые данные и объекты представления по одной клетке-ключу.
         private readonly Dictionary<Vector2Int, CropRuntimeState> _crops = new Dictionary<Vector2Int, CropRuntimeState>();
@@ -19,6 +29,11 @@ namespace MyLittleFarm.Gameplay.Farming
         private GridSystem _grid;
         // Время следующего визуального обновления ограничивает работу четырьмя проверками в секунду.
         private float _nextRefresh;
+
+        /// <summary>Текущая урожайность одной клетки, установленная в Inspector.</summary>
+        public int YieldAmount => yieldAmount;
+        /// <summary>Число визуальных стадий, используемое новыми культурами.</summary>
+        public int StageCount => stageCount;
 
         /// <summary>Подключает сетку, по которой проверяются клетки и вычисляются мировые позиции.</summary>
         public void Configure(GridSystem grid)
@@ -34,7 +49,7 @@ namespace MyLittleFarm.Gameplay.Farming
                 return;
             }
 
-            _nextRefresh = Time.unscaledTime + 0.25f;
+            _nextRefresh = Time.unscaledTime + viewRefreshInterval;
             RefreshViews(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
         }
 
@@ -64,8 +79,8 @@ namespace MyLittleFarm.Gameplay.Farming
                 z = position.y,
                 cropId = PrototypeCropId,
                 plantedAtUnixMs = plantedAtUnixMs,
-                growDurationSeconds = PrototypeGrowDurationSeconds,
-                stageCount = 3
+                growDurationSeconds = growDurationSeconds,
+                stageCount = stageCount
             };
             AddCrop(crop);
             _grid.SetCellType(position, CellType.Planted);
@@ -91,7 +106,7 @@ namespace MyLittleFarm.Gameplay.Farming
 
             _grid.SetCellOccupant(position, null);
             _grid.SetCellType(position, CellType.Tilled);
-            yield = PrototypeYield;
+            yield = yieldAmount;
             return true;
         }
 

@@ -16,6 +16,24 @@ namespace MyLittleFarm.Gameplay.Building
     [DefaultExecutionOrder(-175)]
     public sealed class BuildSystem : MonoBehaviour
     {
+        [Header("Build Preview")]
+        [Tooltip("Цвет предпросмотра, когда размещение разрешено.")]
+        [SerializeField] private Color validPreviewColor = new Color(0.25f, 0.9f, 0.35f);
+        [Tooltip("Цвет предпросмотра, когда размещение запрещено.")]
+        [SerializeField] private Color invalidPreviewColor = new Color(0.95f, 0.20f, 0.16f);
+        [Tooltip("Высота плоского объёма предпросмотра.")]
+        [SerializeField, Min(0.01f)] private float previewHeight = 0.18f;
+        [Tooltip("Зазор между краем клетки и предпросмотром.")]
+        [SerializeField, Min(0f)] private float previewCellGap = 0.08f;
+        [Tooltip("Высота предпросмотра над поверхностью мира.")]
+        [SerializeField] private float previewLift = 0.12f;
+        [Tooltip("Интервал обновления текста строительной подсказки.")]
+        [SerializeField, Min(0.02f)] private float promptRefreshInterval = 0.1f;
+        [Tooltip("Отступ физической проверки от края footprint.")]
+        [SerializeField, Min(0.001f)] private float overlapInset = 0.07f;
+        [Tooltip("Вертикальный зазор физической проверки над землёй.")]
+        [SerializeField, Min(0f)] private float overlapGroundClearance = 0.05f;
+
         // Связывает стабильный id постройки с её текущим объектом в сцене.
         private readonly Dictionary<string, BuildingView> _views = new Dictionary<string, BuildingView>();
         // Переиспользуемый буфер физической проверки исключает выделение массива каждый кадр.
@@ -78,8 +96,8 @@ namespace MyLittleFarm.Gameplay.Building
             {
                 throw new MissingComponentException("Building System has no RuntimeMaterials owner.");
             }
-            _validPreviewMaterial = materials.Get(new Color(0.25f, 0.9f, 0.35f));
-            _invalidPreviewMaterial = materials.Get(new Color(0.95f, 0.20f, 0.16f));
+            _validPreviewMaterial = materials.Get(validPreviewColor);
+            _invalidPreviewMaterial = materials.Get(invalidPreviewColor);
             var existingFront = _preview.transform.Find("Preview front");
             if (existingFront == null && !allowSceneCreation)
             {
@@ -191,16 +209,19 @@ namespace MyLittleFarm.Gameplay.Building
             _preview.SetActive(_hasTarget);
             if (_hasTarget)
             {
-                _preview.transform.position = BuildingView.Center(_target.x, _target.y, _turns, SelectedDefinition, _grid) + Vector3.up * 0.12f;
+                _preview.transform.position = BuildingView.Center(_target.x, _target.y, _turns, SelectedDefinition, _grid)
+                    + Vector3.up * previewLift;
                 _preview.transform.rotation = Quaternion.Euler(0, _turns * 90f, 0);
-                _preview.transform.localScale = new Vector3(SelectedDefinition.Width * _grid.CellSize - 0.08f, 0.18f,
-                    SelectedDefinition.Depth * _grid.CellSize - 0.08f);
+                _preview.transform.localScale = new Vector3(
+                    Mathf.Max(0.01f, SelectedDefinition.Width * _grid.CellSize - previewCellGap),
+                    previewHeight,
+                    Mathf.Max(0.01f, SelectedDefinition.Depth * _grid.CellSize - previewCellGap));
                 var material = valid ? _validPreviewMaterial : _invalidPreviewMaterial;
                 if (_previewRenderer.sharedMaterial != material) _previewRenderer.sharedMaterial = material;
             }
             if (Time.unscaledTime >= _nextPromptAt || _input.BuildSelection >= 0 || _input.RotateBuildingPressed)
             {
-                _nextPromptAt = Time.unscaledTime + 0.1f;
+                _nextPromptAt = Time.unscaledTime + promptRefreshInterval;
                 CurrentPrompt = $"{SelectedDefinition.Name} — {(_movingId == null ? SelectedDefinition.Price + " монет" : "бесплатный перенос")}   {SelectedDefinition.RotatedWidth(_turns)}×{SelectedDefinition.RotatedDepth(_turns)}\n"
                     + "1 Дом (20)   2 Склад (12)   3 Стойка (10)   4 Клумба (3)\n"
                     + (valid ? "ЛКМ / E — разместить" : reasonText) + "   R — поворот   M — перенос   Delete — удалить   B / Esc — выход";
@@ -224,9 +245,13 @@ namespace MyLittleFarm.Gameplay.Building
             var center = BuildingView.Center(cell.x, cell.y, turns, definition, _grid);
             // Учитываем игрока и объекты сцены, но игнорируем переносимую постройку.
             Physics.SyncTransforms();
-            var count = Physics.OverlapBoxNonAlloc(center + Vector3.up * (definition.Height * 0.5f + 0.05f),
-                new Vector3(definition.RotatedWidth(turns) * _grid.CellSize * 0.5f - 0.07f, definition.Height * 0.5f,
-                    definition.RotatedDepth(turns) * _grid.CellSize * 0.5f - 0.07f), _overlaps, Quaternion.identity, ~0, QueryTriggerInteraction.Ignore);
+            var count = Physics.OverlapBoxNonAlloc(
+                center + Vector3.up * (definition.Height * 0.5f + overlapGroundClearance),
+                new Vector3(
+                    Mathf.Max(0.001f, definition.RotatedWidth(turns) * _grid.CellSize * 0.5f - overlapInset),
+                    definition.Height * 0.5f,
+                    Mathf.Max(0.001f, definition.RotatedDepth(turns) * _grid.CellSize * 0.5f - overlapInset)),
+                _overlaps, Quaternion.identity, ~0, QueryTriggerInteraction.Ignore);
             if (count == _overlaps.Length) { reason = "Слишком много препятствий"; return false; }
             for (var i = 0; i < count; i++)
             {

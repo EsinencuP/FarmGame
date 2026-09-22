@@ -10,6 +10,39 @@ namespace MyLittleFarm.Core
     [DefaultExecutionOrder(-200)]
     public sealed class InputReader : MonoBehaviour
     {
+        [Header("Movement Keys")]
+        [SerializeField] private Key moveForwardKey = Key.W;
+        [SerializeField] private Key moveBackwardKey = Key.S;
+        [SerializeField] private Key moveLeftKey = Key.A;
+        [SerializeField] private Key moveRightKey = Key.D;
+        [SerializeField] private Key sprintKey = Key.LeftShift;
+        [SerializeField] private Key alternateSprintKey = Key.RightShift;
+        [SerializeField] private Key jumpKey = Key.Space;
+
+        [Header("Gameplay Keys")]
+        [SerializeField] private Key interactKey = Key.E;
+        [SerializeField] private Key rotateCameraLeftKey = Key.Q;
+        [Tooltip("Поворот вправо срабатывает вместе с одной из клавиш бега.")]
+        [SerializeField] private Key rotateCameraRightKey = Key.E;
+        [SerializeField] private Key saveKey = Key.F5;
+        [SerializeField] private Key loadKey = Key.F9;
+
+        [Header("Building Keys")]
+        [SerializeField] private Key buildToggleKey = Key.B;
+        [SerializeField] private Key rotateBuildingKey = Key.R;
+        [SerializeField] private Key moveBuildingKey = Key.M;
+        [SerializeField] private Key deleteBuildingKey = Key.Delete;
+        [SerializeField] private Key confirmKey = Key.Enter;
+        [SerializeField] private Key cancelKey = Key.Escape;
+        [SerializeField] private Key buildingSlot1Key = Key.Digit1;
+        [SerializeField] private Key buildingSlot2Key = Key.Digit2;
+        [SerializeField] private Key buildingSlot3Key = Key.Digit3;
+        [SerializeField] private Key buildingSlot4Key = Key.Digit4;
+
+        [Header("Mouse Controls")]
+        [SerializeField] private bool allowMouseInteraction = true;
+        [SerializeField] private bool allowMouseCancel = true;
+
         // Непрерывные значения управления, которые действуют всё время удержания клавиши или движения мыши.
         public Vector2 Movement { get; private set; }
         public float ZoomDelta { get; private set; }
@@ -46,37 +79,49 @@ namespace MyLittleFarm.Core
             SuppressGameplayThisFrame = false;
             HasPointer = mouse != null;
             PointerPosition = mouse == null ? Vector2.zero : mouse.position.ReadValue();
-            BuildTogglePressed = keyboard != null && keyboard.bKey.wasPressedThisFrame;
-            RotateBuildingPressed = keyboard != null && keyboard.rKey.wasPressedThisFrame;
-            MoveBuildingPressed = keyboard != null && keyboard.mKey.wasPressedThisFrame;
-            DeleteBuildingPressed = keyboard != null && keyboard.deleteKey.wasPressedThisFrame;
-            ConfirmPressed = keyboard != null && keyboard.enterKey.wasPressedThisFrame;
-            CancelPressed = (keyboard != null && keyboard.escapeKey.wasPressedThisFrame)
-                || (mouse != null && mouse.rightButton.wasPressedThisFrame);
-            BuildSelection = keyboard == null ? -1 : keyboard.digit1Key.wasPressedThisFrame ? 0
-                : keyboard.digit2Key.wasPressedThisFrame ? 1 : keyboard.digit3Key.wasPressedThisFrame ? 2
-                : keyboard.digit4Key.wasPressedThisFrame ? 3 : -1;
+            BuildTogglePressed = WasPressed(keyboard, buildToggleKey);
+            RotateBuildingPressed = WasPressed(keyboard, rotateBuildingKey);
+            MoveBuildingPressed = WasPressed(keyboard, moveBuildingKey);
+            DeleteBuildingPressed = WasPressed(keyboard, deleteBuildingKey);
+            ConfirmPressed = WasPressed(keyboard, confirmKey);
+            CancelPressed = WasPressed(keyboard, cancelKey)
+                || (allowMouseCancel && mouse != null && mouse.rightButton.wasPressedThisFrame);
+            BuildSelection = WasPressed(keyboard, buildingSlot1Key) ? 0
+                : WasPressed(keyboard, buildingSlot2Key) ? 1 : WasPressed(keyboard, buildingSlot3Key) ? 2
+                : WasPressed(keyboard, buildingSlot4Key) ? 3 : -1;
 
             Movement = keyboard == null
                 ? Vector2.zero
                 : new Vector2(
-                    ReadAxis(keyboard.aKey.isPressed, keyboard.dKey.isPressed),
-                    ReadAxis(keyboard.sKey.isPressed, keyboard.wKey.isPressed));
+                    ReadAxis(IsPressed(keyboard, moveLeftKey), IsPressed(keyboard, moveRightKey)),
+                    ReadAxis(IsPressed(keyboard, moveBackwardKey), IsPressed(keyboard, moveForwardKey)));
 
             ZoomDelta = mouse == null ? 0f : mouse.scroll.ReadValue().y;
             OrbitDelta = mouse != null && mouse.middleButton.isPressed
                 ? mouse.delta.ReadValue().x
                 : 0f;
 
-            var shift = keyboard != null && (keyboard.leftShiftKey.isPressed || keyboard.rightShiftKey.isPressed);
+            var shift = IsPressed(keyboard, sprintKey) || IsPressed(keyboard, alternateSprintKey);
             SprintHeld = shift;
-            JumpPressed = keyboard != null && keyboard.spaceKey.wasPressedThisFrame;
-            InteractPressed = (keyboard != null && keyboard.eKey.wasPressedThisFrame && !shift)
-                || (mouse != null && mouse.leftButton.wasPressedThisFrame);
-            RotateLeftPressed = keyboard != null && keyboard.qKey.wasPressedThisFrame;
-            RotateRightPressed = keyboard != null && keyboard.eKey.wasPressedThisFrame && shift;
-            SavePressed = keyboard != null && keyboard.f5Key.wasPressedThisFrame;
-            LoadPressed = keyboard != null && keyboard.f9Key.wasPressedThisFrame;
+            JumpPressed = WasPressed(keyboard, jumpKey);
+            InteractPressed = (WasPressed(keyboard, interactKey) && !shift)
+                || (allowMouseInteraction && mouse != null && mouse.leftButton.wasPressedThisFrame);
+            RotateLeftPressed = WasPressed(keyboard, rotateCameraLeftKey);
+            RotateRightPressed = WasPressed(keyboard, rotateCameraRightKey) && shift;
+            SavePressed = WasPressed(keyboard, saveKey);
+            LoadPressed = WasPressed(keyboard, loadKey);
+        }
+
+        private static bool IsPressed(Keyboard keyboard, Key key)
+        {
+            // Key.None отключает конкретную команду без необходимости менять код.
+            return keyboard != null && key != Key.None && keyboard[key].isPressed;
+        }
+
+        private static bool WasPressed(Keyboard keyboard, Key key)
+        {
+            // Однокадровая проверка используется всеми переназначаемыми командами.
+            return keyboard != null && key != Key.None && keyboard[key].wasPressedThisFrame;
         }
 
         private static float ReadAxis(bool negative, bool positive)

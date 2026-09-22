@@ -22,6 +22,14 @@ namespace MyLittleFarm.Core.Grid
         [SerializeField, Min(1)] private int chunkSizeZ = 10;
         [Header("Selection")]
         [SerializeField] private GameObject selectionView;
+        [Tooltip("Цвет маркера клетки под курсором.")]
+        [SerializeField] private Color selectionColor = new Color(1f, 0.78f, 0.20f, 0.75f);
+        [Tooltip("Доля размера клетки, которую занимает маркер.")]
+        [SerializeField, Range(0.1f, 1f)] private float selectionFill = 0.94f;
+        [Tooltip("Толщина маркера клетки.")]
+        [SerializeField, Min(0.001f)] private float selectionHeight = 0.03f;
+        [Tooltip("Высота маркера над плоскостью грида.")]
+        [SerializeField] private float selectionLift = 0.03f;
         [Header("Debug")]
         [SerializeField] private bool drawGizmos = true;
         [SerializeField] private Color gizmoGrassColor = new Color(0.5f, 0.8f, 0.5f, 0.3f);
@@ -99,7 +107,19 @@ namespace MyLittleFarm.Core.Grid
                 selectionView = transform.Find("Cell Selection")?.gameObject;
             if (selectionView == null && allowSceneCreation)
                 selectionView = CreateSelectionView();
+            if (selectionView != null)
+            {
+                selectionView.transform.localScale = new Vector3(
+                    cellSize * selectionFill, selectionHeight, cellSize * selectionFill);
+                RuntimeMaterials.Paint(selectionView.GetComponent<Renderer>(), selectionColor);
+            }
             Select(null);
+        }
+
+        /// <summary>Инициализирует сетку значениями, сохранёнными непосредственно в Inspector компонента.</summary>
+        public void ConfigureFromInspector()
+        {
+            Configure(cellSize, chunkSizeX, chunkSizeZ);
         }
 
         /// <summary>Переводит мировую точку XZ в неограниченную клеточную координату.</summary>
@@ -262,7 +282,7 @@ namespace MyLittleFarm.Core.Grid
             if (selectionView == null) return;
             selectionView.SetActive(_selected.HasValue);
             if (_selected.HasValue)
-                selectionView.transform.position = GridToWorld(_selected.Value) + Vector3.up * 0.03f;
+                selectionView.transform.position = GridToWorld(_selected.Value) + Vector3.up * selectionLift;
         }
 
         /// <summary>Проверяет, можно ли вспахать клетку.</summary>
@@ -411,9 +431,9 @@ namespace MyLittleFarm.Core.Grid
             var view = GameObject.CreatePrimitive(PrimitiveType.Cube);
             view.name = "Cell Selection";
             view.transform.SetParent(transform, false);
-            view.transform.localScale = new Vector3(cellSize * 0.94f, 0.03f, cellSize * 0.94f);
+            view.transform.localScale = new Vector3(cellSize * selectionFill, selectionHeight, cellSize * selectionFill);
             RuntimeMaterials.RemoveCollider(view);
-            RuntimeMaterials.Paint(view.GetComponent<Renderer>(), new Color(1f, 0.78f, 0.20f, 0.75f));
+            RuntimeMaterials.Paint(view.GetComponent<Renderer>(), selectionColor);
             view.SetActive(false);
             return view;
         }

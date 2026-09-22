@@ -6,12 +6,18 @@ namespace MyLittleFarm.Gameplay.Economy
     /// <summary>Преобразует весь собранный урожай моркови в монеты по фиксированной цене.</summary>
     public sealed class SellingSystem : MonoBehaviour
     {
-        // Цена одной моркови является общей игровой константой.
-        public const int CarrotSellPrice = 5;
+        public const int DefaultCarrotSellPrice = 5;
+
+        [Header("Selling")]
+        [Tooltip("Количество монет за одну проданную морковь.")]
+        [SerializeField, Min(0)] private int carrotSellPrice = DefaultCarrotSellPrice;
 
         // Ссылки позволяют провести удаление товара и начисление денег как одну операцию.
         private InventorySystem _inventory;
         private WalletSystem _wallet;
+
+        /// <summary>Цена одной моркови, установленная в Inspector.</summary>
+        public int CarrotSellPrice => carrotSellPrice;
 
         public void Configure(InventorySystem inventory, WalletSystem wallet)
         {
@@ -24,7 +30,7 @@ namespace MyLittleFarm.Gameplay.Economy
         {
             // До удаления урожая проверяется переполнение будущего баланса.
             var amount = _inventory.GetAmount(InventorySystem.CarrotId);
-            var earnedLong = (long)amount * CarrotSellPrice;
+            var earnedLong = (long)amount * carrotSellPrice;
             if (amount <= 0 || earnedLong > int.MaxValue - _wallet.Coins
                 || !_inventory.TryRemove(InventorySystem.CarrotId, amount))
             {

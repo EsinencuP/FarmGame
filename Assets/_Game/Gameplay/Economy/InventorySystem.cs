@@ -12,6 +12,10 @@ namespace MyLittleFarm.Gameplay.Economy
         public const string CarrotSeedId = "carrot_seed";
         public const string CarrotId = "carrot";
 
+        [Header("Starting Inventory")]
+        [Tooltip("Количество семян моркови в новой игре до загрузки сохранения.")]
+        [SerializeField, Min(0)] private int startingCarrotSeeds = 8;
+
         // Словарь обеспечивает быстрый доступ к количеству любого предмета.
         private readonly Dictionary<string, int> _items = new Dictionary<string, int>();
 
@@ -19,7 +23,7 @@ namespace MyLittleFarm.Gameplay.Economy
         public void ConfigurePrototypeInventory()
         {
             _items.Clear();
-            _items[CarrotSeedId] = 8;
+            _items[CarrotSeedId] = startingCarrotSeeds;
             GameEvents.RaiseInventoryChanged();
         }
 

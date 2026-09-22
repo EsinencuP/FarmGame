@@ -8,6 +8,10 @@ namespace MyLittleFarm.UI
     /// <summary>Синхронизирует показатели экономики и временные сообщения с элементами HUD.</summary>
     public sealed class HUDController : MonoBehaviour
     {
+        [Header("Status Message")]
+        [Tooltip("Сколько секунд временное сообщение остаётся на экране.")]
+        [SerializeField, Min(0.1f)] private float statusDuration = 3.5f;
+
         // Источники данных и текстовые компоненты назначаются bootstrap-скриптом.
         private InventorySystem _inventory;
         private WalletSystem _wallet;
@@ -69,7 +73,7 @@ namespace MyLittleFarm.UI
 
             _statusText.text = message;
             _statusText.enabled = true;
-            _hideStatusAt = Time.unscaledTime + 3.5f;
+            _hideStatusAt = Time.unscaledTime + statusDuration;
         }
 
         private void OnDestroy()

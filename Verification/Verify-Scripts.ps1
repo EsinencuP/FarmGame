@@ -86,6 +86,37 @@ if ($selectorSource -notmatch 'RaycastNonAlloc' -or $selectorSource -match 'new 
 }
 Write-Output 'PASS: world-scale chunk grid and non-allocating terrain selection contracts are present.'
 
+# Параметры движения и камеры должны оставаться настройками Inspector, а не скрытыми константами.
+$playerPath = Join-Path $gameRoot 'Gameplay/World/PlayerController.cs'
+$cameraPath = Join-Path $gameRoot 'Gameplay/World/IsometricCameraController.cs'
+$inputPath = Join-Path $gameRoot 'Core/InputReader.cs'
+$playerSource = [IO.File]::ReadAllText($playerPath)
+$cameraSource = [IO.File]::ReadAllText($cameraPath)
+$inputSource = [IO.File]::ReadAllText($inputPath)
+foreach ($setting in @('walkSpeed', 'runSpeed', 'jumpHeight', 'gravity', 'groundedVelocity', 'rotationSpeed')) {
+    if ($playerSource -notmatch "\[SerializeField[^\]]*\][^;]*\b$setting\b") {
+        throw "Player movement setting is not exposed in Inspector: $setting"
+    }
+}
+foreach ($setting in @('initialYaw', 'initialDistance', 'pitch', 'lookHeight', 'orbitSensitivity',
+        'zoomSensitivity', 'minDistance', 'maxDistance')) {
+    if ($cameraSource -notmatch "\[SerializeField[^\]]*\][^;]*\b$setting\b") {
+        throw "Camera setting is not exposed in Inspector: $setting"
+    }
+}
+foreach ($setting in @('moveForwardKey', 'moveBackwardKey', 'moveLeftKey', 'moveRightKey', 'sprintKey',
+        'jumpKey', 'interactKey', 'buildToggleKey', 'saveKey', 'loadKey')) {
+    if ($inputSource -notmatch "\[SerializeField[^\]]*\][^;]*\b$setting\b") {
+        throw "Input binding is not exposed in Inspector: $setting"
+    }
+}
+if (($inputSource -notmatch 'SprintHeld = shift') -or
+    ($inputSource -notmatch 'JumpPressed = WasPressed\(keyboard, jumpKey\)') -or
+    ($playerSource -notmatch 'Mathf\.Sqrt\(jumpHeight \* -2f \* gravity\)')) {
+    throw 'Run or jump movement contract is missing.'
+}
+Write-Output 'PASS: inspector-backed player/camera settings and run/jump contracts are present.'
+
 # Эти файлы не зависят от UnityEngine и компилируются как настоящая доменная реализация.
 $domain = @('Gameplay/Building/BuildingDefinition.cs', 'Gameplay/Building/BuildingRuntimeState.cs',
     'Gameplay/Building/BuildingLayout.cs', 'Tests/EditMode/BuildingContractChecks.cs') |

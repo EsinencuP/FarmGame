@@ -8,8 +8,19 @@ namespace MyLittleFarm.Gameplay.World
     [RequireComponent(typeof(CharacterController))]
     public sealed class PlayerController : MonoBehaviour
     {
-        // Постоянное ускорение вниз имитирует гравитацию CharacterController.
-        private const float Gravity = -20f;
+        [Header("Movement")]
+        [Tooltip("Скорость обычной ходьбы в мировых единицах за секунду.")]
+        [SerializeField, Min(0.1f)] private float walkSpeed = 4.5f;
+        [Tooltip("Скорость бега при удержании Shift.")]
+        [SerializeField, Min(0.1f)] private float runSpeed = 7.5f;
+        [Tooltip("Максимальная высота прыжка в мировых единицах.")]
+        [SerializeField, Min(0.1f)] private float jumpHeight = 1.35f;
+        [Tooltip("Ускорение вниз. Значение должно оставаться отрицательным.")]
+        [SerializeField, Range(-100f, -1f)] private float gravity = -20f;
+        [Tooltip("Небольшая скорость вниз удерживает CharacterController на поверхности.")]
+        [SerializeField, Range(-10f, -0.01f)] private float groundedVelocity = -1f;
+        [Tooltip("Скорость плавного разворота персонажа к направлению движения.")]
+        [SerializeField, Min(0.1f)] private float rotationSpeed = 14f;
 
         // Зависимости предоставляют команды, физическое движение и ориентацию камеры.
         private InputReader _input;
@@ -17,12 +28,19 @@ namespace MyLittleFarm.Gameplay.World
         private Transform _cameraTransform;
         // Вертикальная скорость накапливает действие гравитации между кадрами.
         private float _verticalVelocity;
-        [SerializeField, Min(0.1f)] private float walkSpeed = 4.5f;
-        [SerializeField, Min(0.1f)] private float runSpeed = 7.5f;
-        [SerializeField, Min(0.1f)] private float jumpHeight = 1.35f;
 
         /// <summary>Обычная горизонтальная скорость в мировых единицах за секунду.</summary>
-        public float MoveSpeed { get => walkSpeed; set => walkSpeed = value; }
+        public float MoveSpeed { get => walkSpeed; set => walkSpeed = Mathf.Max(0.1f, value); }
+        /// <summary>Скорость бега, доступная проверкам и другим игровым системам только для чтения.</summary>
+        public float RunSpeed => runSpeed;
+        /// <summary>Высота прыжка, установленная в Inspector.</summary>
+        public float JumpHeight => jumpHeight;
+
+        private void OnValidate()
+        {
+            // Бег по смыслу не должен становиться медленнее обычной ходьбы после ручной настройки.
+            runSpeed = Mathf.Max(walkSpeed, runSpeed);
+        }
 
         /// <summary>Получает ввод и локальные компоненты после создания игрока.</summary>
         public void Configure(InputReader input)
@@ -65,19 +83,19 @@ namespace MyLittleFarm.Gameplay.World
                 transform.rotation = Quaternion.Slerp(
                     transform.rotation,
                     Quaternion.LookRotation(move, Vector3.up),
-                    14f * Time.deltaTime);
+                    rotationSpeed * Time.deltaTime);
             }
 
             // Небольшая отрицательная скорость удерживает контроллер на земле; прыжок задаёт скорость из высоты.
             if (_controller.isGrounded)
             {
-                _verticalVelocity = -1f;
+                _verticalVelocity = groundedVelocity;
                 if (_input.JumpPressed && !_input.BuildModeActive && !_input.SuppressGameplayThisFrame)
-                    _verticalVelocity = Mathf.Sqrt(jumpHeight * -2f * Gravity);
+                    _verticalVelocity = Mathf.Sqrt(jumpHeight * -2f * gravity);
             }
             else
             {
-                _verticalVelocity += Gravity * Time.deltaTime;
+                _verticalVelocity += gravity * Time.deltaTime;
             }
 
             var horizontalSpeed = _input.SprintHeld ? runSpeed : walkSpeed;
