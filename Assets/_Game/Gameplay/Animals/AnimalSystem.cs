@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using MyLittleFarm.Core;
 using MyLittleFarm.Core.Grid;
 using MyLittleFarm.Gameplay.Economy;
+using MyLittleFarm.Gameplay.Farming;
 using UnityEngine;
 
 namespace MyLittleFarm.Gameplay.Animals
