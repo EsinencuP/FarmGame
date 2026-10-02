@@ -133,9 +133,9 @@ namespace MyLittleFarm.Tests.PlayMode
         {
             var grid = System<GridSystem>();
             var chunks = Farm.GetComponentsInChildren<TilemapChunk>(true);
-            Assert.That(chunks, Has.Length.EqualTo(1));
+            Assert.That(chunks, Has.Length.EqualTo(2));
             Assert.That(chunks[0].GetComponentInChildren<Collider>(), Is.Not.Null);
-            Assert.That(grid.LoadedChunkCount, Is.EqualTo(1));
+            Assert.That(grid.LoadedChunkCount, Is.EqualTo(2));
             yield return null;
         }
 

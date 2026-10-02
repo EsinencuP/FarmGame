@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using MyLittleFarm.Core;
 using MyLittleFarm.Gameplay.Building;
 using UnityEngine;
@@ -14,6 +15,8 @@ namespace MyLittleFarm.Core.Grid
     {
         // Буфер исключает выделения памяти в Update и позволяет отфильтровать близкие посторонние коллайдеры.
         private static readonly RaycastHit[] Hits = new RaycastHit[16];
+        // Только коллайдеры поверхностей сценовых чанков допускаются для выбора клетки.
+        private readonly HashSet<Collider> _terrainColliders = new HashSet<Collider>();
 
         [SerializeField] private LayerMask terrainLayer = ~0;
         [SerializeField] private Camera mainCamera;
@@ -48,6 +51,17 @@ namespace MyLittleFarm.Core.Grid
             _input = input;
             mainCamera = camera != null ? camera : Camera.main;
             _buildings = grid != null ? grid.GetComponentInParent<GameBootstrap>()?.GetComponentInChildren<BuildSystem>() : null;
+            _terrainColliders.Clear();
+            if (grid != null)
+            {
+                var root = grid.GetComponentInParent<GameBootstrap>();
+                if (root != null)
+                    foreach (var chunk in root.GetComponentsInChildren<TilemapChunk>(true))
+                    {
+                        var collider = chunk.TerrainCollider;
+                        if (collider != null && collider.enabled) _terrainColliders.Add(collider);
+                    }
+            }
             if (_grid != null) _grid.OnCellChanged += HandleGridCellChanged;
         }
 
@@ -83,7 +97,7 @@ namespace MyLittleFarm.Core.Grid
             {
                 var hit = Hits[index];
                 if (hit.collider == null || hit.distance >= nearestDistance
-                    || hit.collider.GetComponentInParent<TilemapChunk>() == null) continue;
+                    || !_terrainColliders.Contains(hit.collider)) continue;
                 nearestDistance = hit.distance;
                 point = hit.point;
                 found = true;

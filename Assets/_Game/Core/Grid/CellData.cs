@@ -3,8 +3,8 @@ using System;
 namespace MyLittleFarm.Core.Grid
 {
     /// <summary>
-    /// Хранит минимальное изменяемое состояние одной клетки. Подробные данные культуры или
-    /// постройки остаются в CropSystem и BuildSystem, а occupantId связывает эти системы с гридом.
+    /// Совместимый снимок клетки для существующих правил и старых сохранений. Источник данных —
+    /// отдельные массивы TerrainCell, FarmingCell и BuildingCell внутри ChunkData.
     /// </summary>
     [Serializable]
     public struct CellData

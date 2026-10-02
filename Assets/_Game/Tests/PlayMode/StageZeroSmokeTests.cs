@@ -67,7 +67,7 @@ namespace MyLittleFarm.Tests.PlayMode
             Assert.That(grid, Is.Not.Null);
             Assert.That(grid.ChunkSizeX, Is.EqualTo(10));
             Assert.That(grid.ChunkSizeZ, Is.EqualTo(10));
-            Assert.That(grid.LoadedChunkCount, Is.EqualTo(1));
+            Assert.That(grid.LoadedChunkCount, Is.EqualTo(2));
             Assert.That(soil, Is.Not.Null);
             Assert.That(crops, Is.Not.Null);
             Assert.That(inventory, Is.Not.Null);

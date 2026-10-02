@@ -26,6 +26,11 @@ namespace MyLittleFarm.Core
         [SerializeField] private Key rotateCameraRightKey = Key.E;
         [SerializeField] private Key saveKey = Key.F5;
         [SerializeField] private Key loadKey = Key.F9;
+        [SerializeField] private Key shopKey = Key.P;
+        [SerializeField] private Key sectorKey = Key.L;
+        [SerializeField] private Key upgradeKey = Key.U;
+        [SerializeField] private Key plantTreeKey = Key.T;
+        [SerializeField] private Key buyChickenKey = Key.C;
 
         [Header("Building Keys")]
         [SerializeField] private Key buildToggleKey = Key.B;
@@ -38,6 +43,14 @@ namespace MyLittleFarm.Core
         [SerializeField] private Key buildingSlot2Key = Key.Digit2;
         [SerializeField] private Key buildingSlot3Key = Key.Digit3;
         [SerializeField] private Key buildingSlot4Key = Key.Digit4;
+        [SerializeField] private Key buildingSlot5Key = Key.Digit5;
+        [Header("Seed Slots")]
+        [SerializeField] private Key seedSlot1Key = Key.Digit1;
+        [SerializeField] private Key seedSlot2Key = Key.Digit2;
+        [SerializeField] private Key seedSlot3Key = Key.Digit3;
+        [SerializeField] private Key seedSlot4Key = Key.Digit4;
+        [SerializeField] private Key seedSlot5Key = Key.Digit5;
+        [SerializeField] private Key seedSlot6Key = Key.Digit6;
 
         [Header("Mouse Controls")]
         [SerializeField] private bool allowMouseInteraction = true;
@@ -53,6 +66,12 @@ namespace MyLittleFarm.Core
         public bool RotateRightPressed { get; private set; }
         public bool SavePressed { get; private set; }
         public bool LoadPressed { get; private set; }
+        // Команда магазина покупает семена культуры, выбранной в быстром слоте.
+        public bool ShopPressed { get; private set; }
+        public bool SectorPressed { get; private set; }
+        public bool UpgradePressed { get; private set; }
+        public bool PlantTreePressed { get; private set; }
+        public bool BuyChickenPressed { get; private set; }
         public bool BuildTogglePressed { get; private set; }
         public bool RotateBuildingPressed { get; private set; }
         public bool MoveBuildingPressed { get; private set; }
@@ -62,8 +81,10 @@ namespace MyLittleFarm.Core
         // SprintHeld действует при удержании Shift, JumpPressed — только в кадре нажатия пробела.
         public bool SprintHeld { get; private set; }
         public bool JumpPressed { get; private set; }
-        // Индекс выбранной постройки: 0–3 для клавиш 1–4, -1 если выбор не менялся.
+        // Индекс выбранной постройки: 0–4 для клавиш 1–5, -1 если выбор не менялся.
         public int BuildSelection { get; private set; } = -1;
+        // Индекс семени: 0–5 для клавиш 1–6, -1 если в кадре слот не выбирался.
+        public int SeedSelection { get; private set; } = -1;
         // Текущая экранная позиция указателя нужна строительной системе для луча из камеры.
         public Vector2 PointerPosition { get; private set; }
         public bool HasPointer { get; private set; }
@@ -88,7 +109,14 @@ namespace MyLittleFarm.Core
                 || (allowMouseCancel && mouse != null && mouse.rightButton.wasPressedThisFrame);
             BuildSelection = WasPressed(keyboard, buildingSlot1Key) ? 0
                 : WasPressed(keyboard, buildingSlot2Key) ? 1 : WasPressed(keyboard, buildingSlot3Key) ? 2
-                : WasPressed(keyboard, buildingSlot4Key) ? 3 : -1;
+                : WasPressed(keyboard, buildingSlot4Key) ? 3
+                : WasPressed(keyboard, buildingSlot5Key) ? 4 : -1;
+            SeedSelection = WasPressed(keyboard, seedSlot1Key) ? 0
+                : WasPressed(keyboard, seedSlot2Key) ? 1
+                : WasPressed(keyboard, seedSlot3Key) ? 2
+                : WasPressed(keyboard, seedSlot4Key) ? 3
+                : WasPressed(keyboard, seedSlot5Key) ? 4
+                : WasPressed(keyboard, seedSlot6Key) ? 5 : -1;
 
             Movement = keyboard == null
                 ? Vector2.zero
@@ -110,6 +138,11 @@ namespace MyLittleFarm.Core
             RotateRightPressed = WasPressed(keyboard, rotateCameraRightKey) && shift;
             SavePressed = WasPressed(keyboard, saveKey);
             LoadPressed = WasPressed(keyboard, loadKey);
+            ShopPressed = WasPressed(keyboard, shopKey);
+            SectorPressed = WasPressed(keyboard, sectorKey);
+            UpgradePressed = WasPressed(keyboard, upgradeKey);
+            PlantTreePressed = WasPressed(keyboard, plantTreeKey);
+            BuyChickenPressed = WasPressed(keyboard, buyChickenKey);
         }
 
         private static bool IsPressed(Keyboard keyboard, Key key)

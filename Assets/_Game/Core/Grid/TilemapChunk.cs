@@ -13,12 +13,51 @@ namespace MyLittleFarm.Core.Grid
         [Header("Chunk Settings")]
         [SerializeField] private CellType defaultCellType = CellType.Grass;
         [SerializeField] private bool isLockedSector;
+        [Header("Scene Surface")]
+        [Tooltip("Единый коллайдер поверхности чанка для выбора клетки; без назначения ищется Terrain Surface.")]
+        [SerializeField] private Collider terrainCollider;
+        [Tooltip("Прежний куб поверхности скрывается после построения меша.")]
+        [SerializeField] private Renderer legacySurfaceRenderer;
+        [Tooltip("Необязательная карта, которую кисть редактора накладывает поверх типа и зон чанка.")]
+        [SerializeField] private WorldMapAsset worldMap;
         [Header("Override Zones")]
         [SerializeField] private ZoneOverride[] zoneOverrides = Array.Empty<ZoneOverride>();
 
         // Последняя координата выводится наружу для инспекции и тестов сцены.
         private Vector2Int _registeredChunkCoord;
         public Vector2Int RegisteredChunkCoord => _registeredChunkCoord;
+        /// <summary>Базовая карта для редактирования клеток в Scene View.</summary>
+        public WorldMapAsset WorldMap => worldMap;
+        /// <summary>Возвращает один коллайдер поверхности для RaycastNonAlloc.</summary>
+        public Collider TerrainCollider
+        {
+            get
+            {
+                if (terrainCollider != null) return terrainCollider;
+                var surface = FindSurface();
+                return terrainCollider = surface == null ? null : surface.GetComponent<Collider>();
+            }
+        }
+        /// <summary>Возвращает прежний renderer, который заменяется мешем чанка.</summary>
+        public Renderer LegacySurfaceRenderer
+        {
+            get
+            {
+                if (legacySurfaceRenderer != null) return legacySurfaceRenderer;
+                var surface = FindSurface();
+                return legacySurfaceRenderer = surface == null ? null : surface.GetComponent<Renderer>();
+            }
+        }
+
+        /// <summary>Назначает карту через редакторскую кисть без создания ассета в Play Mode.</summary>
+        public void AssignWorldMap(WorldMapAsset map) => worldMap = map;
+
+        /// <summary>Находит временный поверхностный объект старой сцены один раз при подключении.</summary>
+        private Transform FindSurface() =>
+            transform.Find("Terrain Surface") ?? transform.Find("Terrain Surface Extra");
+
+        /// <summary>Настраивает закрытый сектор при редакторской выгрузке временной сцены.</summary>
+        public void ConfigureLockedSector(bool locked) => isLockedSector = locked;
 
         /// <summary>Описывает прямоугольную локальную зону с типом, отличным от типа всего чанка.</summary>
         [Serializable]
@@ -58,8 +97,7 @@ namespace MyLittleFarm.Core.Grid
             _registeredChunkCoord = grid.GridToChunk(gridOrigin);
             grid.InitializeChunk(_registeredChunkCoord, isLockedSector ? CellType.Locked : defaultCellType);
 
-            if (zoneOverrides == null) return;
-            foreach (var zone in zoneOverrides)
+            if (zoneOverrides != null) foreach (var zone in zoneOverrides)
             {
                 if (zone == null || zone.size.x <= 0 || zone.size.y <= 0) continue;
                 for (var x = 0; x < zone.size.x; x++)
@@ -71,6 +109,8 @@ namespace MyLittleFarm.Core.Grid
                     grid.SetCellType(grid.ChunkLocalToGrid(_registeredChunkCoord, local), zone.overrideType);
                 }
             }
+            if (worldMap != null) worldMap.ApplyTo(grid, _registeredChunkCoord);
+            grid.CommitChunkBase(_registeredChunkCoord);
         }
 
         private void OnDrawGizmosSelected()

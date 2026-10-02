@@ -26,7 +26,9 @@ namespace MyLittleFarm.Gameplay.Building
             // Цвет различает типы до появления финальных моделей и материалов.
             var color = definition.Id == "house" ? new Color(0.85f, 0.70f, 0.45f)
                 : definition.Id == "storage" ? new Color(0.45f, 0.30f, 0.18f)
-                : definition.Id == "market" ? new Color(0.85f, 0.48f, 0.15f) : new Color(0.30f, 0.58f, 0.25f);
+                : definition.Id == "market" ? new Color(0.85f, 0.48f, 0.15f)
+                : definition.Id == "coop" ? new Color(0.76f, 0.57f, 0.35f)
+                : new Color(0.30f, 0.58f, 0.25f);
             Part(root.transform, "Body", new Vector3(0, height * 0.4f, 0), new Vector3(width, height * 0.8f, depth), color);
             Part(root.transform, "Top", new Vector3(0, height * 0.9f, 0), new Vector3(width, height * 0.2f, depth),
                 definition.Id == "flowerbed" ? new Color(0.92f, 0.40f, 0.58f) : new Color(0.48f, 0.20f, 0.16f));

@@ -105,7 +105,7 @@ foreach ($setting in @('initialYaw', 'initialDistance', 'pitch', 'lookHeight', '
     }
 }
 foreach ($setting in @('moveForwardKey', 'moveBackwardKey', 'moveLeftKey', 'moveRightKey', 'sprintKey',
-        'jumpKey', 'interactKey', 'buildToggleKey', 'saveKey', 'loadKey')) {
+        'jumpKey', 'interactKey', 'plantTreeKey', 'buildToggleKey', 'saveKey', 'loadKey')) {
     if ($inputSource -notmatch "\[SerializeField[^\]]*\][^;]*\b$setting\b") {
         throw "Input binding is not exposed in Inspector: $setting"
     }
@@ -125,4 +125,57 @@ Add-Type -Path $domain
 # assertions подтверждает объём реально выполненных контрактных проверок.
 $assertions = [MyLittleFarm.Tests.EditMode.BuildingContractChecks]::Run()
 Write-Output "PASS: actual building domain compiled; $assertions assertions, including 1000 deterministic random operations."
-Write-Output 'NOT RUN: Unity assembly compilation, EditMode/PlayMode tests, rendering and input. These require Unity Editor.'
+
+# Экономическая модель также компилируется и выполняется автономно на настоящем C# коде проекта.
+$economyDomain = @('Gameplay/Economy/TransactionMath.cs',
+    'Tests/EditMode/TransactionMathContractChecks.cs') |
+    ForEach-Object { Join-Path $gameRoot $_ }
+Add-Type -Path $economyDomain
+$economyAssertions = [MyLittleFarm.Tests.EditMode.TransactionMathContractChecks]::Run()
+Write-Output "PASS: actual economy calculations compiled; $economyAssertions assertions, including 1000 deterministic random transactions."
+
+# Минимальная заглушка заменяет только Unity Vector2Int; ChunkData и GridMath берутся из игры без копий.
+$gridDomain = @('Verification/UnityVector2IntStub.cs',
+    'Assets/_Game/Core/Grid/CellType.cs', 'Assets/_Game/Core/Grid/CellData.cs',
+    'Assets/_Game/Core/Grid/TerrainCell.cs', 'Assets/_Game/Core/Grid/FarmingCell.cs',
+    'Assets/_Game/Core/Grid/BuildingCell.cs', 'Assets/_Game/Core/Grid/GridMath.cs',
+    'Assets/_Game/Core/Grid/ChunkData.cs',
+    'Assets/_Game/Tests/EditMode/GridArchitectureContractChecks.cs') |
+    ForEach-Object { Join-Path $ProjectRoot $_ }
+Add-Type -Path $gridDomain
+$gridAssertions = [MyLittleFarm.Tests.EditMode.GridArchitectureContractChecks]::Run()
+Write-Output "PASS: layered chunk model compiled; $gridAssertions assertions, including all coordinates from -4096 to 4096."
+
+# Первый блок Этапа 2 обязан оставаться data-driven: новые культуры не получают отдельные системы.
+$catalogSource = [IO.File]::ReadAllText((Join-Path $gameRoot 'Gameplay/Farming/FarmCatalog.cs'))
+$inputSource = [IO.File]::ReadAllText((Join-Path $gameRoot 'Core/InputReader.cs'))
+$quickSlotSource = [IO.File]::ReadAllText((Join-Path $gameRoot 'Gameplay/Economy/QuickSlotSystem.cs'))
+foreach ($requiredCrop in @('"carrot"', '"potato"', '"wheat"', '"tomato"', '"corn"', '"cucumber"')) {
+    if ($catalogSource -notmatch $requiredCrop) { throw "Stage 2 crop is missing: $requiredCrop" }
+}
+foreach ($requiredToken in @('seedSlot5Key', 'seedSlot6Key', 'SeedSelection', 'Range(0, 5)')) {
+    if (($inputSource + $quickSlotSource) -notmatch [regex]::Escape($requiredToken)) {
+        throw "Six seed slots contract is missing: $requiredToken"
+    }
+}
+Write-Output 'PASS: Stage 2 content block has six data-driven crops and six Inspector-backed seed slots.'
+
+# Вертикальный срез Этапа 2 должен содержать повторный урожай дерева и цикл курицы.
+$orchardSource = [IO.File]::ReadAllText((Join-Path $gameRoot 'Gameplay/Farming/OrchardSystem.cs'))
+$animalSource = [IO.File]::ReadAllText((Join-Path $gameRoot 'Gameplay/Animals/AnimalSystem.cs'))
+$saveSource = [IO.File]::ReadAllText((Join-Path $gameRoot 'Core/SaveSystem.cs'))
+foreach ($requiredToken in @('PlantApple', 'TryHarvest', 'RegrowSeconds', 'TreeOccupantId')) {
+    if ($orchardSource -notmatch [regex]::Escape($requiredToken)) {
+        throw "Apple tree loop contract is missing: $requiredToken"
+    }
+}
+foreach ($requiredToken in @('AddChicken', 'Feed', 'TryCollect', 'productIntervalSeconds', 'MaxAnimals')) {
+    if ($animalSource -notmatch [regex]::Escape($requiredToken)) {
+        throw "Chicken loop contract is missing: $requiredToken"
+    }
+}
+if (($saveSource -notmatch 'List<AnimalRuntimeState> animals') -or ($saveSource -notmatch 'ValidateAnimals')) {
+    throw 'Animal save and validation contract is missing.'
+}
+Write-Output 'PASS: Stage 2 orchard repeat-harvest and chicken feed/egg/save contracts are present.'
+Write-Output 'NOT RUN: Unity assembly compilation, EditMode/PlayMode tests, rendering, input and 20-30 minute playtest. These require Unity Editor.'

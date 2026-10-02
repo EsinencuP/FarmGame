@@ -1,4 +1,5 @@
 using MyLittleFarm.Core;
+using MyLittleFarm.Core.Grid;
 using UnityEngine;
 
 namespace MyLittleFarm.Gameplay.World
@@ -26,6 +27,7 @@ namespace MyLittleFarm.Gameplay.World
         private InputReader _input;
         private CharacterController _controller;
         private Transform _cameraTransform;
+        private GridSystem _grid;
         // Вертикальная скорость накапливает действие гравитации между кадрами.
         private float _verticalVelocity;
 
@@ -43,10 +45,11 @@ namespace MyLittleFarm.Gameplay.World
         }
 
         /// <summary>Получает ввод и локальные компоненты после создания игрока.</summary>
-        public void Configure(InputReader input)
+        public void Configure(InputReader input, GridSystem grid = null)
         {
             _input = input;
             _controller = GetComponent<CharacterController>();
+            _grid = grid;
         }
 
         public void SetCamera(Transform cameraTransform)
@@ -99,8 +102,26 @@ namespace MyLittleFarm.Gameplay.World
             }
 
             var horizontalSpeed = _input.SprintHeld ? runSpeed : walkSpeed;
+            // Проверяются промежуточные клетки, чтобы бег при редком кадре не перескочил закрытый сектор.
+            if (_grid != null && move.sqrMagnitude > 0f
+                && !CanTraverse(move * horizontalSpeed * Time.deltaTime)) move = Vector3.zero;
             var velocity = move * horizontalSpeed + Vector3.up * _verticalVelocity;
             _controller.Move(velocity * Time.deltaTime);
+        }
+
+        /// <summary>Проверяет весь горизонтальный отрезок движения малыми шагами по GridSystem.</summary>
+        private bool CanTraverse(Vector3 displacement)
+        {
+            var distance = displacement.magnitude;
+            var steps = Mathf.Max(1, Mathf.CeilToInt(distance / (_grid.CellSize * 0.45f)));
+            // Необычно большой кадр не должен вызывать тысячи проверок и пропускать границу мира.
+            if (steps > 128) return false;
+            for (var index = 1; index <= steps; index++)
+            {
+                var point = transform.position + displacement * (index / (float)steps);
+                if (!_grid.IsWalkable(_grid.WorldToGrid(point))) return false;
+            }
+            return true;
         }
 
         public void Teleport(Vector3 position)

@@ -10,7 +10,8 @@ namespace MyLittleFarm.Core.Grid
     /// Делит весь игровой мир на клетки без фиксированных границ. В памяти присутствуют только
     /// чанки, зарегистрированные объектами TilemapChunk или явно созданные загрузчиком мира.
     /// </summary>
-    public sealed class GridSystem : MonoBehaviour
+    [ExecuteAlways]
+    public sealed class GridSystem : MonoBehaviour, IWorldGridWriter, IChunkProvider
     {
         // Instance нужен TilemapChunk в сцене; игровые системы по-прежнему получают ссылку через bootstrap.
         public static GridSystem Instance { get; private set; }
@@ -58,6 +59,8 @@ namespace MyLittleFarm.Core.Grid
 
         /// <summary>Сообщает подписчикам только о фактическом изменении типа клетки.</summary>
         public event Action<Vector2Int, CellType> OnCellChanged;
+        /// <summary>Сообщает представлению, какой чанк нужно перестроить после изменения данных.</summary>
+        public event Action<Vector2Int> OnChunkChanged;
 
         private void Awake()
         {
@@ -95,7 +98,9 @@ namespace MyLittleFarm.Core.Grid
         /// </summary>
         public void Configure(float newCellSize, int newChunkSizeX, int newChunkSizeZ, bool allowSceneCreation = false)
         {
-            if (_chunks.Count > 0) throw new InvalidOperationException("Grid geometry cannot change after chunks are loaded.");
+            if (_chunks.Count > 0 && (cellSize != newCellSize
+                || chunkSizeX != newChunkSizeX || chunkSizeZ != newChunkSizeZ))
+                throw new InvalidOperationException("Grid geometry cannot change after chunks are loaded.");
             if (!IsFinitePositive(newCellSize)) throw new ArgumentOutOfRangeException(nameof(newCellSize));
             if (newChunkSizeX < 1) throw new ArgumentOutOfRangeException(nameof(newChunkSizeX));
             if (newChunkSizeZ < 1) throw new ArgumentOutOfRangeException(nameof(newChunkSizeZ));
@@ -149,14 +154,15 @@ namespace MyLittleFarm.Core.Grid
         public Vector2Int GridToChunk(Vector2Int gridPosition)
         {
             return new Vector2Int(
-                Mathf.FloorToInt((float)gridPosition.x / chunkSizeX),
-                Mathf.FloorToInt((float)gridPosition.y / chunkSizeZ));
+                GridMath.FloorDivide(gridPosition.x, chunkSizeX),
+                GridMath.FloorDivide(gridPosition.y, chunkSizeZ));
         }
 
         /// <summary>Возвращает положительную локальную координату клетки внутри её чанка.</summary>
         public Vector2Int GridToLocalCell(Vector2Int gridPosition)
         {
-            return new Vector2Int(PositiveModulo(gridPosition.x, chunkSizeX), PositiveModulo(gridPosition.y, chunkSizeZ));
+            return new Vector2Int(GridMath.LocalIndex(gridPosition.x, chunkSizeX),
+                GridMath.LocalIndex(gridPosition.y, chunkSizeZ));
         }
 
         /// <summary>Собирает мировую клеточную координату из адреса чанка и локального адреса.</summary>
@@ -189,7 +195,11 @@ namespace MyLittleFarm.Core.Grid
         public void InitializeChunk(Vector2Int chunkCoord, CellType defaultType = CellType.Grass)
         {
             GetOrCreateChunk(chunkCoord).Fill(defaultType);
+            OnChunkChanged?.Invoke(chunkCoord);
         }
+
+        /// <summary>Фиксирует сценовую поверхность как базу для последующего delta-сохранения.</summary>
+        public void CommitChunkBase(Vector2Int chunkCoord) => GetChunk(chunkCoord)?.CommitBase();
 
         /// <summary>Инициализирует прямоугольную область мира указанным типом клеток.</summary>
         public void InitializeArea(Vector3 worldOrigin, float worldWidth, float worldDepth, CellType defaultType = CellType.Grass)
@@ -209,6 +219,42 @@ namespace MyLittleFarm.Core.Grid
 
         /// <summary>Возвращает перечисление адресов загруженных чанков без копирования их содержимого.</summary>
         public IEnumerable<Vector2Int> GetLoadedChunkCoords() => _chunks.Keys;
+
+        /// <summary>Считает устойчивую подпись базовой карты для проверки совместимости delta-файла.</summary>
+        public long ComputeBaseMapHash()
+        {
+            // Сортировка убирает зависимость подписи от порядка регистрации сценовых компонентов.
+            var coordinates = new List<Vector2Int>(_chunks.Keys);
+            coordinates.Sort((left, right) =>
+            {
+                var byX = left.x.CompareTo(right.x);
+                return byX != 0 ? byX : left.y.CompareTo(right.y);
+            });
+            const ulong offset = 14695981039346656037UL;
+            const ulong prime = 1099511628211UL;
+            var hash = offset;
+            unchecked
+            {
+                hash = (hash ^ (uint)chunkSizeX) * prime;
+                hash = (hash ^ (uint)chunkSizeZ) * prime;
+                hash = (hash ^ (uint)BitConverter.ToInt32(BitConverter.GetBytes(cellSize), 0)) * prime;
+                foreach (var coordinate in coordinates)
+                {
+                    hash = (hash ^ (uint)coordinate.x) * prime;
+                    hash = (hash ^ (uint)coordinate.y) * prime;
+                    var chunk = _chunks[coordinate];
+                    for (var z = 0; z < chunkSizeZ; z++)
+                    for (var x = 0; x < chunkSizeX; x++)
+                    {
+                        var terrain = chunk.GetBaseTerrain(x, z);
+                        hash = (hash ^ (byte)terrain.type) * prime;
+                        hash = (hash ^ terrain.biome) * prime;
+                        hash = (hash ^ terrain.moisture) * prime;
+                    }
+                }
+            }
+            return unchecked((long)hash);
+        }
 
         /// <summary>Регистрирует настройки одного сценового TilemapChunk.</summary>
         public void RegisterSceneChunk(TilemapChunk sceneChunk)
@@ -237,6 +283,42 @@ namespace MyLittleFarm.Core.Grid
             return chunk.GetCell(local.x, local.y);
         }
 
+        /// <summary>Читает поверхность независимо от временной грядки или постройки.</summary>
+        public TerrainCell GetTerrainCell(Vector2Int coordinate)
+        {
+            var chunk = GetChunk(GridToChunk(coordinate));
+            if (chunk == null) return new TerrainCell(CellType.OutOfBounds);
+            var local = GridToLocalCell(coordinate);
+            return chunk.GetTerrain(local.x, local.y);
+        }
+
+        /// <summary>Читает неизменённую карту сцены независимо от текущих действий игрока.</summary>
+        public TerrainCell GetBaseTerrainCell(Vector2Int coordinate)
+        {
+            var chunk = GetChunk(GridToChunk(coordinate));
+            if (chunk == null) return new TerrainCell(CellType.OutOfBounds);
+            var local = GridToLocalCell(coordinate);
+            return chunk.GetBaseTerrain(local.x, local.y);
+        }
+
+        /// <summary>Читает грядку без выделения памяти при отсутствии слоя.</summary>
+        public FarmingCell GetFarmingCell(Vector2Int coordinate)
+        {
+            var chunk = GetChunk(GridToChunk(coordinate));
+            if (chunk == null) return default;
+            var local = GridToLocalCell(coordinate);
+            return chunk.GetFarming(local.x, local.y);
+        }
+
+        /// <summary>Читает занятость постройкой без смешивания с поверхностью.</summary>
+        public BuildingCell GetBuildingCell(Vector2Int coordinate)
+        {
+            var chunk = GetChunk(GridToChunk(coordinate));
+            if (chunk == null) return default;
+            var local = GridToLocalCell(coordinate);
+            return chunk.GetBuilding(local.x, local.y);
+        }
+
         /// <summary>Возвращает только тип клетки для правил, которым не нужен occupantId.</summary>
         public CellType GetCellType(Vector2Int gridPosition) => GetCell(gridPosition).type;
 
@@ -259,10 +341,10 @@ namespace MyLittleFarm.Core.Grid
         {
             var chunk = GetOrCreateChunk(GridToChunk(gridPosition));
             var local = GridToLocalCell(gridPosition);
-            ref var cell = ref chunk.GetCell(local.x, local.y);
-            if (cell.type == newType) return;
-            cell.type = newType;
-            OnCellChanged?.Invoke(gridPosition, newType);
+            var oldType = chunk.GetCell(local.x, local.y).type;
+            if (oldType == newType) return;
+            chunk.SetLegacyType(local.x, local.y, newType);
+            NotifyCellChanged(gridPosition, oldType);
         }
 
         /// <summary>Записывает владельца клетки без изменения её типа.</summary>
@@ -270,7 +352,52 @@ namespace MyLittleFarm.Core.Grid
         {
             var chunk = GetOrCreateChunk(GridToChunk(gridPosition));
             var local = GridToLocalCell(gridPosition);
-            chunk.GetCell(local.x, local.y).occupantId = string.IsNullOrEmpty(occupantId) ? null : occupantId;
+            chunk.SetOccupant(local.x, local.y, string.IsNullOrEmpty(occupantId) ? null : occupantId);
+            OnChunkChanged?.Invoke(GridToChunk(gridPosition));
+        }
+
+        /// <summary>Записывает постоянный слой поверхности, сохраняя грядку и постройку поверх него.</summary>
+        public void SetTerrainCell(Vector2Int coordinate, TerrainCell terrain)
+        {
+            var chunk = GetOrCreateChunk(GridToChunk(coordinate));
+            var local = GridToLocalCell(coordinate);
+            var oldType = chunk.GetCell(local.x, local.y).type;
+            chunk.SetTerrain(local.x, local.y, terrain);
+            NotifyCellChanged(coordinate, oldType);
+        }
+
+        /// <summary>Записывает грядку отдельно от поверхности.</summary>
+        public void SetFarmingCell(Vector2Int coordinate, FarmingCell farming)
+        {
+            var chunk = GetOrCreateChunk(GridToChunk(coordinate));
+            var local = GridToLocalCell(coordinate);
+            var oldType = chunk.GetCell(local.x, local.y).type;
+            chunk.SetFarming(local.x, local.y, farming);
+            NotifyCellChanged(coordinate, oldType);
+        }
+
+        /// <summary>Записывает часть постройки отдельно от поверхности.</summary>
+        public void SetBuildingCell(Vector2Int coordinate, BuildingCell building)
+        {
+            var chunk = GetOrCreateChunk(GridToChunk(coordinate));
+            var local = GridToLocalCell(coordinate);
+            var oldType = chunk.GetCell(local.x, local.y).type;
+            chunk.SetBuilding(local.x, local.y, building);
+            NotifyCellChanged(coordinate, oldType);
+        }
+
+        /// <summary>Удаляет грядку и оставляет под ней прежнюю поверхность.</summary>
+        public void ClearFarmingCell(Vector2Int coordinate) => SetFarmingCell(coordinate, default);
+
+        /// <summary>Освобождает место постройки, не меняя исходный тип земли.</summary>
+        public void ClearBuildingCell(Vector2Int coordinate) => SetBuildingCell(coordinate, default);
+
+        private void NotifyCellChanged(Vector2Int coordinate, CellType oldType)
+        {
+            // Визуализация может зависеть даже от слоя, не меняющего итоговый игровой тип.
+            var newType = GetCellType(coordinate);
+            if (newType != oldType) OnCellChanged?.Invoke(coordinate, newType);
+            OnChunkChanged?.Invoke(GridToChunk(coordinate));
         }
 
         /// <summary>Показывает единый маркер над выбранной загруженной клеткой.</summary>
@@ -299,12 +426,21 @@ namespace MyLittleFarm.Core.Grid
             return cell.occupantId == null && (cell.type == CellType.Tilled || cell.type == CellType.Watered);
         }
 
+        /// <summary>Проверяет свободную природную клетку для многоклеточного объекта дерева.</summary>
+        public bool CanPlantTree(Vector2Int gridPosition)
+        {
+            var cell = GetCell(gridPosition);
+            return cell.occupantId == null
+                && (cell.type == CellType.Grass || cell.type == CellType.Dirt || cell.type == CellType.Sand);
+        }
+
         /// <summary>Проверяет проходимость клетки с учётом препятствий и занятости постройкой.</summary>
         public bool IsWalkable(Vector2Int gridPosition)
         {
             var type = GetCellType(gridPosition);
             return type != CellType.Water && type != CellType.Rock && type != CellType.Locked
-                && type != CellType.OutOfBounds && type != CellType.Building && type != CellType.BuildingEdge;
+                && type != CellType.OutOfBounds && type != CellType.Building && type != CellType.BuildingEdge
+                && type != CellType.Tree;
         }
 
         /// <summary>Проверяет, допускает ли тип свободной клетки строительство.</summary>
@@ -333,8 +469,11 @@ namespace MyLittleFarm.Core.Grid
             for (var z = 0; z < size.y; z++)
             {
                 var position = new Vector2Int(origin.x + x, origin.y + z);
-                SetCellType(position, x == 0 && z == 0 ? CellType.Building : CellType.BuildingEdge);
-                SetCellOccupant(position, buildingId);
+                SetBuildingCell(position, new BuildingCell
+                {
+                    type = x == 0 && z == 0 ? CellType.Building : CellType.BuildingEdge,
+                    buildingId = buildingId
+                });
             }
         }
 
@@ -347,9 +486,8 @@ namespace MyLittleFarm.Core.Grid
                 var position = new Vector2Int(origin.x + x, origin.y + z);
                 var cell = GetCell(position);
                 if (buildingId != null && cell.occupantId != buildingId) continue;
-                if (cell.type != CellType.Building && cell.type != CellType.BuildingEdge) continue;
-                SetCellOccupant(position, null);
-                SetCellType(position, CellType.Grass);
+                if (cell.type != CellType.Building && cell.type != CellType.BuildingEdge && cell.type != CellType.Tree) continue;
+                ClearBuildingCell(position);
             }
         }
 
@@ -379,24 +517,48 @@ namespace MyLittleFarm.Core.Grid
             return result;
         }
 
-        /// <summary>Создаёт разреженный снимок всех клеток, отличающихся от Grass.</summary>
+        /// <summary>Перечисляет посевы прямо из фермерских слоёв без сканирования GameObject.</summary>
+        public IEnumerable<Vector2Int> GetPlantedCells()
+        {
+            foreach (var pair in _chunks)
+            {
+                if (!pair.Value.HasFarmingLayer) continue;
+                for (var z = 0; z < chunkSizeZ; z++)
+                for (var x = 0; x < chunkSizeX; x++)
+                    if (pair.Value.GetFarming(x, z).soilType == CellType.Planted)
+                        yield return ChunkLocalToGrid(pair.Key, new Vector2Int(x, z));
+            }
+        }
+
+        /// <summary>Создаёт разреженный снимок отличий от базовой карты, включая игровые слои.</summary>
         public GridSaveData Serialize()
         {
             var result = new GridSaveData();
             foreach (var pair in _chunks)
             {
+                if (pair.Value.ModifiedCellCount == 0) continue;
                 var chunkEntry = new ChunkSaveEntry { chunkX = pair.Key.x, chunkZ = pair.Key.y };
-                for (var x = 0; x < chunkSizeX; x++)
-                for (var z = 0; z < chunkSizeZ; z++)
+                foreach (var index in pair.Value.ModifiedIndices)
                 {
-                    ref var cell = ref pair.Value.GetCell(x, z);
-                    if (cell.type == CellType.Grass && cell.occupantId == null) continue;
+                    var x = index % chunkSizeX;
+                    var z = index / chunkSizeX;
+                    var cell = pair.Value.GetCell(x, z);
+                    var terrain = pair.Value.GetTerrain(x, z);
+                    var farming = pair.Value.GetFarming(x, z);
                     chunkEntry.modifiedCells.Add(new CellSaveEntry
                     {
                         localX = x,
                         localZ = z,
                         cellType = (byte)cell.type,
-                        occupantId = cell.occupantId
+                        occupantId = cell.occupantId,
+                        hasTerrainData = true,
+                        terrainType = (byte)terrain.type,
+                        biome = terrain.biome,
+                        moisture = terrain.moisture,
+                        farmingMoisture = farming.moisture,
+                        fertilizer = farming.fertilizer,
+                        lastWateredDay = farming.lastWateredDay,
+                        farmingFlags = farming.flags
                     });
                 }
                 if (chunkEntry.modifiedCells.Count > 0) result.chunks.Add(chunkEntry);
@@ -410,19 +572,34 @@ namespace MyLittleFarm.Core.Grid
             _chunks.Clear();
             foreach (var sceneChunk in _sceneChunks)
                 if (sceneChunk != null) sceneChunk.ApplyTo(this);
-            if (saveData?.chunks == null) return;
-            foreach (var chunkEntry in saveData.chunks)
+            if (saveData?.chunks != null) foreach (var chunkEntry in saveData.chunks)
             {
                 var chunk = GetOrCreateChunk(new Vector2Int(chunkEntry.chunkX, chunkEntry.chunkZ));
                 if (chunkEntry.modifiedCells == null) continue;
                 foreach (var cellEntry in chunkEntry.modifiedCells)
                 {
-                    ref var cell = ref chunk.GetCell(cellEntry.localX, cellEntry.localZ);
-                    cell.type = (CellType)cellEntry.cellType;
-                    cell.occupantId = string.IsNullOrEmpty(cellEntry.occupantId) ? null : cellEntry.occupantId;
+                    if (cellEntry.hasTerrainData)
+                        chunk.SetTerrain(cellEntry.localX, cellEntry.localZ, new TerrainCell((CellType)cellEntry.terrainType)
+                        { biome = cellEntry.biome, moisture = cellEntry.moisture });
+                    chunk.SetLegacyType(cellEntry.localX, cellEntry.localZ, (CellType)cellEntry.cellType);
+                    if (!string.IsNullOrEmpty(cellEntry.occupantId))
+                        chunk.SetOccupant(cellEntry.localX, cellEntry.localZ, cellEntry.occupantId);
+                    if (cellEntry.hasTerrainData)
+                    {
+                        var farming = chunk.GetFarming(cellEntry.localX, cellEntry.localZ);
+                        if (farming.soilType != 0)
+                        {
+                            farming.moisture = cellEntry.farmingMoisture;
+                            farming.fertilizer = cellEntry.fertilizer;
+                            farming.lastWateredDay = cellEntry.lastWateredDay;
+                            farming.flags = cellEntry.farmingFlags;
+                            chunk.SetFarming(cellEntry.localX, cellEntry.localZ, farming);
+                        }
+                    }
                 }
             }
             Select(null);
+            foreach (var coordinate in _chunks.Keys) OnChunkChanged?.Invoke(coordinate);
         }
 
         private GameObject CreateSelectionView()
@@ -438,7 +615,6 @@ namespace MyLittleFarm.Core.Grid
             return view;
         }
 
-        private static int PositiveModulo(int value, int divisor) => ((value % divisor) + divisor) % divisor;
         private static bool IsFinitePositive(float value) => value > 0f && !float.IsNaN(value) && !float.IsInfinity(value);
 
         private void OnDrawGizmos()
@@ -505,5 +681,14 @@ namespace MyLittleFarm.Core.Grid
         public int localZ;
         public byte cellType;
         public string occupantId;
+        // Версия 5 добавляет исходную поверхность под грядкой или постройкой.
+        public bool hasTerrainData;
+        public byte terrainType;
+        public byte biome;
+        public byte moisture;
+        public byte farmingMoisture;
+        public byte fertilizer;
+        public ushort lastWateredDay;
+        public byte farmingFlags;
     }
 }

@@ -1,3 +1,4 @@
+using System.IO;
 using MyLittleFarm.Core;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -15,7 +16,7 @@ namespace MyLittleFarm.Editor
     {
         // Путь ограничивает автоматическую выгрузку одной конкретной сценой проекта.
         private const string PrototypeScenePath = "Assets/_Game/Scenes/Prototype.unity";
-        private const string RootName = "My Little Farm — Stage 0";
+        private const string RootName = "My Little Farm — Stage 2";
 
         /// <summary>Планирует безопасную проверку после завершения загрузки и компиляции редактора.</summary>
         static PrototypeSceneBaker()
@@ -42,6 +43,12 @@ namespace MyLittleFarm.Editor
         {
             if (EditorApplication.isPlayingOrWillChangePlaymode)
             {
+                return;
+            }
+            if (EditorApplication.isCompiling || EditorApplication.isUpdating)
+            {
+                // Ждём завершения импорта скриптов: иначе сцена может получить Missing Script.
+                EditorApplication.delayCall += BakeEmptyPrototypeOnce;
                 return;
             }
 
@@ -89,15 +96,25 @@ namespace MyLittleFarm.Editor
         private static void BakeIntoScene(Scene scene)
         {
             var root = new GameObject(RootName);
-            Undo.RegisterCreatedObjectUndo(root, "Bake My Little Farm prototype");
-            var bootstrap = root.AddComponent<GameBootstrap>();
-            bootstrap.BuildPrototype();
+            try
+            {
+                Undo.RegisterCreatedObjectUndo(root, "Bake My Little Farm prototype");
+                var bootstrap = root.AddComponent<GameBootstrap>();
+                bootstrap.BuildPrototype();
 
-            EditorUtility.SetDirty(root);
-            EditorSceneManager.MarkSceneDirty(scene);
-            EditorSceneManager.SaveScene(scene);
-            Selection.activeGameObject = root;
-            Debug.Log("My Little Farm prototype was baked into Prototype.unity and is ready for Edit Mode setup.");
+                EditorUtility.SetDirty(root);
+                EditorSceneManager.MarkSceneDirty(scene);
+                if (!EditorSceneManager.SaveScene(scene))
+                    throw new IOException("Prototype.unity could not be saved after baking.");
+                Selection.activeGameObject = root;
+                Debug.Log("My Little Farm prototype was baked into Prototype.unity and is ready for Edit Mode setup.");
+            }
+            catch (System.Exception exception)
+            {
+                // Не оставляем половину иерархии, которая скрыла бы повторную автосборку.
+                Undo.DestroyObjectImmediate(root);
+                Debug.LogException(exception);
+            }
         }
     }
 }

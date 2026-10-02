@@ -34,7 +34,8 @@ namespace MyLittleFarm.Gameplay.Building
             new BuildingDefinition("house", "Дом", 2, 2, 20, 2.8f),
             new BuildingDefinition("storage", "Склад", 2, 1, 12, 1.8f),
             new BuildingDefinition("market", "Торговая стойка", 1, 2, 10, 1.6f),
-            new BuildingDefinition("flowerbed", "Клумба", 1, 1, 3, 0.45f)
+            new BuildingDefinition("flowerbed", "Клумба", 1, 1, 3, 0.45f),
+            new BuildingDefinition("coop", "Курятник", 2, 2, 18, 1.7f)
         });
     }
 }

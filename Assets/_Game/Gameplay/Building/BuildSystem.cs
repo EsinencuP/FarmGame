@@ -223,7 +223,7 @@ namespace MyLittleFarm.Gameplay.Building
             {
                 _nextPromptAt = Time.unscaledTime + promptRefreshInterval;
                 CurrentPrompt = $"{SelectedDefinition.Name} — {(_movingId == null ? SelectedDefinition.Price + " монет" : "бесплатный перенос")}   {SelectedDefinition.RotatedWidth(_turns)}×{SelectedDefinition.RotatedDepth(_turns)}\n"
-                    + "1 Дом (20)   2 Склад (12)   3 Стойка (10)   4 Клумба (3)\n"
+                    + "1 Дом (20)   2 Склад (12)   3 Стойка (10)   4 Клумба (3)   5 Курятник (18)\n"
                     + (valid ? "ЛКМ / E — разместить" : reasonText) + "   R — поворот   M — перенос   Delete — удалить   B / Esc — выход";
             }
             if (_input.InteractPressed && _hasTarget)
@@ -277,6 +277,8 @@ namespace MyLittleFarm.Gameplay.Building
                 new Vector2Int(definition.RotatedWidth(turns), definition.RotatedDepth(turns)), state.id);
             _wallet.TrySpend(definition.Price);
             reason = "Постройка размещена";
+            GameEvents.RaiseProgressAction(definitionId == "house" ? "house"
+                : definitionId == "storage" ? "chest" : "build");
             return true;
         }
 

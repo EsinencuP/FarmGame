@@ -13,20 +13,21 @@ namespace MyLittleFarm.Gameplay.Farming
         public const float DefaultGrowDurationSeconds = 8f;
         public const int DefaultYield = 2;
 
-        [Header("Crop Settings")]
-        [Tooltip("Время полного роста новой культуры в секундах реального времени.")]
+        [Header("Legacy Crop Fallback")]
+        [Tooltip("Время роста моркови только для тестовой сцены без FarmCatalog; в игре настройка находится в каталоге.")]
         [SerializeField, Min(0.1f)] private float growDurationSeconds = DefaultGrowDurationSeconds;
-        [Tooltip("Количество моркови, получаемое при сборе зрелой культуры.")]
+        [Tooltip("Урожай моркови только для сцены без FarmCatalog.")]
         [SerializeField, Min(1)] private int yieldAmount = DefaultYield;
         [Tooltip("Количество визуальных стадий роста культуры.")]
         [SerializeField, Min(2)] private int stageCount = 3;
         [Tooltip("Интервал обновления внешнего вида растущих культур.")]
         [SerializeField, Min(0.02f)] private float viewRefreshInterval = 0.25f;
 
-        // Отдельные словари разделяют игровые данные и объекты представления по одной клетке-ключу.
-        private readonly Dictionary<Vector2Int, CropRuntimeState> _crops = new Dictionary<Vector2Int, CropRuntimeState>();
+        // Словарь содержит только представления; игровое состояние каждого посева живёт в FarmingCell чанка.
         private readonly Dictionary<Vector2Int, CropView> _views = new Dictionary<Vector2Int, CropView>();
-        private GridSystem _grid;
+        private IWorldGridWriter _grid;
+        // Каталог определяет параметры каждого вида; null сохраняет совместимость старых тестовых сцен.
+        private FarmCatalog _catalog;
         // Время следующего визуального обновления ограничивает работу четырьмя проверками в секунду.
         private float _nextRefresh;
 
@@ -36,9 +37,10 @@ namespace MyLittleFarm.Gameplay.Farming
         public int StageCount => stageCount;
 
         /// <summary>Подключает сетку, по которой проверяются клетки и вычисляются мировые позиции.</summary>
-        public void Configure(GridSystem grid)
+        public void Configure(IWorldGridWriter grid, FarmCatalog catalog = null)
         {
             _grid = grid;
+            _catalog = catalog;
         }
 
         private void Update()
@@ -56,57 +58,77 @@ namespace MyLittleFarm.Gameplay.Farming
         public bool Contains(Vector2Int position)
         {
             // Быстрая проверка используется строительством для запрета размещения поверх растения.
-            return _crops.ContainsKey(position);
+            return _grid != null && _grid.GetFarmingCell(position).soilType == CellType.Planted;
         }
 
         public bool TryGet(Vector2Int position, out CropRuntimeState crop)
         {
             // Возвращает состояние для подсказки прогресса и попытки сбора.
-            return _crops.TryGetValue(position, out crop);
+            crop = null;
+            if (_grid == null) return false;
+            var farming = _grid.GetFarmingCell(position);
+            if (farming.soilType != CellType.Planted || string.IsNullOrEmpty(farming.cropId)) return false;
+            crop = ToRuntimeState(position, farming);
+            return true;
         }
 
         public bool Plant(Vector2Int position, long plantedAtUnixMs)
+            => Plant(position, PrototypeCropId, plantedAtUnixMs);
+
+        /// <summary>Сажает выбранный вид культуры по его определению из каталога.</summary>
+        public bool Plant(Vector2Int position, string cropId, long plantedAtUnixMs)
         {
             // Посадка допустима на свободной обработанной клетке без существующего посева.
-            if (_crops.ContainsKey(position) || !_grid.CanPlant(position))
+            if (_grid == null || Contains(position) || !_grid.CanPlant(position))
             {
                 return false;
             }
+
+            CropDefinition definition = null;
+            if (_catalog != null && !_catalog.TryGetCrop(cropId, out definition)) return false;
+            if (_catalog == null && cropId != PrototypeCropId) return false;
 
             var crop = new CropRuntimeState
             {
                 x = position.x,
                 z = position.y,
-                cropId = PrototypeCropId,
+                cropId = cropId,
                 plantedAtUnixMs = plantedAtUnixMs,
-                growDurationSeconds = growDurationSeconds,
-                stageCount = stageCount
+                growDurationSeconds = definition == null ? growDurationSeconds : definition.GrowDurationSeconds,
+                stageCount = definition == null ? stageCount : definition.StageCount
             };
-            AddCrop(crop);
-            _grid.SetCellType(position, CellType.Planted);
-            _grid.SetCellOccupant(position, CropOccupantId(position));
+            _grid.SetFarmingCell(position, ToFarmingCell(crop));
+            AddView(crop);
             return true;
         }
 
         public bool TryHarvest(Vector2Int position, long nowUnixMs, out int yield)
         {
+            return TryHarvest(position, nowUnixMs, out _, out yield);
+        }
+
+        /// <summary>Собирает зрелый урожай и возвращает ID предмета и количество.</summary>
+        public bool TryHarvest(Vector2Int position, long nowUnixMs, out string itemId, out int yield)
+        {
             // Незрелое растение остаётся неизменным; зрелое удаляется из данных и сцены.
+            itemId = null;
             yield = 0;
-            if (!_crops.TryGetValue(position, out var crop) || !crop.IsMature(nowUnixMs))
+            if (!TryGet(position, out var crop) || !crop.IsMature(nowUnixMs))
             {
                 return false;
             }
 
-            _crops.Remove(position);
+            CropDefinition definition = null;
+            if (_catalog != null && !_catalog.TryGetCrop(crop.cropId, out definition)) return false;
             if (_views.TryGetValue(position, out var view))
             {
                 _views.Remove(position);
                 Destroy(view.gameObject);
             }
 
-            _grid.SetCellOccupant(position, null);
-            _grid.SetCellType(position, CellType.Tilled);
-            yield = yieldAmount;
+            _grid.SetFarmingCell(position, new FarmingCell { soilType = CellType.Tilled });
+            itemId = definition == null ? crop.cropId : definition.HarvestItemId;
+            yield = definition == null ? yieldAmount : definition.YieldAmount;
             return true;
         }
 
@@ -114,8 +136,9 @@ namespace MyLittleFarm.Gameplay.Farming
         {
             // Каждое состояние копируется, чтобы снимок не ссылался на рабочий словарь.
             var result = new List<CropRuntimeState>();
-            foreach (var crop in _crops.Values)
+            foreach (var position in _grid.GetPlantedCells())
             {
+                if (!TryGet(position, out var crop)) continue;
                 result.Add(new CropRuntimeState
                 {
                     x = crop.x,
@@ -142,17 +165,25 @@ namespace MyLittleFarm.Gameplay.Farming
             foreach (var crop in crops)
             {
                 if (_grid.GetCellType(crop.Position) == CellType.Planted
-                    && _grid.GetCell(crop.Position).occupantId == CropOccupantId(crop.Position))
+                    && _grid.GetFarmingCell(crop.Position).occupantId == CropOccupantId(crop.Position))
                 {
-                    AddCrop(new CropRuntimeState { x = crop.x, z = crop.z, cropId = crop.cropId,
-                        plantedAtUnixMs = crop.plantedAtUnixMs, growDurationSeconds = crop.growDurationSeconds, stageCount = crop.stageCount });
+                    var copy = new CropRuntimeState { x = crop.x, z = crop.z, cropId = crop.cropId,
+                        plantedAtUnixMs = crop.plantedAtUnixMs, growDurationSeconds = crop.growDurationSeconds, stageCount = crop.stageCount };
+                    var existing = _grid.GetFarmingCell(crop.Position);
+                    var restored = ToFarmingCell(copy);
+                    restored.moisture = existing.moisture;
+                    restored.fertilizer = existing.fertilizer;
+                    restored.lastWateredDay = existing.lastWateredDay;
+                    restored.flags = existing.flags;
+                    _grid.SetFarmingCell(crop.Position, restored);
+                    AddView(copy);
                 }
             }
         }
 
         public void ClearAll()
         {
-            // Уничтожает визуальные объекты и очищает обе части состояния культуры.
+            // Уничтожает только визуальные объекты; GridSystem сбрасывается отдельно при загрузке.
             foreach (var view in _views.Values)
             {
                 if (view != null)
@@ -162,14 +193,15 @@ namespace MyLittleFarm.Gameplay.Farming
             }
 
             _views.Clear();
-            _crops.Clear();
         }
 
-        private void AddCrop(CropRuntimeState crop)
+        /// <summary>Создаёт представление для состояния, уже записанного в чанке.</summary>
+        private void AddView(CropRuntimeState crop)
         {
-            // Создаёт только новый view и обновляет его, не перебирая уже существующие растения.
-            _crops.Add(crop.Position, crop);
-            var view = CropView.Create(_grid.CellToWorld(crop.Position), transform);
+            // Только видимые объекты имеют GameObject; данные растения не дублируются в MonoBehaviour.
+            CropDefinition definition = null;
+            _catalog?.TryGetCrop(crop.cropId, out definition);
+            var view = CropView.Create(_grid.GridToWorld(crop.Position), definition, transform);
             _views.Add(crop.Position, view);
             view.SetStage(crop.GetStage(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()), crop.stageCount);
         }
@@ -180,13 +212,40 @@ namespace MyLittleFarm.Gameplay.Farming
         private void RefreshViews(long nowUnixMs)
         {
             // Синхронизирует визуальную стадию каждой культуры с рассчитанным прогрессом.
-            foreach (var pair in _crops)
+            foreach (var pair in _views)
             {
-                if (_views.TryGetValue(pair.Key, out var view))
-                {
-                    view.SetStage(pair.Value.GetStage(nowUnixMs), pair.Value.stageCount);
-                }
+                var farming = _grid.GetFarmingCell(pair.Key);
+                if (farming.soilType != CellType.Planted) continue;
+                var elapsed = ((double)nowUnixMs - farming.plantedAtUnixMs) / 1000.0;
+                var ratio = farming.growDurationSeconds <= 0f ? 1f
+                    : Mathf.Clamp01((float)(elapsed / farming.growDurationSeconds));
+                var stage = ratio >= 1f ? farming.stageCount - 1
+                    : Mathf.FloorToInt(ratio * Mathf.Max(1, farming.stageCount - 1));
+                pair.Value.SetStage(stage, farming.stageCount);
             }
         }
+
+        /// <summary>Переводит сохраняемый посев в отдельный слой чанка.</summary>
+        private static FarmingCell ToFarmingCell(CropRuntimeState crop) => new FarmingCell
+        {
+            soilType = CellType.Planted,
+            occupantId = CropOccupantId(crop.Position),
+            cropId = crop.cropId,
+            plantedAtUnixMs = crop.plantedAtUnixMs,
+            growDurationSeconds = crop.growDurationSeconds,
+            stageCount = crop.stageCount
+        };
+
+        /// <summary>Возвращает совместимое DTO из источника истины для HUD и сохранения.</summary>
+        private static CropRuntimeState ToRuntimeState(Vector2Int position, FarmingCell farming) =>
+            new CropRuntimeState
+            {
+                x = position.x,
+                z = position.y,
+                cropId = farming.cropId,
+                plantedAtUnixMs = farming.plantedAtUnixMs,
+                growDurationSeconds = farming.growDurationSeconds,
+                stageCount = farming.stageCount
+            };
     }
 }
