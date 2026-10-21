@@ -9,9 +9,34 @@ namespace MyLittleFarm.Core.Grid
     public sealed class WorldMapAsset : ScriptableObject
     {
         [SerializeField] private List<WorldMapCell> cells = new List<WorldMapCell>();
+        [SerializeField] private List<WorldMapVertex> vertices = new List<WorldMapVertex>();
+        private Dictionary<Vector2Int, int> _vertexIndices;
         // Индекс строится лениво, чтобы Unity продолжал сериализовать обычный список.
         private Dictionary<Vector2Int, int> _indices;
         public int CellCount => cells.Count;
+        public bool HasRelief => vertices.Count > 0;
+
+        public float VertexHeight(Vector2Int coordinate)
+        {
+            EnsureVertexIndex();
+            return _vertexIndices.TryGetValue(coordinate, out var index) ? vertices[index].height : 0f;
+        }
+
+        /// <summary>Stores an authored world-space height at a grid corner, shared across chunk seams.</summary>
+        public void SetVertexHeight(Vector2Int coordinate, float height)
+        {
+            if (float.IsNaN(height) || float.IsInfinity(height)) throw new ArgumentOutOfRangeException(nameof(height));
+            EnsureVertexIndex();
+            if (_vertexIndices.TryGetValue(coordinate, out var index)) vertices[index].height = height;
+            else { _vertexIndices.Add(coordinate, vertices.Count); vertices.Add(new WorldMapVertex { x=coordinate.x, z=coordinate.y, height=height }); }
+        }
+
+        private void EnsureVertexIndex()
+        {
+            if (_vertexIndices != null) return;
+            _vertexIndices = new Dictionary<Vector2Int, int>(vertices.Count);
+            for (var i=0; i<vertices.Count; i++) _vertexIndices[new Vector2Int(vertices[i].x, vertices[i].z)] = i;
+        }
         public bool TryGetTerrain(Vector2Int coordinate, out TerrainCell terrain)
         {
             EnsureIndex();
@@ -50,9 +75,9 @@ namespace MyLittleFarm.Core.Grid
         }
 
         /// <summary>После загрузки Unity строит индекс заново при первом изменении.</summary>
-        private void OnEnable() => _indices = null;
+        private void OnEnable() { _indices = null; _vertexIndices = null; }
         /// <summary>Ручные правки списка в Inspector также сбрасывают индекс.</summary>
-        private void OnValidate() => _indices = null;
+        private void OnValidate() { _indices = null; _vertexIndices = null; }
 
         private void EnsureIndex()
         {
@@ -62,6 +87,14 @@ namespace MyLittleFarm.Core.Grid
             for (var index = 0; index < cells.Count; index++)
                 _indices[new Vector2Int(cells[index].x, cells[index].z)] = index;
         }
+    }
+
+    [Serializable]
+    public sealed class WorldMapVertex
+    {
+        public int x;
+        public int z;
+        public float height;
     }
 
     /// <summary>Одна клетка базовой карты с целочисленными мировыми координатами.</summary>

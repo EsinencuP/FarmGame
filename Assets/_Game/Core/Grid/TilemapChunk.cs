@@ -51,6 +51,7 @@ namespace MyLittleFarm.Core.Grid
 
         /// <summary>Назначает карту через редакторскую кисть без создания ассета в Play Mode.</summary>
         public void AssignWorldMap(WorldMapAsset map) => worldMap = map;
+        public void AssignTerrainCollider(Collider surface) => terrainCollider = surface;
 
         /// <summary>Находит временный поверхностный объект старой сцены один раз при подключении.</summary>
         private Transform FindSurface() =>
@@ -95,6 +96,7 @@ namespace MyLittleFarm.Core.Grid
             if (grid == null) throw new ArgumentNullException(nameof(grid));
             var gridOrigin = grid.WorldToGrid(transform.position);
             _registeredChunkCoord = grid.GridToChunk(gridOrigin);
+            grid.AssignSurfaceMap(_registeredChunkCoord, worldMap);
             grid.InitializeChunk(_registeredChunkCoord, isLockedSector ? CellType.Locked : defaultCellType);
 
             if (zoneOverrides != null) foreach (var zone in zoneOverrides)

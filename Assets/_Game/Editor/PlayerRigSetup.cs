@@ -14,6 +14,10 @@ namespace MyLittleFarm.Editor
         public const string Folder = "Assets/_Game/Content/Character";
         public const string ControllerPath = Folder + "/KevinLocomotion.controller";
         public const string PrefabPath = Folder + "/HumanPlayerVisual.prefab";
+        public const string GreenSkinPath = "Assets/Stylized NPC - Peasant Nolant/Prefabs/Peasant Nolant Green(Free Version).prefab";
+        public const float PlayerHeight = 1.44f;
+        public const float PlayerRadius = 0.24f;
+        public const float PlayerSkinWidth = 0.024f;
         private const string Library = "Assets/Kevin Iglesias/Human Animations/";
 
         public static void Install(GameBootstrap farm)
@@ -35,8 +39,8 @@ namespace MyLittleFarm.Editor
             }
             var capsule = player.GetComponent<CharacterController>();
             Undo.RecordObject(capsule, "Set player metric capsule");
-            capsule.height = 1.8f; capsule.radius = 0.3f; capsule.center = Vector3.zero;
-            capsule.skinWidth = 0.03f; capsule.stepOffset = 0.25f;
+            capsule.height = PlayerHeight; capsule.radius = PlayerRadius; capsule.center = Vector3.zero;
+            capsule.skinWidth = PlayerSkinWidth; capsule.stepOffset = 0.2f;
             var animator = visual.GetComponentInChildren<Animator>();
             Undo.RecordObject(animator, "Use Kevin locomotion");
             animator.runtimeAnimatorController = controller;
@@ -45,7 +49,9 @@ namespace MyLittleFarm.Editor
             animator.Rebind(); animator.Update(0f);
             GameplayReviewRepair.AlignPlayerVisual(player);
             Undo.RecordObject(player.transform, "Set player ground contact");
-            player.transform.position = new Vector3(player.transform.position.x, 0.93f, player.transform.position.z);
+            var grid = farm.GetComponentInChildren<MyLittleFarm.Core.Grid.GridSystem>(true);
+            var groundY = grid == null ? 0f : grid.GetSurfaceHeight(player.transform.position.x, player.transform.position.z);
+            player.transform.position = new Vector3(player.transform.position.x, groundY + PlayerHeight * 0.5f + PlayerSkinWidth, player.transform.position.z);
             var settings = new SerializedObject(player);
             settings.FindProperty("walkSpeed").floatValue = 2.2f;
             settings.FindProperty("runSpeed").floatValue = 4.5f;
@@ -56,6 +62,45 @@ namespace MyLittleFarm.Editor
             var mesh = player.GetComponent<MeshFilter>();
             if (mesh != null) Undo.DestroyObjectImmediate(mesh);
             EditorUtility.SetDirty(animator);
+        }
+
+        [MenuItem("Tools/My Little Farm/Character/Apply Green Skin And 80 Percent Size")]
+        public static void ApplyGreenAppearance()
+        {
+            if(EditorApplication.isPlayingOrWillChangePlaymode)throw new InvalidOperationException("Use Edit Mode.");
+            var scene=UnityEditor.SceneManagement.EditorSceneManager.GetActiveScene();
+            if(scene.path!="Assets/_Game/Scenes/Prototype.unity")throw new InvalidOperationException("Open Prototype first.");
+            var farm=UnityEngine.Object.FindAnyObjectByType<GameBootstrap>();
+            var player=farm.GetComponentInChildren<PlayerController>(true);
+            var controller=AssetDatabase.LoadAssetAtPath<AnimatorController>(ControllerPath);
+            if(controller==null)throw new MissingReferenceException("Keep the existing Kevin locomotion controller installed.");
+            var contents=PrefabUtility.LoadPrefabContents(PrefabPath);
+            try
+            {
+                for(var i=contents.transform.childCount-1;i>=0;i--)
+                    UnityEngine.Object.DestroyImmediate(contents.transform.GetChild(i).gameObject);
+                contents.transform.localScale=Vector3.one;
+                AddGreenModel(contents,controller);
+                PrefabUtility.SaveAsPrefabAsset(contents,PrefabPath);
+            }
+            finally{PrefabUtility.UnloadPrefabContents(contents);}
+            var previous=player.VisualRoot;
+            if(previous!=null)Undo.DestroyObjectImmediate(previous.gameObject);
+            var visual=(GameObject)PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>(PrefabPath),player.transform);
+            visual.name="Character Visual";Undo.RegisterCreatedObjectUndo(visual,"Use Green Humanoid skin");
+            var capsule=player.GetComponent<CharacterController>();Undo.RecordObject(capsule,"Resize player capsule to 80 percent");
+            capsule.height=PlayerHeight;capsule.radius=PlayerRadius;capsule.skinWidth=PlayerSkinWidth;capsule.stepOffset=.2f;capsule.center=Vector3.zero;
+            var animator=visual.GetComponentInChildren<Animator>(true);animator.Rebind();animator.Update(0f);
+            GameplayReviewRepair.AlignPlayerVisual(player);
+            var grid=farm.GetComponentInChildren<MyLittleFarm.Core.Grid.GridSystem>(true);
+            Undo.RecordObject(player.transform,"Keep smaller player grounded");
+            player.transform.position=new Vector3(player.transform.position.x,
+                grid.GetSurfaceHeight(player.transform.position.x,player.transform.position.z)+PlayerHeight*.5f+PlayerSkinWidth,player.transform.position.z);
+            PrefabUtility.RecordPrefabInstancePropertyModifications(visual.transform);
+            EditorUtility.SetDirty(capsule);
+            UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(scene);
+            AssetDatabase.SaveAssets();UnityEditor.SceneManagement.EditorSceneManager.SaveScene(scene);
+            Debug.Log("Player appearance saved: Stylized NPC Green, 1.44 units (80% of 1.8), original Kevin controller and animation clips retained.");
         }
 
         private static GameObject EnsureVisual(AnimatorController controller)
@@ -75,21 +120,24 @@ namespace MyLittleFarm.Editor
             var root = new GameObject("Character Visual");
             try
             {
-                var source = AssetDatabase.LoadAssetAtPath<GameObject>(Library + "Unity Demo Scenes/Human Basic Motions/Prefabs/Human_BasicMotionsDummy_M.prefab");
-                if (source == null) throw new MissingReferenceException("Human Basic Motions male model is missing.");
-                var model = UnityEngine.Object.Instantiate(source, root.transform, false);
-                model.name = "Humanoid Model";
-                foreach (var script in model.GetComponentsInChildren<MonoBehaviour>(true)) UnityEngine.Object.DestroyImmediate(script);
-                foreach (var collider in model.GetComponentsInChildren<Collider>(true)) UnityEngine.Object.DestroyImmediate(collider);
-                var animator = model.GetComponent<Animator>();
-                if (animator.avatar == null || !animator.avatar.isValid || !animator.avatar.isHuman)
-                    throw new InvalidOperationException("The character requires a valid Humanoid Avatar.");
-                animator.runtimeAnimatorController = controller;
-                animator.applyRootMotion = false;
-                NormalizeVisual(root);
+                AddGreenModel(root, controller);
                 return PrefabUtility.SaveAsPrefabAsset(root, PrefabPath);
             }
             finally { UnityEngine.Object.DestroyImmediate(root); }
+        }
+
+        private static void AddGreenModel(GameObject root,AnimatorController controller)
+        {
+            var source=AssetDatabase.LoadAssetAtPath<GameObject>(GreenSkinPath);
+            if(source==null)throw new MissingReferenceException("Stylized NPC Green is missing.");
+            var model=UnityEngine.Object.Instantiate(source,root.transform,false);model.name="Humanoid Model";
+            foreach(var script in model.GetComponentsInChildren<MonoBehaviour>(true))UnityEngine.Object.DestroyImmediate(script);
+            foreach(var collider in model.GetComponentsInChildren<Collider>(true))UnityEngine.Object.DestroyImmediate(collider);
+            var animator=model.GetComponent<Animator>();
+            if(animator.avatar==null||!animator.avatar.isValid||!animator.avatar.isHuman)
+                throw new InvalidOperationException("Green skin needs its own valid Humanoid Avatar for Kevin retargeting.");
+            animator.runtimeAnimatorController=controller;animator.applyRootMotion=false;
+            NormalizeVisual(root);
         }
 
         private static void NormalizeVisual(GameObject root)
@@ -98,7 +146,7 @@ namespace MyLittleFarm.Editor
             animator.cullingMode = AnimatorCullingMode.AlwaysAnimate;
             animator.Rebind(); animator.Update(0f);
             var bounds = BakedBounds(root);
-            animator.transform.localScale *= 1.8f / bounds.size.y;
+            animator.transform.localScale *= PlayerHeight / bounds.size.y;
             animator.Rebind(); animator.Update(0f);
             bounds = BakedBounds(root);
             animator.transform.position -= new Vector3(bounds.center.x, bounds.min.y, bounds.center.z);

@@ -35,6 +35,7 @@ namespace MyLittleFarm.Gameplay.Farming
         public int YieldAmount => yieldAmount;
         /// <summary>Число визуальных стадий, используемое новыми культурами.</summary>
         public int StageCount => stageCount;
+        public bool IsConfigured => _grid != null;
 
         /// <summary>Подключает сетку, по которой проверяются клетки и вычисляются мировые позиции.</summary>
         public void Configure(IWorldGridWriter grid, FarmCatalog catalog = null)

@@ -56,6 +56,8 @@ namespace MyLittleFarm.Editor
             var selected = System.Array.IndexOf(Types, GridPaintTool.SelectedTerrain);
             selected = EditorGUILayout.Popup("Terrain", Mathf.Max(0, selected), Labels);
             GridPaintTool.SelectedTerrain = Types[selected];
+            if (GridPaintTool.SelectedTerrain == CellType.Road)
+                GridPaintTool.SelectedPathSurface = (PathSurface)EditorGUILayout.EnumPopup("Path surface (grid snap)", GridPaintTool.SelectedPathSurface);
             GridPaintTool.PaintPermissions = EditorGUILayout.Toggle("Paint permissions only", GridPaintTool.PaintPermissions);
             if (GridPaintTool.PaintPermissions)
             {
@@ -77,6 +79,7 @@ namespace MyLittleFarm.Editor
             GridPaintTool.BrushSize = EditorGUILayout.IntSlider("Brush Radius", GridPaintTool.BrushSize, 1, 10);
             EditorGUILayout.LabelField("Painted cells", chunk.WorldMap.CellCount.ToString());
             if (GUILayout.Button("Activate Paint Tool")) ToolManager.SetActiveTool<GridPaintTool>();
+            if (GUILayout.Button("Reapply Maps / Refresh Relief")) GridPaintTool.RefreshSelectedWorld();
         }
 
         /// <summary>Создаёт ScriptableObject по выбранному пользователем пути и назначает его чанку.</summary>

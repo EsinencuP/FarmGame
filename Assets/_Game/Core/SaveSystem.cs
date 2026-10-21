@@ -41,6 +41,7 @@ namespace MyLittleFarm.Core
         private OrchardSystem _orchard;
         private AnimalSystem _animals;
         private OnboardingSystem _onboarding;
+        private DayNightCycle _dayNight;
         private float _nextAutosaveAt;
         // false запрещает автозапись после ошибки загрузки, чтобы не затереть повреждённый файл.
         private bool _persistenceEnabled;
@@ -72,6 +73,8 @@ namespace MyLittleFarm.Core
             _orchard = orchard;
             _animals = animals;
             _onboarding = onboarding;
+            var root=grid==null?null:grid.GetComponentInParent<GameBootstrap>();
+            _dayNight=root==null?null:root.GetComponentInChildren<DayNightCycle>(true);
             _persistenceEnabled = false;
             _nextAutosaveAt = Time.unscaledTime + autosaveIntervalSeconds;
         }
@@ -116,7 +119,9 @@ namespace MyLittleFarm.Core
                 selectedQuickSlot = _slots == null ? 0 : _slots.SelectedIndex,
                 sectorUnlocked = _sector != null && _sector.IsUnlocked,
                 toolUpgradeLevel = _upgrades == null ? 0 : _upgrades.Level,
-                onboardingStep = _onboarding == null ? 0 : _onboarding.Capture()
+                onboardingStep = _onboarding == null ? 0 : _onboarding.Capture(),
+                hasWorldTime = _dayNight != null,
+                worldHour = _dayNight == null ? 0f : _dayNight.Hour
             };
         }
 
@@ -139,6 +144,7 @@ namespace MyLittleFarm.Core
             _upgrades?.Restore(data.toolUpgradeLevel);
             _slots?.Select(data.selectedQuickSlot);
             _player.Teleport(new Vector3(data.player.x, data.player.y, data.player.z));
+            if(data.hasWorldTime && _dayNight!=null)_dayNight.SetHour(data.worldHour);
             GameEvents.RaiseInventoryChanged();
         }
 
@@ -267,12 +273,18 @@ namespace MyLittleFarm.Core
             if (data == null) throw new InvalidDataException("Save data is empty.");
             if (data.saveVersion < 1 || data.saveVersion > CurrentSaveVersion)
                 throw new InvalidDataException($"Unsupported save version {data.saveVersion}.");
+            if(data.hasWorldTime && (!IsFinite(data.worldHour)||data.worldHour<0f||data.worldHour>=24f))
+                throw new InvalidDataException("World clock is invalid.");
             if (data.saveVersion >= 5 && data.worldBaseHash != _grid.ComputeBaseMapHash())
             {
                 // The MVP expands the original two-chunk scene without changing their authored cells.
                 var originalChunks = new[] { Vector2Int.zero, new Vector2Int(1, 0) };
-                if (data.saveVersion != 5
-                    || data.worldBaseHash != _grid.ComputeBaseMapHash(originalChunks))
+                var phaseZeroChunks = new List<Vector2Int>();
+                for(var x=-1;x<=1;x++) for(var z=-1;z<=1;z++) phaseZeroChunks.Add(new Vector2Int(x,z));
+                var matchesPhaseZero = phaseZeroChunks.TrueForAll(_grid.IsChunkLoaded)
+                    && data.worldBaseHash == _grid.ComputeBaseMapHash(phaseZeroChunks);
+                if (!matchesPhaseZero && (data.saveVersion != 5
+                    || data.worldBaseHash != _grid.ComputeBaseMapHash(originalChunks)))
                     throw new InvalidDataException("Save was created for a different base world map.");
             }
             if (data.player == null || data.coins < 0 || data.savedAtUnixMs <= 0
@@ -385,7 +397,7 @@ namespace MyLittleFarm.Core
                         || !IsValidCellType(entry.cellType)
                         || (saveVersion >= 5 && !entry.hasTerrainData)
                         || (entry.hasTerrainData && !IsValidTerrainType(entry.terrainType))
-                        || (entry.permissions & ~31) != 0
+                        || (entry.permissions & ~31) != 0 || entry.pathSurface > 2
                         || (entry.permissions != 0 && (entry.permissions & 1) == 0)
                         || (entry.hasTerrainData && IsNaturalCellType((CellType)entry.cellType)
                             && entry.cellType != entry.terrainType))
@@ -620,7 +632,8 @@ namespace MyLittleFarm.Core
         private void OnApplicationQuit()
         {
             // Выход сохраняет игру только после успешной инициализации подсистемы хранения.
-            if (_persistenceEnabled && _player != null) SaveToDisk();
+            if (_persistenceEnabled && _player != null && _grid != null && _crops != null
+                && _crops.IsConfigured && _inventory != null && _wallet != null) SaveToDisk();
         }
     }
 }

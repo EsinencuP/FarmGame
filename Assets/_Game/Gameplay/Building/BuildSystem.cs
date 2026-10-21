@@ -212,8 +212,8 @@ namespace MyLittleFarm.Gameplay.Building
             if (_input.HasPointer && _camera != null)
             {
                 var ray = _camera.ScreenPointToRay(_input.PointerPosition);
-                if (new Plane(Vector3.up, Vector3.zero).Raycast(ray, out var distance))
-                    _hasTarget = _grid.TryWorldToCell(ray.GetPoint(distance), out _target);
+                if (_grid.TryRaycastSurface(ray, out var surfaceHit))
+                    _hasTarget = _grid.TryWorldToCell(surfaceHit.point, out _target);
             }
             if (_deleteId != null)
             {

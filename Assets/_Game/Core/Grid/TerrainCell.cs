@@ -2,6 +2,7 @@ using System;
 
 namespace MyLittleFarm.Core.Grid
 {
+    public enum PathSurface : byte { Dirt = 0, Stone = 1, Wood = 2 }
     [Flags]
     public enum CellPermissions : byte
     {
@@ -17,6 +18,8 @@ namespace MyLittleFarm.Core.Grid
         public byte biome;
         public byte moisture;
         public CellPermissions permissions;
+        // Road remains the stable gameplay type; this selects its authored surface.
+        public PathSurface pathSurface;
         public bool Allows(CellPermissions permission, bool inherited) =>
             (permissions & CellPermissions.Custom) == 0 ? inherited : (permissions & permission) != 0;
 
@@ -27,6 +30,7 @@ namespace MyLittleFarm.Core.Grid
             biome = 0;
             moisture = 0;
             permissions = CellPermissions.Inherit;
+            pathSurface = PathSurface.Dirt;
         }
     }
 }

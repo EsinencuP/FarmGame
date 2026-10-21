@@ -1,0 +1,1179 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a7dc46718d1b4f74ae100192d6610407, type: 3}
+  m_Name: TileBlock_-2_3
+  m_EditorClassIdentifier: MyLittleFarm.Runtime::MyLittleFarm.Core.Grid.WorldMapAsset
+  cells:
+  - x: -20
+    z: 30
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -20
+    z: 31
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -20
+    z: 32
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -20
+    z: 33
+    terrain:
+      type: 3
+      biome: 2
+      moisture: 0
+      permissions: 1
+      pathSurface: 0
+  - x: -20
+    z: 34
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -20
+    z: 35
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -20
+    z: 36
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -20
+    z: 37
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -20
+    z: 38
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -20
+    z: 39
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -19
+    z: 30
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -19
+    z: 31
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -19
+    z: 32
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -19
+    z: 33
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -19
+    z: 34
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -19
+    z: 35
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -19
+    z: 36
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -19
+    z: 37
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -19
+    z: 38
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -19
+    z: 39
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -18
+    z: 30
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -18
+    z: 31
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -18
+    z: 32
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -18
+    z: 33
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -18
+    z: 34
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -18
+    z: 35
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -18
+    z: 36
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -18
+    z: 37
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -18
+    z: 38
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -18
+    z: 39
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -17
+    z: 30
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -17
+    z: 31
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -17
+    z: 32
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -17
+    z: 33
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -17
+    z: 34
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -17
+    z: 35
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -17
+    z: 36
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -17
+    z: 37
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -17
+    z: 38
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -17
+    z: 39
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -16
+    z: 30
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -16
+    z: 31
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -16
+    z: 32
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -16
+    z: 33
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -16
+    z: 34
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -16
+    z: 35
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -16
+    z: 36
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -16
+    z: 37
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -16
+    z: 38
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -16
+    z: 39
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -15
+    z: 30
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -15
+    z: 31
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -15
+    z: 32
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -15
+    z: 33
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -15
+    z: 34
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -15
+    z: 35
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -15
+    z: 36
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -15
+    z: 37
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -15
+    z: 38
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -15
+    z: 39
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -14
+    z: 30
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -14
+    z: 31
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -14
+    z: 32
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -14
+    z: 33
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -14
+    z: 34
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -14
+    z: 35
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -14
+    z: 36
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -14
+    z: 37
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -14
+    z: 38
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -14
+    z: 39
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -13
+    z: 30
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -13
+    z: 31
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -13
+    z: 32
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -13
+    z: 33
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -13
+    z: 34
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -13
+    z: 35
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -13
+    z: 36
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -13
+    z: 37
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -13
+    z: 38
+    terrain:
+      type: 3
+      biome: 2
+      moisture: 0
+      permissions: 1
+      pathSurface: 0
+  - x: -13
+    z: 39
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -12
+    z: 30
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -12
+    z: 31
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -12
+    z: 32
+    terrain:
+      type: 3
+      biome: 2
+      moisture: 0
+      permissions: 1
+      pathSurface: 0
+  - x: -12
+    z: 33
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -12
+    z: 34
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -12
+    z: 35
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -12
+    z: 36
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -12
+    z: 37
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -12
+    z: 38
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -12
+    z: 39
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -11
+    z: 30
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -11
+    z: 31
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -11
+    z: 32
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -11
+    z: 33
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -11
+    z: 34
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -11
+    z: 35
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -11
+    z: 36
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -11
+    z: 37
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -11
+    z: 38
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  - x: -11
+    z: 39
+    terrain:
+      type: 0
+      biome: 2
+      moisture: 0
+      permissions: 3
+      pathSurface: 0
+  vertices:
+  - x: -20
+    z: 30
+    height: 2
+  - x: -20
+    z: 31
+    height: 2.0028
+  - x: -20
+    z: 32
+    height: 2.0104
+  - x: -20
+    z: 33
+    height: 2.0216
+  - x: -20
+    z: 34
+    height: 2.0351999
+  - x: -20
+    z: 35
+    height: 2.05
+  - x: -20
+    z: 36
+    height: 2.0648
+  - x: -20
+    z: 37
+    height: 2.0784
+  - x: -20
+    z: 38
+    height: 2.0895998
+  - x: -20
+    z: 39
+    height: 2.0972
+  - x: -20
+    z: 40
+    height: 2.1
+  - x: -19
+    z: 30
+    height: 1.9636
+  - x: -19
+    z: 31
+    height: 1.9668704
+  - x: -19
+    z: 32
+    height: 1.9757472
+  - x: -19
+    z: 33
+    height: 1.9888289
+  - x: -19
+    z: 34
+    height: 2.0047135
+  - x: -19
+    z: 35
+    height: 2.022
+  - x: -19
+    z: 36
+    height: 2.0392864
+  - x: -19
+    z: 37
+    height: 2.0551713
+  - x: -19
+    z: 38
+    height: 2.0682528
+  - x: -19
+    z: 39
+    height: 2.0771296
+  - x: -19
+    z: 40
+    height: 2.0804
+  - x: -18
+    z: 30
+    height: 1.8648
+  - x: -18
+    z: 31
+    height: 1.8693472
+  - x: -18
+    z: 32
+    height: 1.8816895
+  - x: -18
+    z: 33
+    height: 1.8998784
+  - x: -18
+    z: 34
+    height: 1.9219648
+  - x: -18
+    z: 35
+    height: 1.946
+  - x: -18
+    z: 36
+    height: 1.9700352
+  - x: -18
+    z: 37
+    height: 1.9921216
+  - x: -18
+    z: 38
+    height: 2.0103104
+  - x: -18
+    z: 39
+    height: 2.0226529
+  - x: -18
+    z: 40
+    height: 2.0272
+  - x: -17
+    z: 30
+    height: 1.7192
+  - x: -17
+    z: 31
+    height: 1.7256289
+  - x: -17
+    z: 32
+    height: 1.7430784
+  - x: -17
+    z: 33
+    height: 1.7687937
+  - x: -17
+    z: 34
+    height: 1.8000193
+  - x: -17
+    z: 35
+    height: 1.834
+  - x: -17
+    z: 36
+    height: 1.8679807
+  - x: -17
+    z: 37
+    height: 1.8992063
+  - x: -17
+    z: 38
+    height: 1.9249216
+  - x: -17
+    z: 39
+    height: 1.9423711
+  - x: -17
+    z: 40
+    height: 1.9488
+  - x: -16
+    z: 30
+    height: 1.5424
+  - x: -16
+    z: 31
+    height: 1.5511136
+  - x: -16
+    z: 32
+    height: 1.5747647
+  - x: -16
+    z: 33
+    height: 1.6096193
+  - x: -16
+    z: 34
+    height: 1.6519424
+  - x: -16
+    z: 35
+    height: 1.698
+  - x: -16
+    z: 36
+    height: 1.7440575
+  - x: -16
+    z: 37
+    height: 1.7863806
+  - x: -16
+    z: 38
+    height: 1.8212352
+  - x: -16
+    z: 39
+    height: 1.8448863
+  - x: -16
+    z: 40
+    height: 1.8535999
+  - x: -15
+    z: 30
+    height: 1.35
+  - x: -15
+    z: 31
+    height: 1.3612
+  - x: -15
+    z: 32
+    height: 1.3915999
+  - x: -15
+    z: 33
+    height: 1.4364002
+  - x: -15
+    z: 34
+    height: 1.4908
+  - x: -15
+    z: 35
+    height: 1.55
+  - x: -15
+    z: 36
+    height: 1.6092
+  - x: -15
+    z: 37
+    height: 1.6635998
+  - x: -15
+    z: 38
+    height: 1.7084001
+  - x: -15
+    z: 39
+    height: 1.7388
+  - x: -15
+    z: 40
+    height: 1.75
+  - x: -14
+    z: 30
+    height: 1.1575999
+  - x: -14
+    z: 31
+    height: 1.1712863
+  - x: -14
+    z: 32
+    height: 1.208435
+  - x: -14
+    z: 33
+    height: 1.2631809
+  - x: -14
+    z: 34
+    height: 1.3296576
+  - x: -14
+    z: 35
+    height: 1.402
+  - x: -14
+    z: 36
+    height: 1.4743422
+  - x: -14
+    z: 37
+    height: 1.5408189
+  - x: -14
+    z: 38
+    height: 1.5955647
+  - x: -14
+    z: 39
+    height: 1.6327134
+  - x: -14
+    z: 40
+    height: 1.6463999
+  - x: -13
+    z: 30
+    height: 0.9807999
+  - x: -13
+    z: 31
+    height: 0.9967711
+  - x: -13
+    z: 32
+    height: 1.0401214
+  - x: -13
+    z: 33
+    height: 1.1040064
+  - x: -13
+    z: 34
+    height: 1.1815808
+  - x: -13
+    z: 35
+    height: 1.2659999
+  - x: -13
+    z: 36
+    height: 1.350419
+  - x: -13
+    z: 37
+    height: 1.4279934
+  - x: -13
+    z: 38
+    height: 1.4918784
+  - x: -13
+    z: 39
+    height: 1.5352287
+  - x: -13
+    z: 40
+    height: 1.5511999
+  - x: -12
+    z: 30
+    height: 0.8352
+  - x: -12
+    z: 31
+    height: 0.8530528
+  - x: -12
+    z: 32
+    height: 0.9015103
+  - x: -12
+    z: 33
+    height: 0.9729218
+  - x: -12
+    z: 34
+    height: 1.0596353
+  - x: -12
+    z: 35
+    height: 1.154
+  - x: -12
+    z: 36
+    height: 1.2483647
+  - x: -12
+    z: 37
+    height: 1.3350782
+  - x: -12
+    z: 38
+    height: 1.4064897
+  - x: -12
+    z: 39
+    height: 1.4549472
+  - x: -12
+    z: 40
+    height: 1.4728
+  - x: -11
+    z: 30
+    height: 0.7364
+  - x: -11
+    z: 31
+    height: 0.7555296
+  - x: -11
+    z: 32
+    height: 0.8074527
+  - x: -11
+    z: 33
+    height: 0.8839714
+  - x: -11
+    z: 34
+    height: 0.9768865
+  - x: -11
+    z: 35
+    height: 1.0780001
+  - x: -11
+    z: 36
+    height: 1.1791135
+  - x: -11
+    z: 37
+    height: 1.2720287
+  - x: -11
+    z: 38
+    height: 1.3485473
+  - x: -11
+    z: 39
+    height: 1.4004705
+  - x: -11
+    z: 40
+    height: 1.4196
+  - x: -10
+    z: 30
+    height: 0.7
+  - x: -10
+    z: 31
+    height: 0.71959996
+  - x: -10
+    z: 32
+    height: 0.77279985
+  - x: -10
+    z: 33
+    height: 0.85120016
+  - x: -10
+    z: 34
+    height: 0.9464001
+  - x: -10
+    z: 35
+    height: 1.05
+  - x: -10
+    z: 36
+    height: 1.1535999
+  - x: -10
+    z: 37
+    height: 1.2487998
+  - x: -10
+    z: 38
+    height: 1.3272002
+  - x: -10
+    z: 39
+    height: 1.3804001
+  - x: -10
+    z: 40
+    height: 1.4

@@ -37,6 +37,9 @@ namespace MyLittleFarm.Core
         public int toolUpgradeLevel;
         // Номер шага короткого онбординга сохраняется вместе с остальным прогрессом.
         public int onboardingStep;
+        // Optional lighting clock; older saves keep the authored starting hour.
+        public bool hasWorldTime;
+        public float worldHour;
     }
 
     /// <summary>Положение игрока в мировых координатах Unity.</summary>

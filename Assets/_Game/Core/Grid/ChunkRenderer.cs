@@ -19,6 +19,8 @@ namespace MyLittleFarm.Core.Grid
         [SerializeField] private Color roadColor = new Color(0.52f, 0.45f, 0.35f);
         [SerializeField] private Color lockedColor = new Color(0.18f, 0.25f, 0.16f);
         [SerializeField, Min(0f)] private float surfaceLift = 0.02f;
+        [SerializeField] private Mesh bakedMesh;
+        [SerializeField] private Material surfaceMaterial;
 
         // Буферы переиспользуются при изменении клеток, чтобы один чанк не создавал объект на клетку.
         private readonly List<Vector3> _vertices = new List<Vector3>();
@@ -60,7 +62,7 @@ namespace MyLittleFarm.Core.Grid
         private void OnDestroy()
         {
             // Созданные представлением ресурсы освобождаются отдельно от сценовых данных.
-            if (_mesh != null)
+            if (_mesh != null && _mesh != bakedMesh)
             {
                 if (Application.isPlaying) Destroy(_mesh);
                 else DestroyImmediate(_mesh);
@@ -91,16 +93,18 @@ namespace MyLittleFarm.Core.Grid
             _triangles.Clear();
             _colors.Clear();
             var size = _cellSize;
+            var origin = _grid.ChunkLocalToGrid(_source.RegisteredChunkCoord, Vector2Int.zero);
             for (var z = 0; z < chunk.chunkSizeZ; z++)
             for (var x = 0; x < chunk.chunkSizeX; x++)
             {
                 var vertex = _vertices.Count;
                 var left = x * size;
                 var bottom = z * size;
-                _vertices.Add(new Vector3(left, surfaceLift, bottom));
-                _vertices.Add(new Vector3(left, surfaceLift, bottom + size));
-                _vertices.Add(new Vector3(left + size, surfaceLift, bottom + size));
-                _vertices.Add(new Vector3(left + size, surfaceLift, bottom));
+                var coordinate = origin + new Vector2Int(x,z);
+                _vertices.Add(new Vector3(left, _grid.GetVertexHeight(coordinate) + surfaceLift, bottom));
+                _vertices.Add(new Vector3(left, _grid.GetVertexHeight(coordinate+Vector2Int.up) + surfaceLift, bottom + size));
+                _vertices.Add(new Vector3(left + size, _grid.GetVertexHeight(coordinate+Vector2Int.one) + surfaceLift, bottom + size));
+                _vertices.Add(new Vector3(left + size, _grid.GetVertexHeight(coordinate+Vector2Int.right) + surfaceLift, bottom));
                 _triangles.Add(vertex);
                 _triangles.Add(vertex + 1);
                 _triangles.Add(vertex + 2);
@@ -110,9 +114,19 @@ namespace MyLittleFarm.Core.Grid
                 // Постройка не перекрашивает землю под footprint; грядка рисуется поверх terrain.
                 var type = chunk.GetBuilding(x, z).type != 0
                     ? chunk.GetTerrain(x, z).type : chunk.GetCell(x, z).type;
-                var color = (Color32)ColorFor(type);
+                var terrain = chunk.GetTerrain(x,z);
+                var baseColor = ColorFor(type);
+                if (type==CellType.Grass && terrain.biome==2) baseColor = new Color(0.23f,0.39f,0.22f);
+                if (type==CellType.Road) baseColor = terrain.pathSurface==PathSurface.Stone
+                    ? new Color(0.31f,0.34f,0.31f) : terrain.pathSurface==PathSurface.Wood
+                    ? new Color(0.29f,0.20f,0.12f) : roadColor;
+                var color = (Color32)baseColor;
                 for (var corner = 0; corner < 4; corner++) _colors.Add(color);
+                if (type==CellType.Road && terrain.pathSurface!=PathSurface.Dirt)
+                    AddPathDetail(left,bottom,terrain.pathSurface,origin);
             }
+            var collider = _source.TerrainCollider as MeshCollider;
+            if (collider != null) collider.sharedMesh = null;
             _mesh.Clear();
             _mesh.indexFormat = _vertices.Count > ushort.MaxValue ? IndexFormat.UInt32 : IndexFormat.UInt16;
             _mesh.SetVertices(_vertices);
@@ -121,12 +135,50 @@ namespace MyLittleFarm.Core.Grid
             _mesh.RecalculateNormals();
             _mesh.RecalculateBounds();
             _filter.sharedMesh = _mesh;
+            if (collider != null) collider.sharedMesh = _mesh;
             if (_legacySurface == null)
                 _legacySurface = _source.LegacySurfaceRenderer;
             if (_legacySurface != null) _legacySurface.enabled = false;
             _lastChunk = chunk;
             _lastVersion = chunk.Version;
             _dirty = false;
+        }
+
+        /// <summary>Saved terrain geometry is editable in the scene; runtime owns only its temporary copy.</summary>
+        public void AssignBakedGeometry(Mesh mesh, Material material)
+        {
+            if (_mesh != null && _mesh != bakedMesh)
+            {
+                if (Application.isPlaying) Destroy(_mesh); else DestroyImmediate(_mesh);
+            }
+            bakedMesh=mesh; surfaceMaterial=material; _mesh=null; _dirty=true;
+            Rebuild();
+        }
+
+        private void AddPathDetail(float left, float bottom, PathSurface surface, Vector2Int origin)
+        {
+            var count=surface==PathSurface.Wood?5:2;
+            for(var i=0;i<count;i++)
+            {
+                var gap=surface==PathSurface.Wood?0.012f:0.035f;
+                var x0=left+gap*_cellSize; var x1=left+(1f-gap)*_cellSize;
+                var z0=bottom+(i/(float)count+gap)*_cellSize;
+                var z1=bottom+((i+1f)/count-gap)*_cellSize;
+                var c=surface==PathSurface.Wood?new Color(0.57f+i*0.015f,0.39f+i*0.01f,0.22f)
+                    :new Color(0.59f+i*0.035f,0.60f+i*0.035f,0.53f+i*0.035f);
+                var index=_vertices.Count;
+                AddPathVertex(x0,z0,origin); AddPathVertex(x0,z1,origin);
+                AddPathVertex(x1,z1,origin); AddPathVertex(x1,z0,origin);
+                _triangles.Add(index); _triangles.Add(index+1); _triangles.Add(index+2);
+                _triangles.Add(index); _triangles.Add(index+2); _triangles.Add(index+3);
+                for(var j=0;j<4;j++)_colors.Add(c);
+            }
+        }
+
+        private void AddPathVertex(float x,float z,Vector2Int origin)
+        {
+            var height=_grid.GetSurfaceHeight(origin.x*_cellSize+x,origin.y*_cellSize+z);
+            _vertices.Add(new Vector3(x,height+surfaceLift+0.008f,z));
         }
 
         /// <summary>Находит сетку общего корня и подписывается только на событие изменённого чанка.</summary>
@@ -153,7 +205,9 @@ namespace MyLittleFarm.Core.Grid
         /// <summary>Создаёт временные графические ресурсы лишь перед первым построением.</summary>
         private void EnsureResources()
         {
-            if (_mesh == null) _mesh = new Mesh { name = name + " Terrain Mesh", hideFlags = HideFlags.DontSave };
+            if (_mesh == null) _mesh = !Application.isPlaying && bakedMesh != null ? bakedMesh
+                : new Mesh { name = name + " Terrain Mesh", hideFlags = HideFlags.DontSave };
+            if (surfaceMaterial != null) { _renderer.sharedMaterial=surfaceMaterial; return; }
             if (_material != null) return;
             // Sprite shader учитывает vertex color; при отсутствии используется доступный unlit shader.
             var shader = Shader.Find("Sprites/Default") ?? Shader.Find("Universal Render Pipeline/Unlit")

@@ -19,9 +19,377 @@ MonoBehaviour:
       type: 3
       biome: 0
       moisture: 0
+      permissions: 0
+      pathSurface: 0
   - x: -8
     z: 15
     terrain:
       type: 3
       biome: 0
       moisture: 0
+      permissions: 0
+      pathSurface: 0
+  vertices:
+  - x: -10
+    z: 10
+    height: 0
+  - x: -10
+    z: 11
+    height: 0
+  - x: -10
+    z: 12
+    height: 0
+  - x: -10
+    z: 13
+    height: 0
+  - x: -10
+    z: 14
+    height: 0
+  - x: -10
+    z: 15
+    height: 0
+  - x: -10
+    z: 16
+    height: 0
+  - x: -10
+    z: 17
+    height: 0
+  - x: -10
+    z: 18
+    height: 0
+  - x: -10
+    z: 19
+    height: 0
+  - x: -10
+    z: 20
+    height: 0
+  - x: -9
+    z: 10
+    height: 0
+  - x: -9
+    z: 11
+    height: 0
+  - x: -9
+    z: 12
+    height: 0
+  - x: -9
+    z: 13
+    height: 0
+  - x: -9
+    z: 14
+    height: 0
+  - x: -9
+    z: 15
+    height: 0
+  - x: -9
+    z: 16
+    height: 0
+  - x: -9
+    z: 17
+    height: 0
+  - x: -9
+    z: 18
+    height: 0
+  - x: -9
+    z: 19
+    height: 0
+  - x: -9
+    z: 20
+    height: 0
+  - x: -8
+    z: 10
+    height: 0
+  - x: -8
+    z: 11
+    height: 0
+  - x: -8
+    z: 12
+    height: 0
+  - x: -8
+    z: 13
+    height: 0
+  - x: -8
+    z: 14
+    height: 0
+  - x: -8
+    z: 15
+    height: 0
+  - x: -8
+    z: 16
+    height: 0
+  - x: -8
+    z: 17
+    height: 0
+  - x: -8
+    z: 18
+    height: 0
+  - x: -8
+    z: 19
+    height: 0
+  - x: -8
+    z: 20
+    height: 0
+  - x: -7
+    z: 10
+    height: 0
+  - x: -7
+    z: 11
+    height: 0
+  - x: -7
+    z: 12
+    height: 0
+  - x: -7
+    z: 13
+    height: 0
+  - x: -7
+    z: 14
+    height: 0
+  - x: -7
+    z: 15
+    height: 0
+  - x: -7
+    z: 16
+    height: 0
+  - x: -7
+    z: 17
+    height: 0
+  - x: -7
+    z: 18
+    height: 0
+  - x: -7
+    z: 19
+    height: 0
+  - x: -7
+    z: 20
+    height: 0
+  - x: -6
+    z: 10
+    height: 0
+  - x: -6
+    z: 11
+    height: 0
+  - x: -6
+    z: 12
+    height: 0
+  - x: -6
+    z: 13
+    height: 0
+  - x: -6
+    z: 14
+    height: 0
+  - x: -6
+    z: 15
+    height: 0
+  - x: -6
+    z: 16
+    height: 0
+  - x: -6
+    z: 17
+    height: 0
+  - x: -6
+    z: 18
+    height: 0
+  - x: -6
+    z: 19
+    height: 0
+  - x: -6
+    z: 20
+    height: 0
+  - x: -5
+    z: 10
+    height: 0
+  - x: -5
+    z: 11
+    height: 0
+  - x: -5
+    z: 12
+    height: 0
+  - x: -5
+    z: 13
+    height: 0
+  - x: -5
+    z: 14
+    height: 0
+  - x: -5
+    z: 15
+    height: 0
+  - x: -5
+    z: 16
+    height: 0
+  - x: -5
+    z: 17
+    height: 0
+  - x: -5
+    z: 18
+    height: 0
+  - x: -5
+    z: 19
+    height: 0
+  - x: -5
+    z: 20
+    height: 0
+  - x: -4
+    z: 10
+    height: 0
+  - x: -4
+    z: 11
+    height: 0
+  - x: -4
+    z: 12
+    height: 0
+  - x: -4
+    z: 13
+    height: 0
+  - x: -4
+    z: 14
+    height: 0
+  - x: -4
+    z: 15
+    height: 0
+  - x: -4
+    z: 16
+    height: 0
+  - x: -4
+    z: 17
+    height: 0
+  - x: -4
+    z: 18
+    height: 0
+  - x: -4
+    z: 19
+    height: 0
+  - x: -4
+    z: 20
+    height: 0
+  - x: -3
+    z: 10
+    height: 0
+  - x: -3
+    z: 11
+    height: 0
+  - x: -3
+    z: 12
+    height: 0
+  - x: -3
+    z: 13
+    height: 0
+  - x: -3
+    z: 14
+    height: 0
+  - x: -3
+    z: 15
+    height: 0
+  - x: -3
+    z: 16
+    height: 0
+  - x: -3
+    z: 17
+    height: 0
+  - x: -3
+    z: 18
+    height: 0
+  - x: -3
+    z: 19
+    height: 0
+  - x: -3
+    z: 20
+    height: 0
+  - x: -2
+    z: 10
+    height: 0
+  - x: -2
+    z: 11
+    height: 0
+  - x: -2
+    z: 12
+    height: 0
+  - x: -2
+    z: 13
+    height: 0
+  - x: -2
+    z: 14
+    height: 0
+  - x: -2
+    z: 15
+    height: 0
+  - x: -2
+    z: 16
+    height: 0
+  - x: -2
+    z: 17
+    height: 0
+  - x: -2
+    z: 18
+    height: 0
+  - x: -2
+    z: 19
+    height: 0
+  - x: -2
+    z: 20
+    height: 0
+  - x: -1
+    z: 10
+    height: 0
+  - x: -1
+    z: 11
+    height: 0
+  - x: -1
+    z: 12
+    height: 0
+  - x: -1
+    z: 13
+    height: 0
+  - x: -1
+    z: 14
+    height: 0
+  - x: -1
+    z: 15
+    height: 0
+  - x: -1
+    z: 16
+    height: 0
+  - x: -1
+    z: 17
+    height: 0
+  - x: -1
+    z: 18
+    height: 0
+  - x: -1
+    z: 19
+    height: 0
+  - x: -1
+    z: 20
+    height: 0
+  - x: 0
+    z: 10
+    height: 0
+  - x: 0
+    z: 11
+    height: 0
+  - x: 0
+    z: 12
+    height: 0
+  - x: 0
+    z: 13
+    height: 0
+  - x: 0
+    z: 14
+    height: 0
+  - x: 0
+    z: 15
+    height: 0
+  - x: 0
+    z: 16
+    height: 0
+  - x: 0
+    z: 17
+    height: 0
+  - x: 0
+    z: 18
+    height: 0
+  - x: 0
+    z: 19
+    height: 0
+  - x: 0
+    z: 20
+    height: 0

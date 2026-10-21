@@ -13,3 +13,367 @@ MonoBehaviour:
   m_Name: TileBlock_Start
   m_EditorClassIdentifier: MyLittleFarm.Runtime::MyLittleFarm.Core.Grid.WorldMapAsset
   cells: []
+  vertices:
+  - x: 0
+    z: 0
+    height: 0
+  - x: 0
+    z: 1
+    height: 0
+  - x: 0
+    z: 2
+    height: 0
+  - x: 0
+    z: 3
+    height: 0
+  - x: 0
+    z: 4
+    height: 0
+  - x: 0
+    z: 5
+    height: 0
+  - x: 0
+    z: 6
+    height: 0
+  - x: 0
+    z: 7
+    height: 0
+  - x: 0
+    z: 8
+    height: 0
+  - x: 0
+    z: 9
+    height: 0
+  - x: 0
+    z: 10
+    height: 0
+  - x: 1
+    z: 0
+    height: 0
+  - x: 1
+    z: 1
+    height: 0
+  - x: 1
+    z: 2
+    height: 0
+  - x: 1
+    z: 3
+    height: 0
+  - x: 1
+    z: 4
+    height: 0
+  - x: 1
+    z: 5
+    height: 0
+  - x: 1
+    z: 6
+    height: 0
+  - x: 1
+    z: 7
+    height: 0
+  - x: 1
+    z: 8
+    height: 0
+  - x: 1
+    z: 9
+    height: 0
+  - x: 1
+    z: 10
+    height: 0
+  - x: 2
+    z: 0
+    height: 0
+  - x: 2
+    z: 1
+    height: 0
+  - x: 2
+    z: 2
+    height: 0
+  - x: 2
+    z: 3
+    height: 0
+  - x: 2
+    z: 4
+    height: 0
+  - x: 2
+    z: 5
+    height: 0
+  - x: 2
+    z: 6
+    height: 0
+  - x: 2
+    z: 7
+    height: 0
+  - x: 2
+    z: 8
+    height: 0
+  - x: 2
+    z: 9
+    height: 0
+  - x: 2
+    z: 10
+    height: 0
+  - x: 3
+    z: 0
+    height: 0
+  - x: 3
+    z: 1
+    height: 0
+  - x: 3
+    z: 2
+    height: 0
+  - x: 3
+    z: 3
+    height: 0
+  - x: 3
+    z: 4
+    height: 0
+  - x: 3
+    z: 5
+    height: 0
+  - x: 3
+    z: 6
+    height: 0
+  - x: 3
+    z: 7
+    height: 0
+  - x: 3
+    z: 8
+    height: 0
+  - x: 3
+    z: 9
+    height: 0
+  - x: 3
+    z: 10
+    height: 0
+  - x: 4
+    z: 0
+    height: 0
+  - x: 4
+    z: 1
+    height: 0
+  - x: 4
+    z: 2
+    height: 0
+  - x: 4
+    z: 3
+    height: 0
+  - x: 4
+    z: 4
+    height: 0
+  - x: 4
+    z: 5
+    height: 0
+  - x: 4
+    z: 6
+    height: 0
+  - x: 4
+    z: 7
+    height: 0
+  - x: 4
+    z: 8
+    height: 0
+  - x: 4
+    z: 9
+    height: 0
+  - x: 4
+    z: 10
+    height: 0
+  - x: 5
+    z: 0
+    height: 0
+  - x: 5
+    z: 1
+    height: 0
+  - x: 5
+    z: 2
+    height: 0
+  - x: 5
+    z: 3
+    height: 0
+  - x: 5
+    z: 4
+    height: 0
+  - x: 5
+    z: 5
+    height: 0
+  - x: 5
+    z: 6
+    height: 0
+  - x: 5
+    z: 7
+    height: 0
+  - x: 5
+    z: 8
+    height: 0
+  - x: 5
+    z: 9
+    height: 0
+  - x: 5
+    z: 10
+    height: 0
+  - x: 6
+    z: 0
+    height: 0
+  - x: 6
+    z: 1
+    height: 0
+  - x: 6
+    z: 2
+    height: 0
+  - x: 6
+    z: 3
+    height: 0
+  - x: 6
+    z: 4
+    height: 0
+  - x: 6
+    z: 5
+    height: 0
+  - x: 6
+    z: 6
+    height: 0
+  - x: 6
+    z: 7
+    height: 0
+  - x: 6
+    z: 8
+    height: 0
+  - x: 6
+    z: 9
+    height: 0
+  - x: 6
+    z: 10
+    height: 0
+  - x: 7
+    z: 0
+    height: 0
+  - x: 7
+    z: 1
+    height: 0
+  - x: 7
+    z: 2
+    height: 0
+  - x: 7
+    z: 3
+    height: 0
+  - x: 7
+    z: 4
+    height: 0
+  - x: 7
+    z: 5
+    height: 0
+  - x: 7
+    z: 6
+    height: 0
+  - x: 7
+    z: 7
+    height: 0
+  - x: 7
+    z: 8
+    height: 0
+  - x: 7
+    z: 9
+    height: 0
+  - x: 7
+    z: 10
+    height: 0
+  - x: 8
+    z: 0
+    height: 0
+  - x: 8
+    z: 1
+    height: 0
+  - x: 8
+    z: 2
+    height: 0
+  - x: 8
+    z: 3
+    height: 0
+  - x: 8
+    z: 4
+    height: 0
+  - x: 8
+    z: 5
+    height: 0
+  - x: 8
+    z: 6
+    height: 0
+  - x: 8
+    z: 7
+    height: 0
+  - x: 8
+    z: 8
+    height: 0
+  - x: 8
+    z: 9
+    height: 0
+  - x: 8
+    z: 10
+    height: 0
+  - x: 9
+    z: 0
+    height: 0
+  - x: 9
+    z: 1
+    height: 0
+  - x: 9
+    z: 2
+    height: 0
+  - x: 9
+    z: 3
+    height: 0
+  - x: 9
+    z: 4
+    height: 0
+  - x: 9
+    z: 5
+    height: 0
+  - x: 9
+    z: 6
+    height: 0
+  - x: 9
+    z: 7
+    height: 0
+  - x: 9
+    z: 8
+    height: 0
+  - x: 9
+    z: 9
+    height: 0
+  - x: 9
+    z: 10
+    height: 0
+  - x: 10
+    z: 0
+    height: 0
+  - x: 10
+    z: 1
+    height: 0
+  - x: 10
+    z: 2
+    height: 0
+  - x: 10
+    z: 3
+    height: 0
+  - x: 10
+    z: 4
+    height: 0
+  - x: 10
+    z: 5
+    height: 0
+  - x: 10
+    z: 6
+    height: 0
+  - x: 10
+    z: 7
+    height: 0
+  - x: 10
+    z: 8
+    height: 0
+  - x: 10
+    z: 9
+    height: 0
+  - x: 10
+    z: 10
+    height: 0

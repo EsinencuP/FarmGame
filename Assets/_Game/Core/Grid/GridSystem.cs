@@ -41,10 +41,14 @@ namespace MyLittleFarm.Core.Grid
 
         // Ключ словаря — координата чанка, а значение содержит его плотный локальный массив.
         private readonly Dictionary<Vector2Int, ChunkData> _chunks = new Dictionary<Vector2Int, ChunkData>();
+        private readonly Dictionary<Vector2Int, WorldMapAsset> _surfaceMaps = new Dictionary<Vector2Int, WorldMapAsset>();
+        private readonly RaycastHit[] _surfaceHits = new RaycastHit[128];
+        private static readonly Vector2Int[] CornerNeighbors = { Vector2Int.left, Vector2Int.down, new Vector2Int(-1,-1) };
         // Зарегистрированные компоненты позволяют перед загрузкой сбросить мир к настройкам сцены.
         private readonly List<TilemapChunk> _sceneChunks = new List<TilemapChunk>();
         // Nullable-координата отличает отсутствие наведения от клетки (0, 0).
         private Vector2Int? _selected;
+        private LineRenderer _selectionOutline;
 
         public float CellSize => cellSize;
         public int ChunkSizeX => chunkSizeX;
@@ -120,6 +124,7 @@ namespace MyLittleFarm.Core.Grid
                 if (fill != null) fill.enabled = false;
                 var outline = selectionView.GetComponent<LineRenderer>();
                 if (outline == null) outline = selectionView.AddComponent<LineRenderer>();
+                _selectionOutline = outline;
                 outline.useWorldSpace = false;
                 outline.widthMultiplier = 0.025f;
                 outline.positionCount = 5;
@@ -146,12 +151,12 @@ namespace MyLittleFarm.Core.Grid
                 Mathf.FloorToInt(worldPosition.z / cellSize));
         }
 
-        /// <summary>Возвращает мировой центр клетки на плоскости Y=0.</summary>
+        /// <summary>Возвращает мировой центр клетки на сохранённой поверхности рельефа.</summary>
         public Vector3 GridToWorld(Vector2Int gridPosition)
         {
             return new Vector3(
                 (gridPosition.x + 0.5f) * cellSize,
-                0f,
+                GetSurfaceHeight((gridPosition.x + 0.5f) * cellSize, (gridPosition.y + 0.5f) * cellSize),
                 (gridPosition.y + 0.5f) * cellSize);
         }
 
@@ -160,6 +165,44 @@ namespace MyLittleFarm.Core.Grid
 
         /// <summary>Совместимое имя для систем представления, созданных до GridSystem v2.</summary>
         public Vector3 CellToWorld(Vector2Int gridPosition) => GridToWorld(gridPosition);
+
+        public void AssignSurfaceMap(Vector2Int chunk, WorldMapAsset map) => _surfaceMaps[chunk] = map;
+
+        public float GetVertexHeight(Vector2Int vertex)
+        {
+            if (_surfaceMaps.TryGetValue(GridToChunk(vertex), out var map) && map != null) return map.VertexHeight(vertex);
+            // The upper/right outside corner still belongs to the preceding chunk's mesh.
+            foreach (var offset in CornerNeighbors)
+                if (_surfaceMaps.TryGetValue(GridToChunk(vertex + offset), out map) && map != null && map.HasRelief)
+                    return map.VertexHeight(vertex);
+            return 0f;
+        }
+
+        /// <summary>Matches the two actual triangles of each saved terrain cell, rather than a flat Y=0 plane.</summary>
+        public float GetSurfaceHeight(float worldX, float worldZ)
+        {
+            var x = worldX / cellSize; var z = worldZ / cellSize;
+            var c = new Vector2Int(Mathf.FloorToInt(x), Mathf.FloorToInt(z));
+            var u=x-c.x; var v=z-c.y;
+            var a=GetVertexHeight(c); var b=GetVertexHeight(c+Vector2Int.up);
+            var d=GetVertexHeight(c+Vector2Int.right); var e=GetVertexHeight(c+Vector2Int.one);
+            return v >= u ? a+(b-a)*v+(e-b)*u : a+(e-d)*v+(d-a)*u;
+        }
+
+        public bool TryRaycastSurface(Ray ray, out RaycastHit surfaceHit)
+        {
+            surfaceHit=default;
+            var nearest=float.MaxValue;
+            var count=Physics.RaycastNonAlloc(ray, _surfaceHits, 500f, ~0, QueryTriggerInteraction.Ignore);
+            for(var i=0;i<count;i++)
+            {
+                var hit=_surfaceHits[i];
+                var chunk=hit.collider.GetComponentInParent<TilemapChunk>();
+                if(chunk==null || chunk.TerrainCollider!=hit.collider || !_sceneChunks.Contains(chunk) || hit.distance>=nearest) continue;
+                nearest=hit.distance; surfaceHit=hit;
+            }
+            return nearest<float.MaxValue;
+        }
 
         /// <summary>Переводит клетку в координату чанка с корректным округлением отрицательных чисел вниз.</summary>
         public Vector2Int GridToChunk(Vector2Int gridPosition)
@@ -268,6 +311,15 @@ namespace MyLittleFarm.Core.Grid
                         // Preserve signatures of existing authored maps whose permissions are inherited.
                         if (terrain.permissions != CellPermissions.Inherit)
                             hash = (hash ^ (byte)terrain.permissions) * prime;
+                        if (terrain.type == CellType.Road && terrain.pathSurface != PathSurface.Dirt)
+                            hash = (hash ^ (byte)terrain.pathSurface) * prime;
+                        // Zero heights retain the signature of the original flat map.
+                        if (_surfaceMaps.TryGetValue(coordinate, out var map) && map != null)
+                        {
+                            var vertex = ChunkLocalToGrid(coordinate, new Vector2Int(x,z));
+                            var h = map.VertexHeight(vertex);
+                            if(h!=0f) hash=(hash ^ (uint)BitConverter.ToInt32(BitConverter.GetBytes(h),0))*prime;
+                        }
                     }
                 }
             }
@@ -427,7 +479,23 @@ namespace MyLittleFarm.Core.Grid
             if (selectionView == null) return;
             selectionView.SetActive(_selected.HasValue);
             if (_selected.HasValue)
+            {
                 selectionView.transform.position = GridToWorld(_selected.Value) + Vector3.up * selectionLift;
+                if(_selectionOutline==null)_selectionOutline=selectionView.GetComponent<LineRenderer>();
+                var outline=_selectionOutline;
+                if(outline!=null)
+                {
+                    var c=_selected.Value;var center=GetSurfaceHeight((c.x+.5f)*cellSize,(c.y+.5f)*cellSize);
+                    var half=cellSize*selectionFill*.5f;
+                    for(var i=0;i<5;i++)
+                    {
+                        var dx=i==0||i==3||i==4?-half:half;var dz=i<2||i==4?-half:half;
+                        var worldY=GetSurfaceHeight((c.x+.5f)*cellSize+dx,(c.y+.5f)*cellSize+dz);
+                        outline.SetPosition(i,new Vector3(dx/selectionView.transform.localScale.x,
+                            (worldY-center)/selectionView.transform.localScale.y,dz/selectionView.transform.localScale.z));
+                    }
+                }
+            }
         }
 
         /// <summary>Проверяет, можно ли вспахать клетку.</summary>
@@ -470,8 +538,17 @@ namespace MyLittleFarm.Core.Grid
         {
             var cell = GetCell(gridPosition);
             return cell.occupantId == null && IsNaturalForActions(cell.type)
+                && IsLevelCell(gridPosition)
                 && GetTerrainCell(gridPosition).Allows(CellPermissions.Build,
                     cell.type == CellType.Grass || cell.type == CellType.Dirt || cell.type == CellType.Road);
+        }
+
+        private bool IsLevelCell(Vector2Int c)
+        {
+            var h=GetVertexHeight(c);
+            return Mathf.Abs(GetVertexHeight(c+Vector2Int.up)-h)<0.03f
+                && Mathf.Abs(GetVertexHeight(c+Vector2Int.right)-h)<0.03f
+                && Mathf.Abs(GetVertexHeight(c+Vector2Int.one)-h)<0.03f;
         }
 
         private static bool IsNaturalForActions(CellType type) => type == CellType.Grass || type == CellType.Dirt
@@ -582,6 +659,7 @@ namespace MyLittleFarm.Core.Grid
                         biome = terrain.biome,
                         moisture = terrain.moisture,
                         permissions = (byte)terrain.permissions,
+                        pathSurface = (byte)terrain.pathSurface,
                         farmingMoisture = farming.moisture,
                         fertilizer = farming.fertilizer,
                         lastWateredDay = farming.lastWateredDay,
@@ -608,7 +686,7 @@ namespace MyLittleFarm.Core.Grid
                     if (cellEntry.hasTerrainData)
                         chunk.SetTerrain(cellEntry.localX, cellEntry.localZ, new TerrainCell((CellType)cellEntry.terrainType)
                         { biome = cellEntry.biome, moisture = cellEntry.moisture,
-                            permissions = (CellPermissions)cellEntry.permissions });
+                            permissions = (CellPermissions)cellEntry.permissions, pathSurface = (PathSurface)cellEntry.pathSurface });
                     chunk.SetLegacyType(cellEntry.localX, cellEntry.localZ, (CellType)cellEntry.cellType);
                     if (!string.IsNullOrEmpty(cellEntry.occupantId))
                         chunk.SetOccupant(cellEntry.localX, cellEntry.localZ, cellEntry.occupantId);
@@ -720,6 +798,7 @@ namespace MyLittleFarm.Core.Grid
         public byte biome;
         public byte moisture;
         public byte permissions;
+        public byte pathSurface;
         public byte farmingMoisture;
         public byte fertilizer;
         public ushort lastWateredDay;

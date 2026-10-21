@@ -1,12 +1,12 @@
 # Персонаж и метрический масштаб — P0-3
 
-21 октября 2026. 1 клетка = 1 Unity unit. Персонаж имеет высоту 1.8 в исходном Idle; анимации меняют позу и текущие bounds. Физика остаётся на CharacterController: height 1.8, radius 0.3, skinWidth 0.03, root Y=0.93 на плоскости Y=0.
+22 октября 2026. По новому запросу персонаж уменьшен на 20%: **1.44 units** в исходном Idle вместо 1.8. 1 клетка = 1 Unity unit. CharacterController: height 1.44, radius 0.24, skinWidth 0.024, root Y=0.744 на плоскости Y=0. Анимации меняют позу и текущие bounds. Масштаб построек и дверей не менялся.
 
 ## Персонаж и анимации
 
-Источник: уже установленный **Kevin Iglesias / Human Basic Motions FREE 2.4.2**, папка `Assets/Kevin Iglesias/Human Animations`. Используется мужской манекен `Unity Demo Scenes/Human Basic Motions/Prefabs/Human_BasicMotionsDummy_M.prefab` с валидным Humanoid Avatar. Импортированные исходники не менялись.
+Источник движений: **Kevin Iglesias / Human Basic Motions FREE 2.4.2**, папка `Assets/Kevin Iglesias/Human Animations`. Внешний вид теперь **Stylized NPC — Peasant Nolant Green (Free Version)**, с собственным валидным Humanoid Avatar и зелёными материалами тела/шляпы. Манекен заменён целиком: простая подмена текстуры не переносит UV и геометрию другой модели. Импортированные исходники не менялись.
 
-Игровая оболочка: `Assets/_Game/Content/Character/HumanPlayerVisual.prefab`; Animator Controller: `KevinLocomotion.controller` в той же папке. `Editor/PlayerRigSetup.cs` создаёт контроллер и оболочку, удаляет demo-скрипты/коллайдеры из копии модели, настраивает рост и контакт подошв. В Prototype используется дочерний объект `Character Visual`; старый Nolant больше не создаётся.
+Игровая оболочка: `Assets/_Game/Content/Character/HumanPlayerVisual.prefab`; Animator Controller: `KevinLocomotion.controller` в той же папке. `Editor/PlayerRigSetup.cs` создаёт контроллер и оболочку, удаляет demo-скрипты/коллайдеры из копии модели, настраивает рост и контакт подошв. В Prototype используется `Character Visual` с Green-моделью. Команда Character / Apply Green Skin And 80 Percent Size устанавливает фиксированную высоту 1.44, не уменьшает размер повторно при каждом применении. Контроллер и 34 клипа сохранены. Детализация поз пальцев ограничена набором костей исходного Nolant; новых отдельных пальцев модель не получает.
 
 Все 34 клипа — in-place, без root motion. Перемещением управляет CharacterController, направлением и параметрами Animator — PlayerController.
 

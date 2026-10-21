@@ -84,6 +84,15 @@ namespace MyLittleFarm.Editor
         public static void ValidateChunk(TilemapChunk chunk, List<string> issues)
         {
             var prefix = chunk.name + ": ";
+            // Phase 2 uses a saved heightfield mesh as both visual and physical terrain.
+            if (chunk.WorldMap != null && chunk.WorldMap.HasRelief && chunk.TerrainCollider is MeshCollider meshSurface)
+            {
+                var filter=chunk.GetComponent<MeshFilter>();
+                if (!meshSurface.enabled || meshSurface.isTrigger || meshSurface.sharedMesh==null
+                    || filter==null || filter.sharedMesh!=meshSurface.sharedMesh)
+                    issues.Add(prefix+"Authored relief must share its visible mesh with an enabled non-trigger MeshCollider.");
+                return;
+            }
             var visual = chunk.transform.Find("Ground Visual");
             if (visual == null || !VisualPrefab.TryGetBounds(visual.gameObject, out var bounds))
                 issues.Add(prefix + "Ground Visual or its renderer is missing.");
@@ -135,7 +144,7 @@ namespace MyLittleFarm.Editor
             var scene = SceneManager.GetActiveScene();
             var issues = ValidateScene(scene);
             foreach (var issue in issues) Debug.LogWarning("Ground alignment: " + issue);
-            if (issues.Count == 0) Debug.Log("Ground alignment: all visual tops and physical surfaces match Y = 0 (tolerance 0.001).");
+            if (issues.Count == 0) Debug.Log("Ground alignment: authored visual and physical surfaces match; legacy flat surfaces remain at Y = 0.");
         }
 
         [MenuItem(MenuRoot + "Align Visuals To Y=0")]

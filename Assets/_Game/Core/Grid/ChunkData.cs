@@ -80,7 +80,8 @@ namespace MyLittleFarm.Core.Grid
             ValidateTerrain(terrain.type);
             var index = Index(localX, localZ);
             if (_terrain[index].type == terrain.type && _terrain[index].biome == terrain.biome
-                && _terrain[index].moisture == terrain.moisture && _terrain[index].permissions == terrain.permissions) return;
+                && _terrain[index].moisture == terrain.moisture && _terrain[index].permissions == terrain.permissions
+                && _terrain[index].pathSurface == terrain.pathSurface) return;
             _terrain[index] = terrain;
             MarkChanged(index);
         }
@@ -193,6 +194,7 @@ namespace MyLittleFarm.Core.Grid
             var baseline = _baseTerrain[index];
             return current.type != baseline.type || current.biome != baseline.biome
                 || current.moisture != baseline.moisture || current.permissions != baseline.permissions
+                || current.pathSurface != baseline.pathSurface
                 || (_farming != null && _farming[index].soilType != 0)
                 || (_buildings != null && _buildings[index].type != 0);
         }

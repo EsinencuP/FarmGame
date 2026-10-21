@@ -32,6 +32,7 @@ namespace MyLittleFarm.Core
                             terrain.type = oldType;
                         entry.hasTerrainData = true; entry.terrainType = (byte)terrain.type;
                         entry.biome = terrain.biome; entry.moisture = terrain.moisture; entry.permissions = (byte)terrain.permissions;
+                        entry.pathSurface = (byte)terrain.pathSurface;
                     }
                     if ((CellType)entry.cellType != CellType.Building && (CellType)entry.cellType != CellType.BuildingEdge) continue;
                     entry.cellType = entry.hasTerrainData ? entry.terrainType : (byte)grid.GetBaseTerrainCell(position).type;
@@ -110,7 +111,7 @@ namespace MyLittleFarm.Core
                         }
                         var local = grid.GridToLocalCell(position); var terrain = grid.GetBaseTerrainCell(position);
                         entry = new CellSaveEntry { localX=local.x,localZ=local.y,hasTerrainData=true,
-                            terrainType=(byte)terrain.type,permissions=(byte)terrain.permissions,biome=terrain.biome,moisture=terrain.moisture };
+                            terrainType=(byte)terrain.type,permissions=(byte)terrain.permissions,biome=terrain.biome,moisture=terrain.moisture,pathSurface=(byte)terrain.pathSurface };
                         chunk.modifiedCells.Add(entry); entries.Add(position,entry);
                     }
                     entry.cellType = (byte)(x == 0 && z == 0 ? CellType.Building : CellType.BuildingEdge);
