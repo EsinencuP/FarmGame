@@ -1,0 +1,7 @@
+Grounded=True capsuleBottom=0,0799998 skinWidth=0,08 actualFeetY=4,23193E-05
+house runtime visual bottom=0
+storage runtime visual bottom=0
+market runtime visual bottom=0
+flowerbed runtime visual bottom=0
+coop runtime visual bottom=0
+Chicken runtime feet=0

@@ -23,8 +23,8 @@ namespace MyLittleFarm.Tests.EditMode
             // Начальные проверки покрывают поворот, отрицательные координаты, занятость и владение копиями.
             var layout = new BuildingLayout(BuildingDefinition.Catalog);
             var storage = BuildingDefinition.Catalog[1];
-            check(storage.RotatedWidth(1) == 1 && storage.RotatedDepth(1) == 2, "Quarter turn swaps dimensions");
-            check(storage.RotatedWidth(2) == 2 && storage.RotatedDepth(2) == 1, "Half turn preserves dimensions");
+            check(storage.RotatedWidth(1) == storage.Depth && storage.RotatedDepth(1) == storage.Width, "Quarter turn swaps dimensions");
+            check(storage.RotatedWidth(2) == storage.Width && storage.RotatedDepth(2) == storage.Depth, "Half turn preserves dimensions");
             check(layout.CanPlace("storage", 7, 7, 0, null, null, out _), "World layout has no artificial edge");
             check(layout.CanPlace("storage", -7, -6, 1, null, null, out _), "Negative world coordinates are supported");
             check(!layout.CanPlace("house", int.MaxValue, 0, 0, null, null, out _), "Overflow-safe bounds");

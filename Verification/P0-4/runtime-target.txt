@@ -1,0 +1,1 @@
+house origin=(-6, -8) center=(-2.50, 0.00, -5.00) screen=1728x743

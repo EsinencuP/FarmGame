@@ -1,0 +1,5 @@
+house footprint=7x6 model=(6.4429, 4.9299, 5.6477) door=1,98 player=1,8
+storage footprint=5x6 model=(4.2116, 3.9600, 5.6960) door=1,98 player=1,8
+market footprint=8x5 model=(7.1758, 3.0000, 4.0193) door=0 player=1,8
+flowerbed footprint=1x1 model=(0.9000, 0.4000, 0.9000) door=0 player=1,8
+coop footprint=3x5 model=(2.7738, 3.9213, 4.6750) door=1,98 player=1,8

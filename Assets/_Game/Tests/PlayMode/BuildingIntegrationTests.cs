@@ -23,6 +23,14 @@ namespace MyLittleFarm.Tests.PlayMode
         [UnityTest]
         public IEnumerator PlacementMoveCancelDeleteAndSavePreserveEconomyAndTerrain()
         {
+            // The full-scale house crosses the northern edge of the original 10x10 fixture.
+            var north = new GameObject("North building test chunk");
+            north.transform.SetParent(Farm.transform, false); north.transform.position = new Vector3(0,0,10);
+            var chunk = north.AddComponent<TilemapChunk>();
+            var surface = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            surface.name = "Terrain Surface"; surface.transform.SetParent(north.transform, false);
+            surface.transform.localPosition = new Vector3(5,-0.25f,5); surface.transform.localScale = new Vector3(10,0.5f,10);
+            System<GridSystem>().RegisterSceneChunk(chunk); chunk.ApplyTo(System<GridSystem>());
             // Все зависимости извлекаются из одного созданного bootstrap-объекта.
             var build = System<BuildSystem>();
             var wallet = System<WalletSystem>();
@@ -53,7 +61,7 @@ namespace MyLittleFarm.Tests.PlayMode
             Assert.That(wallet.Coins, Is.EqualTo(5), "Move and cancellation are free");
 
             // Отдельная клетка с культурой проверяет конфликт строительства и земледелия.
-            var cropCell = new Vector2Int(6, 6);
+            var cropCell = new Vector2Int(9, 8);
             soil.Till(cropCell);
             crops.Plant(cropCell, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
             Assert.That(build.TryPlace("flowerbed", cropCell, 0, out _), Is.False, "Crops block placement");

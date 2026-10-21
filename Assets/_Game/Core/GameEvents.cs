@@ -18,6 +18,7 @@ namespace MyLittleFarm.Core
             StatusChanged = null;
             ActionFeedback = null;
             ProgressAction = null;
+            OnboardingChanged = null;
         }
         public static event Action InventoryChanged;
         public static event Action<int> MoneyChanged;
@@ -26,6 +27,10 @@ namespace MyLittleFarm.Core
         public static event Action<string, UnityEngine.Vector3> ActionFeedback;
         // ProgressAction используется онбордингом и не зависит от визуальных эффектов.
         public static event Action<string> ProgressAction;
+        public static event Action<int> OnboardingChanged;
+
+        /// <summary>Updates the persistent onboarding hint only when its step changes.</summary>
+        public static void RaiseOnboardingChanged(int step) => OnboardingChanged?.Invoke(step);
 
         public static void RaiseInventoryChanged()
         {

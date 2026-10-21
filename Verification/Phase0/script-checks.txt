@@ -1,0 +1,11 @@
+PASS: C# 9 syntax and assembly ownership for 106 scripts.
+PASS: all 106 scripts contain explanatory summary comments.
+PASS: runtime scene auto-generation is disabled and the Edit Mode baker is present.
+PASS: world-scale chunk grid and non-allocating terrain selection contracts are present.
+PASS: inspector-backed player/camera settings and run/jump contracts are present.
+PASS: actual building domain compiled; 500017 assertions, including 1000 deterministic random operations.
+PASS: actual economy calculations compiled; 2503 assertions, including 1000 deterministic random transactions.
+PASS: layered chunk model compiled; 8206 assertions, including all coordinates from -4096 to 4096.
+PASS: Stage 2 content block has six data-driven crops and six Inspector-backed seed slots.
+PASS: Stage 2 orchard repeat-harvest and chicken feed/egg/save contracts are present.
+NOT RUN: Unity assembly compilation, EditMode/PlayMode tests, rendering, input and 20-30 minute playtest. These require Unity Editor.

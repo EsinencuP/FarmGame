@@ -276,11 +276,11 @@ PlayerSettings:
   facebookSdkVersion: 0.0.0
   apiCompatibilityLevel: 6
   activeInputHandler: 1
-  cloudProjectId: 
+  cloudProjectId: 65d3bae3-3038-4a95-93da-f5832da2d5c8
   framebufferDepthMemorylessMode: 0
   qualitySettingsNames: []
-  projectName: My Little Farm
-  organizationId: 
+  projectName: FarmGame
+  organizationId: esinencu_p
   cloudEnabled: 0
   legacyClampBlendShapeWeights: 0
   playerDataPath: 

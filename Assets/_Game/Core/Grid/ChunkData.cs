@@ -80,7 +80,7 @@ namespace MyLittleFarm.Core.Grid
             ValidateTerrain(terrain.type);
             var index = Index(localX, localZ);
             if (_terrain[index].type == terrain.type && _terrain[index].biome == terrain.biome
-                && _terrain[index].moisture == terrain.moisture) return;
+                && _terrain[index].moisture == terrain.moisture && _terrain[index].permissions == terrain.permissions) return;
             _terrain[index] = terrain;
             MarkChanged(index);
         }
@@ -137,7 +137,11 @@ namespace MyLittleFarm.Core.Grid
                 SetFarming(localX, localZ, default);
                 SetBuilding(localX, localZ, default);
                 if (GetTerrain(localX, localZ).type != type)
-                    SetTerrain(localX, localZ, new TerrainCell(type));
+                {
+                    var terrain = GetTerrain(localX, localZ);
+                    terrain.type = type;
+                    SetTerrain(localX, localZ, terrain);
+                }
             }
         }
 
@@ -188,7 +192,7 @@ namespace MyLittleFarm.Core.Grid
             var current = _terrain[index];
             var baseline = _baseTerrain[index];
             return current.type != baseline.type || current.biome != baseline.biome
-                || current.moisture != baseline.moisture
+                || current.moisture != baseline.moisture || current.permissions != baseline.permissions
                 || (_farming != null && _farming[index].soilType != 0)
                 || (_buildings != null && _buildings[index].type != 0);
         }

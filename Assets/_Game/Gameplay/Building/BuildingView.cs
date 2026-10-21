@@ -4,14 +4,15 @@ using UnityEngine;
 
 namespace MyLittleFarm.Gameplay.Building
 {
-    /// <summary>Создаёт и позиционирует временное визуальное представление постройки в мире Unity.</summary>
+    /// <summary>Creates the building collider and displays either imported art or a prototype model.</summary>
     public sealed class BuildingView : MonoBehaviour
     {
         // Идентификаторы связывают видимый объект с экземпляром layout и его типом из каталога.
         public string BuildingId { get; private set; }
         public string DefinitionId { get; private set; }
 
-        public static BuildingView Create(Transform parent, BuildingDefinition definition, BuildingRuntimeState state, GridSystem grid)
+        public static BuildingView Create(Transform parent, BuildingDefinition definition, BuildingRuntimeState state,
+            GridSystem grid, GameObject visualPrefab = null)
         {
             // Корень содержит общий коллайдер, а дочерние примитивы отвечают только за внешний вид.
             var root = new GameObject(definition.Name);
@@ -23,21 +24,36 @@ namespace MyLittleFarm.Gameplay.Building
             var width = definition.Width * grid.CellSize - 0.12f;
             var depth = definition.Depth * grid.CellSize - 0.12f;
             var height = definition.Height;
-            // Цвет различает типы до появления финальных моделей и материалов.
-            var color = definition.Id == "house" ? new Color(0.85f, 0.70f, 0.45f)
-                : definition.Id == "storage" ? new Color(0.45f, 0.30f, 0.18f)
-                : definition.Id == "market" ? new Color(0.85f, 0.48f, 0.15f)
-                : definition.Id == "coop" ? new Color(0.76f, 0.57f, 0.35f)
-                : new Color(0.30f, 0.58f, 0.25f);
-            Part(root.transform, "Body", new Vector3(0, height * 0.4f, 0), new Vector3(width, height * 0.8f, depth), color);
-            Part(root.transform, "Top", new Vector3(0, height * 0.9f, 0), new Vector3(width, height * 0.2f, depth),
-                definition.Id == "flowerbed" ? new Color(0.92f, 0.40f, 0.58f) : new Color(0.48f, 0.20f, 0.16f));
-            // A visible front makes all four rotations distinguishable.
-            Part(root.transform, "Front", new Vector3(0, height * 0.35f, -depth * 0.5f - 0.015f),
-                new Vector3(width * 0.28f, height * 0.5f, 0.035f), new Color(0.20f, 0.25f, 0.28f));
+            if (visualPrefab != null)
+            {
+                VisualPrefab.CreateBuilding(visualPrefab, root.transform, new Vector3(width, height, depth));
+            }
+            else
+            {
+                // Keep the recognizable prototype shape until this definition has art assigned.
+                var color = definition.Id == "house" ? new Color(0.85f, 0.70f, 0.45f)
+                    : definition.Id == "storage" ? new Color(0.45f, 0.30f, 0.18f)
+                    : definition.Id == "market" ? new Color(0.85f, 0.48f, 0.15f)
+                    : definition.Id == "coop" ? new Color(0.76f, 0.57f, 0.35f)
+                    : new Color(0.30f, 0.58f, 0.25f);
+                Part(root.transform, "Body", new Vector3(0, height * 0.4f, 0), new Vector3(width, height * 0.8f, depth), color);
+                Part(root.transform, "Top", new Vector3(0, height * 0.9f, 0), new Vector3(width, height * 0.2f, depth),
+                    definition.Id == "flowerbed" ? new Color(0.92f, 0.40f, 0.58f) : new Color(0.48f, 0.20f, 0.16f));
+                Part(root.transform, "Front", new Vector3(0, height * 0.35f, -depth * 0.5f - 0.015f),
+                    new Vector3(width * 0.28f, height * 0.5f, 0.035f), new Color(0.20f, 0.25f, 0.28f));
+            }
             var collider = root.AddComponent<BoxCollider>();
             collider.center = Vector3.up * height * 0.5f;
             collider.size = new Vector3(width, height, depth);
+            if (VisualPrefab.TryGetLocalBounds(root, root.transform, out var bounds))
+            {
+                collider.center = bounds.center;
+                collider.size = bounds.size;
+            }
+            var target = root.AddComponent<MyLittleFarm.Gameplay.World.InteractionTarget>();
+            target.Configure(definition.Id == "market"
+                ? MyLittleFarm.Gameplay.World.InteractionTargetKind.Market
+                : MyLittleFarm.Gameplay.World.InteractionTargetKind.Building, state.id);
             view.Apply(state, definition, grid);
             return view;
         }

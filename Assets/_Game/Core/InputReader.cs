@@ -18,6 +18,9 @@ namespace MyLittleFarm.Core
         [SerializeField] private Key sprintKey = Key.LeftShift;
         [SerializeField] private Key alternateSprintKey = Key.RightShift;
         [SerializeField] private Key jumpKey = Key.Space;
+        [SerializeField] private Key strafeKey = Key.LeftAlt;
+        [SerializeField] private Key fastSprintKey = Key.LeftCtrl;
+        [SerializeField] private Key gestureKey = Key.G;
 
         [Header("Gameplay Keys")]
         [SerializeField] private Key interactKey = Key.E;
@@ -35,6 +38,7 @@ namespace MyLittleFarm.Core
         [Header("Building Keys")]
         [SerializeField] private Key buildToggleKey = Key.B;
         [SerializeField] private Key rotateBuildingKey = Key.R;
+        [SerializeField] private Key alternateRotateBuildingKey = Key.Q;
         [SerializeField] private Key moveBuildingKey = Key.M;
         [SerializeField] private Key deleteBuildingKey = Key.Delete;
         [SerializeField] private Key confirmKey = Key.Enter;
@@ -62,6 +66,7 @@ namespace MyLittleFarm.Core
         public float OrbitDelta { get; private set; }
         // Однокадровые команды: true только в кадре, когда соответствующая кнопка была нажата.
         public bool InteractPressed { get; private set; }
+        public bool PointerInteractPressed { get; private set; }
         public bool RotateLeftPressed { get; private set; }
         public bool RotateRightPressed { get; private set; }
         public bool SavePressed { get; private set; }
@@ -81,6 +86,9 @@ namespace MyLittleFarm.Core
         // SprintHeld действует при удержании Shift, JumpPressed — только в кадре нажатия пробела.
         public bool SprintHeld { get; private set; }
         public bool JumpPressed { get; private set; }
+        public bool StrafeHeld { get; private set; }
+        public bool FastSprintHeld { get; private set; }
+        public bool GesturePressed { get; private set; }
         // Индекс выбранной постройки: 0–4 для клавиш 1–5, -1 если выбор не менялся.
         public int BuildSelection { get; private set; } = -1;
         // Индекс семени: 0–5 для клавиш 1–6, -1 если в кадре слот не выбирался.
@@ -101,7 +109,7 @@ namespace MyLittleFarm.Core
             HasPointer = mouse != null;
             PointerPosition = mouse == null ? Vector2.zero : mouse.position.ReadValue();
             BuildTogglePressed = WasPressed(keyboard, buildToggleKey);
-            RotateBuildingPressed = WasPressed(keyboard, rotateBuildingKey);
+            RotateBuildingPressed = WasPressed(keyboard, rotateBuildingKey) || WasPressed(keyboard, alternateRotateBuildingKey);
             MoveBuildingPressed = WasPressed(keyboard, moveBuildingKey);
             DeleteBuildingPressed = WasPressed(keyboard, deleteBuildingKey);
             ConfirmPressed = WasPressed(keyboard, confirmKey);
@@ -131,9 +139,12 @@ namespace MyLittleFarm.Core
 
             var shift = IsPressed(keyboard, sprintKey) || IsPressed(keyboard, alternateSprintKey);
             SprintHeld = shift;
+            StrafeHeld = IsPressed(keyboard, strafeKey);
+            FastSprintHeld = shift && IsPressed(keyboard, fastSprintKey);
+            GesturePressed = WasPressed(keyboard, gestureKey);
             JumpPressed = WasPressed(keyboard, jumpKey);
-            InteractPressed = (WasPressed(keyboard, interactKey) && !shift)
-                || (allowMouseInteraction && mouse != null && mouse.leftButton.wasPressedThisFrame);
+            PointerInteractPressed = allowMouseInteraction && mouse != null && mouse.leftButton.wasPressedThisFrame;
+            InteractPressed = (WasPressed(keyboard, interactKey) && !shift) || PointerInteractPressed;
             RotateLeftPressed = WasPressed(keyboard, rotateCameraLeftKey);
             RotateRightPressed = WasPressed(keyboard, rotateCameraRightKey) && shift;
             SavePressed = WasPressed(keyboard, saveKey);

@@ -81,11 +81,17 @@ namespace MyLittleFarm.Gameplay.World
             if (_input == null || _input.BuildModeActive || _input.SuppressGameplayThisFrame) return;
             if (Time.unscaledTime >= _nextPromptAt || _input.InteractPressed)
             {
-                CurrentPrompt = BuildPrompt();
+                // Debounce both entry AND loss of a target: a one-frame miss at its edge must not flash a ground/fallback prompt.
+                if (_selector.IsSelectionStable) CurrentPrompt = BuildPrompt();
                 _nextPromptAt = Time.unscaledTime + promptRefreshInterval;
             }
             if (_input != null && _input.InteractPressed)
             {
+                if (!_selector.IsSelectionStable)
+                {
+                    GameEvents.RaiseStatusChanged("Наведите курсор на цель перед действием");
+                    return;
+                }
                 Interact(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
             }
             if (_input != null && _input.PlantTreePressed && _orchard != null && _selector.HasSelection)
@@ -108,7 +114,20 @@ namespace MyLittleFarm.Gameplay.World
         {
             // Продажа рядом с торговой точкой имеет приоритет над действием с клеткой.
             if (_input != null && (_input.BuildModeActive || _input.SuppressGameplayThisFrame)) return false;
-            if (IsNearSaleCrate())
+            if (_input != null && _input.PointerInteractPressed && !_selector.HasSelection) return false;
+            var target = _selector.HoveredTarget;
+            if (target != null && target.Kind == InteractionTargetKind.Animal)
+                return _animals != null && _animals.TryInteract(target.TargetId, _player.position, nowUnixMs);
+            if (target != null && target.Kind == InteractionTargetKind.Tree)
+            {
+                var position = _grid.WorldToGrid(target.transform.position);
+                return _orchard != null && _orchard.Contains(position) && InteractWithCell(position, nowUnixMs);
+            }
+            if (target != null && (target.Kind == InteractionTargetKind.Obstacle || target.Kind == InteractionTargetKind.Building))
+                return false;
+            if (target != null && target.Kind == InteractionTargetKind.Market && !IsNearTarget(target)) return false;
+            if ((target != null && target.Kind == InteractionTargetKind.Market && IsNearTarget(target))
+                || (!_selector.HasSelection && IsNearSaleCrate()))
             {
                 var earned = _selling.SellAllCrops();
                 if (earned > 0)
@@ -120,7 +139,8 @@ namespace MyLittleFarm.Gameplay.World
             }
 
             // Животное получает приоритет перед клеткой, когда игрок подошёл к курице.
-            if (_animals != null && _animals.TryInteractNearest(_player.position, nowUnixMs)) return true;
+            if (!_selector.HasSelection && _animals != null && _animals.HasNearby(_player.position))
+                return _animals.TryInteractNearest(_player.position, nowUnixMs);
 
             if (!_selector.HasSelection)
             {
@@ -213,24 +233,39 @@ namespace MyLittleFarm.Gameplay.World
         private string BuildPrompt()
         {
             // Формирует текст по тому же приоритету, что и реальное действие, чтобы подсказка не вводила в заблуждение.
-            if (IsNearSaleCrate())
+            var target = _selector.HoveredTarget;
+            if (target != null && target.Kind == InteractionTargetKind.Animal)
+                return _animals == null ? string.Empty : _animals.TargetPrompt(target.TargetId, _player.position);
+            if (target != null && target.Kind == InteractionTargetKind.Tree)
+            {
+                var position = _grid.WorldToGrid(target.transform.position);
+                if (_orchard == null || !_orchard.Contains(position)) return "Дерево — нет доступного действия";
+                return IsWithinReach(position) ? "Яблоня — E / ЛКМ собрать зрелые плоды" : "Яблоня слишком далеко — подойдите ближе";
+            }
+            if (target != null && target.Kind == InteractionTargetKind.Obstacle) return "Препятствие — клетка недоступна";
+            if (target != null && target.Kind == InteractionTargetKind.Building) return "B — строительство   M — перенос в режиме строительства";
+            if (target != null && target.Kind == InteractionTargetKind.Market && !IsNearTarget(target))
+                return "Торговая точка слишком далеко — подойдите ближе";
+            if ((target != null && target.Kind == InteractionTargetKind.Market && IsNearTarget(target))
+                || (!_selector.HasSelection && IsNearSaleCrate()))
             {
                 long amount = 0;
                 if (_catalog == null) amount = _inventory.GetAmount(InventorySystem.CarrotId);
                 else foreach (var definition in _catalog.Crops)
                     amount += _inventory.GetAmount(definition.HarvestItemId);
                 if (_catalog != null)
-                    amount += _inventory.GetAmount("apple") + _inventory.GetAmount("egg");
+                    amount += (long)_inventory.GetAmount("apple") + _inventory.GetAmount("egg");
                 var selected = _slots?.SelectedCrop;
                 var shopHint = selected == null ? "P — купить семена"
                     : $"P — купить семена: {selected.DisplayName}";
+                var actionKey = target == null ? "E" : "E / ЛКМ";
                 return amount > 0
-                    ? $"E / ЛКМ — продать урожай ({amount})   {shopHint}"
+                    ? $"{actionKey} — продать урожай ({amount})   {shopHint}"
                     : $"Рынок — {shopHint}";
             }
 
-            if (_animals != null && _animals.HasNearby(_player.position))
-                return _animals.NearbyPrompt(_player.position);
+            if (!_selector.HasSelection && _animals != null && _animals.HasNearby(_player.position))
+                return _animals.NearbyPrompt(_player.position).Replace("E / ЛКМ", "E");
 
             if (!_selector.HasSelection || !_grid.TryGetCell(_selector.SelectedPosition, out var cell))
             {
@@ -246,7 +281,7 @@ namespace MyLittleFarm.Gameplay.World
             }
 
             if (cell.type == CellType.Tree)
-                return "Яблоня — собрать плоды";
+                return "Яблоня — E / ЛКМ собрать зрелые плоды";
 
             if (_orchard != null && _grid.CanPlantTree(_selector.SelectedPosition))
                 return _animals != null && _animals.IsInPen(_selector.SelectedPosition)
@@ -287,6 +322,13 @@ namespace MyLittleFarm.Gameplay.World
             }
 
             var offset = _player.position - _saleCrate.position;
+            offset.y = 0f;
+            return offset.sqrMagnitude <= sellingDistance * sellingDistance;
+        }
+
+        private bool IsNearTarget(InteractionTarget target)
+        {
+            var offset = target.transform.position - _player.position;
             offset.y = 0f;
             return offset.sqrMagnitude <= sellingDistance * sellingDistance;
         }

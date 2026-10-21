@@ -1,0 +1,27 @@
+// Unity MCP execute_code body. Run in the disposable P0-4-Verification scene, in Play Mode or Edit Mode preview.
+// Temporarily renders the existing Canvas through the same camera to capture exact output sizes, including UI.
+if(UnityEngine.SceneManagement.SceneManager.GetActiveScene().name!="P0-4-Verification")throw new System.InvalidOperationException("Use verification copy.");
+var farm=UnityEngine.Object.FindAnyObjectByType<MyLittleFarm.Core.GameBootstrap>();var camera=Camera.main;
+var canvas=farm.GetComponentInChildren<Canvas>();var scaler=canvas.GetComponent<UnityEngine.UI.CanvasScaler>();
+var layout=canvas.GetComponent<MyLittleFarm.UI.ResponsiveHudLayout>();var card=canvas.GetComponentInChildren<MyLittleFarm.UI.BuildPromptUI>(true);
+var mode=canvas.renderMode;var worldCamera=canvas.worldCamera;var plane=canvas.planeDistance;var factor=canvas.scaleFactor;var scaling=scaler.enabled;
+var previous=camera.targetTexture;var old=RenderTexture.active;var aspect=camera.aspect;
+var build=farm.GetComponentInChildren<MyLittleFarm.Gameplay.Building.BuildSystem>();
+var state=!Application.isPlaying?"preview":!build.IsActive?"exploration":build.CurrentPrompt.Contains("Размещение доступно")?"valid":"blocked";
+var sizes=new[]{new Vector2Int(1280,720),new Vector2Int(1920,1080),new Vector2Int(2560,1440),new Vector2Int(1280,800)};
+var report=new System.Text.StringBuilder();
+try{
+scaler.enabled=false;canvas.renderMode=RenderMode.ScreenSpaceCamera;canvas.worldCamera=camera;canvas.planeDistance=camera.nearClipPlane+.2f;
+foreach(var size in sizes){
+var rt=new RenderTexture(size.x,size.y,24);var image=new Texture2D(size.x,size.y,TextureFormat.RGB24,false);
+try{
+camera.targetTexture=rt;camera.aspect=(float)size.x/size.y;
+canvas.scaleFactor=Mathf.Sqrt((size.x/1920f)*(size.y/1080f));Canvas.ForceUpdateCanvases();
+typeof(MyLittleFarm.UI.ResponsiveHudLayout).GetMethod("ApplyLayout",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic).Invoke(layout,null);
+Canvas.ForceUpdateCanvases();camera.Render();RenderTexture.active=rt;
+image.ReadPixels(new Rect(0,0,size.x,size.y),0,0);image.Apply();
+System.IO.File.WriteAllBytes("Verification/P0-4/"+(Application.isPlaying?"runtime-":"editor-")+state+"-"+size.x+"x"+size.y+".png",image.EncodeToPNG());
+report.AppendLine(state+" "+size+" canvas="+canvas.GetComponent<RectTransform>().rect.size+" card="+card.GetComponent<RectTransform>().rect.size+" text="+card.PromptText.rectTransform.rect.size+" preferredHeight="+card.PromptText.preferredHeight);
+}finally{camera.targetTexture=previous;RenderTexture.active=old;rt.Release();UnityEngine.Object.Destroy(rt);UnityEngine.Object.Destroy(image);}}
+System.IO.File.WriteAllText("Verification/P0-4/layout-"+state+".txt",report.ToString());return report.ToString();
+}finally{camera.targetTexture=previous;camera.aspect=aspect;RenderTexture.active=old;canvas.renderMode=mode;canvas.worldCamera=worldCamera;canvas.planeDistance=plane;canvas.scaleFactor=factor;scaler.enabled=scaling;Canvas.ForceUpdateCanvases();}

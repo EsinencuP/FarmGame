@@ -1,0 +1,55 @@
+// Unity MCP execute_code method body. Run only in Play Mode in a temporary copy of Prototype,
+// named P0-2-Verification. This avoids loading or writing the user's normal save.
+if (!Application.isPlaying || UnityEngine.SceneManagement.SceneManager.GetActiveScene().name != "P0-2-Verification")
+    throw new System.InvalidOperationException("Use the isolated runtime verification copy.");
+var farm = UnityEngine.Object.FindAnyObjectByType<MyLittleFarm.Core.GameBootstrap>();
+farm.GetComponent<MyLittleFarm.Core.InputReader>().enabled = false;
+farm.GetComponentInChildren<MyLittleFarm.Core.SaveSystem>().enabled = false;
+var grid = farm.GetComponentInChildren<MyLittleFarm.Core.Grid.GridSystem>();
+var catalog = farm.GetComponentInChildren<MyLittleFarm.Gameplay.Farming.FarmCatalog>();
+var crops = farm.GetComponentInChildren<MyLittleFarm.Gameplay.Farming.CropSystem>();
+// Pin stages for the comparative screenshot; real growth is exercised by the test suites.
+crops.enabled = false;
+var now = System.DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+var report = new System.Text.StringBuilder();
+for (var i = 0; i < catalog.Crops.Count; i++)
+for (var stage = 0; stage < 3; stage++)
+{
+    var definition = catalog.Crops[i];
+    var position = new Vector2Int(i, stage - 6);
+    grid.SetCellType(position, MyLittleFarm.Core.Grid.CellType.Tilled);
+    var age = stage == 0 ? -60f : definition.GrowDurationSeconds * (stage == 1 ? 0.65f : 1.2f);
+    if (!crops.Plant(position, definition.CropId, now - (long)(age * 1000)))
+        throw new System.InvalidOperationException("Could not plant " + definition.CropId + " at " + position);
+    report.AppendLine(definition.CropId + " stage=" + stage + " at=" + position);
+}
+foreach (var chunk in farm.GetComponentsInChildren<MyLittleFarm.Core.Grid.ChunkRenderer>()) chunk.Rebuild();
+var player = farm.GetComponentInChildren<MyLittleFarm.Gameplay.World.PlayerController>();
+player.Teleport(new Vector3(-1.5f, 1.1f, -4.5f));
+var camera = farm.GetComponentInChildren<Camera>();
+camera.GetComponent<MyLittleFarm.Gameplay.World.IsometricCameraController>().enabled = false;
+camera.transform.position = new Vector3(10f, 8f, 3f);
+camera.transform.LookAt(new Vector3(2.3f, 0.35f, -4.8f));
+var rt = new RenderTexture(1920, 1080, 24);
+var texture = new Texture2D(1920, 1080, TextureFormat.RGB24, false);
+var previousRT = RenderTexture.active;
+var previousTarget = camera.targetTexture;
+try
+{
+    camera.targetTexture = rt;
+    camera.Render();
+    RenderTexture.active = rt;
+    texture.ReadPixels(new Rect(0, 0, 1920, 1080), 0, 0);
+    texture.Apply();
+    System.IO.File.WriteAllBytes("Verification/P0-2/runtime-stages.png", texture.EncodeToPNG());
+    System.IO.File.WriteAllText("Verification/P0-2/runtime-stages.txt", report.ToString());
+    return "Rendered 18 real CropSystem views in the verification copy.\n" + report.ToString();
+}
+finally
+{
+    RenderTexture.active = previousRT;
+    camera.targetTexture = previousTarget;
+    rt.Release();
+    UnityEngine.Object.Destroy(rt);
+    UnityEngine.Object.Destroy(texture);
+}

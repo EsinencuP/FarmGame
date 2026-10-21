@@ -56,6 +56,24 @@ namespace MyLittleFarm.Editor
             var selected = System.Array.IndexOf(Types, GridPaintTool.SelectedTerrain);
             selected = EditorGUILayout.Popup("Terrain", Mathf.Max(0, selected), Labels);
             GridPaintTool.SelectedTerrain = Types[selected];
+            GridPaintTool.PaintPermissions = EditorGUILayout.Toggle("Paint permissions only", GridPaintTool.PaintPermissions);
+            if (GridPaintTool.PaintPermissions)
+            {
+                var custom = (GridPaintTool.SelectedPermissions & CellPermissions.Custom) != 0;
+                custom = EditorGUILayout.Toggle("Override terrain defaults", custom);
+                var permissions = GridPaintTool.SelectedPermissions;
+                if (custom)
+                {
+                    permissions = CellPermissions.Custom;
+                    if (EditorGUILayout.Toggle("Walk", (GridPaintTool.SelectedPermissions & CellPermissions.Walk) != 0)) permissions |= CellPermissions.Walk;
+                    if (EditorGUILayout.Toggle("Farm", (GridPaintTool.SelectedPermissions & CellPermissions.Farm) != 0)) permissions |= CellPermissions.Farm;
+                    if (EditorGUILayout.Toggle("Build", (GridPaintTool.SelectedPermissions & CellPermissions.Build) != 0)) permissions |= CellPermissions.Build;
+                    if (EditorGUILayout.Toggle("Plant tree", (GridPaintTool.SelectedPermissions & CellPermissions.Orchard) != 0)) permissions |= CellPermissions.Orchard;
+                }
+                else permissions = CellPermissions.Inherit;
+                GridPaintTool.SelectedPermissions = permissions;
+            }
+            EditorGUILayout.HelpBox("Scene gizmos: green = farm, blue = building zone, gray = road, red = unavailable. Occupancy overrides permissions.", MessageType.Info);
             GridPaintTool.BrushSize = EditorGUILayout.IntSlider("Brush Radius", GridPaintTool.BrushSize, 1, 10);
             EditorGUILayout.LabelField("Painted cells", chunk.WorldMap.CellCount.ToString());
             if (GUILayout.Button("Activate Paint Tool")) ToolManager.SetActiveTool<GridPaintTool>();

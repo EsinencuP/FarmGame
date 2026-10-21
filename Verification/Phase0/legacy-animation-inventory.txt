@@ -1,0 +1,6 @@
+Assets/Pandazole_Ultimate_Pack
+clips=0
+Assets/Stylized NPC - Peasant Nolant
+  metarig|Idle | Assets/Stylized NPC - Peasant Nolant/Models/Peasant Nolant(Free Version).fbx
+  metarig|Walk | Assets/Stylized NPC - Peasant Nolant/Models/Peasant Nolant(Free Version).fbx
+clips=2

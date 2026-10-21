@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using MyLittleFarm.Core.Grid;
 using MyLittleFarm.Gameplay.Building;
 using MyLittleFarm.Gameplay.Economy;
@@ -18,7 +19,7 @@ namespace MyLittleFarm.Core
     public sealed class SaveSystem : MonoBehaviour
     {
         // Версия 5 сохраняет только отличия от базовой карты и поверхность под игровыми слоями.
-        public const int CurrentSaveVersion = 5;
+        public const int CurrentSaveVersion = 7;
         private const int MaxCollectionEntries = 100_000;
 
         [Header("Persistence")]
@@ -43,6 +44,10 @@ namespace MyLittleFarm.Core
         private float _nextAutosaveAt;
         // false запрещает автозапись после ошибки загрузки, чтобы не затереть повреждённый файл.
         private bool _persistenceEnabled;
+        private string _recoveredPath;
+
+        /// <summary>True when the latest load used the last valid backup instead of the primary file.</summary>
+        public bool LastLoadUsedBackup { get; private set; }
 
         /// <summary>Платформенно безопасный путь основного файла сохранения.</summary>
         public string SavePath => Path.Combine(Application.persistentDataPath, "my-little-farm-save.json");
@@ -74,7 +79,7 @@ namespace MyLittleFarm.Core
         /// <summary>Загружает существующий файл или разрешает сохранение новой игры.</summary>
         public void StartPersistence()
         {
-            _persistenceEnabled = !File.Exists(SavePath) || LoadFromDisk();
+            _persistenceEnabled = (!File.Exists(SavePath) && !File.Exists(SavePath + ".bak")) || LoadFromDisk();
         }
 
         private void Update()
@@ -118,6 +123,8 @@ namespace MyLittleFarm.Core
         /// <summary>Проверяет снимок целиком и только после успеха изменяет игровой мир.</summary>
         public void Restore(SaveData data)
         {
+            // Migrations operate on a detached candidate; failures preserve both the live farm and caller's snapshot.
+            if (data != null) data = JsonUtility.FromJson<SaveData>(JsonUtility.ToJson(data));
             var migratedGrid = ValidateAndMigrate(data);
             _crops.ClearAll();
             _grid.Deserialize(migratedGrid);
@@ -154,7 +161,8 @@ namespace MyLittleFarm.Core
             {
                 _persistenceEnabled = true;
                 _nextAutosaveAt = Time.unscaledTime + autosaveIntervalSeconds;
-                GameEvents.RaiseStatusChanged("Сохранение загружено");
+                GameEvents.RaiseStatusChanged(LastLoadUsedBackup
+                    ? "Игра восстановлена из резервной копии" : "Сохранение загружено");
                 return true;
             }
             _persistenceEnabled = false;
@@ -174,7 +182,10 @@ namespace MyLittleFarm.Core
                 ValidateAndMigrate(snapshot);
                 var json = JsonUtility.ToJson(snapshot, true);
                 ValidateAndMigrate(JsonUtility.FromJson<SaveData>(json));
-                WriteAtomically(path, json);
+                var fullPath = Path.GetFullPath(path);
+                var preserveBackup = string.Equals(fullPath, _recoveredPath, StringComparison.Ordinal);
+                WriteAtomically(fullPath, json, preserveBackup);
+                if (preserveBackup) _recoveredPath = null;
                 return true;
             }
             catch (Exception exception)
@@ -187,10 +198,22 @@ namespace MyLittleFarm.Core
         /// <summary>Читает и валидирует файл до первой мутации мира.</summary>
         public bool LoadFromPath(string path)
         {
-            if (string.IsNullOrWhiteSpace(path) || !File.Exists(path)) return false;
+            LastLoadUsedBackup = false;
+            if (string.IsNullOrWhiteSpace(path)) return false;
             try
             {
-                Restore(JsonUtility.FromJson<SaveData>(File.ReadAllText(path)));
+                var fullPath = Path.GetFullPath(path);
+                if (TryReadValidated(fullPath, out var data))
+                {
+                    Restore(data);
+                    if (string.Equals(fullPath, _recoveredPath, StringComparison.Ordinal)) _recoveredPath = null;
+                    return true;
+                }
+                if (!TryReadValidated(fullPath + ".bak", out data)) return false;
+                Restore(data);
+                _recoveredPath = fullPath;
+                LastLoadUsedBackup = true;
+                Debug.LogWarning("My Little Farm: restored the last valid backup; primary save was missing or invalid.");
                 return true;
             }
             catch (Exception exception)
@@ -200,15 +223,41 @@ namespace MyLittleFarm.Core
             }
         }
 
-        private static void WriteAtomically(string path, string contents)
+        /// <summary>Validates a candidate completely before any live subsystem is changed.</summary>
+        private bool TryReadValidated(string path, out SaveData data)
+        {
+            data = null;
+            if (!File.Exists(path)) return false;
+            try
+            {
+                var candidate = JsonUtility.FromJson<SaveData>(File.ReadAllText(path));
+                ValidateAndMigrate(candidate);
+                data = candidate;
+                return true;
+            }
+            catch (Exception exception) when (exception is ArgumentException || exception is InvalidDataException
+                || exception is IOException || exception is UnauthorizedAccessException)
+            {
+                Debug.LogWarning($"My Little Farm: cannot read save '{Path.GetFileName(path)}': {exception.Message}");
+                return false;
+            }
+        }
+
+        private static void WriteAtomically(string path, string contents, bool preserveBackup)
         {
             // Сначала пишется временный файл; существующий снимок заменяется только после успешной записи.
             var directory = Path.GetDirectoryName(path);
             if (!string.IsNullOrEmpty(directory)) Directory.CreateDirectory(directory);
             var temporaryPath = path + ".tmp";
             var backupPath = path + ".bak";
-            File.WriteAllText(temporaryPath, contents);
-            if (File.Exists(path)) File.Replace(temporaryPath, path, backupPath);
+            using (var stream = new FileStream(temporaryPath, FileMode.Create, FileAccess.Write, FileShare.None))
+            {
+                using (var writer = new StreamWriter(stream, new UTF8Encoding(false), 4096, true))
+                    writer.Write(contents);
+                stream.Flush(true);
+            }
+            // After recovery the good backup must not be replaced by the corrupt primary.
+            if (File.Exists(path)) File.Replace(temporaryPath, path, preserveBackup ? null : backupPath);
             else File.Move(temporaryPath, path);
         }
 
@@ -219,7 +268,13 @@ namespace MyLittleFarm.Core
             if (data.saveVersion < 1 || data.saveVersion > CurrentSaveVersion)
                 throw new InvalidDataException($"Unsupported save version {data.saveVersion}.");
             if (data.saveVersion >= 5 && data.worldBaseHash != _grid.ComputeBaseMapHash())
-                throw new InvalidDataException("Save was created for a different base world map.");
+            {
+                // The MVP expands the original two-chunk scene without changing their authored cells.
+                var originalChunks = new[] { Vector2Int.zero, new Vector2Int(1, 0) };
+                if (data.saveVersion != 5
+                    || data.worldBaseHash != _grid.ComputeBaseMapHash(originalChunks))
+                    throw new InvalidDataException("Save was created for a different base world map.");
+            }
             if (data.player == null || data.coins < 0 || data.savedAtUnixMs <= 0
                 || !IsFinite(data.player.x) || !IsFinite(data.player.y) || !IsFinite(data.player.z)
                 || data.player.y < -10f || data.player.y > 1000f)
@@ -255,6 +310,22 @@ namespace MyLittleFarm.Core
             ValidateCrops(data.crops, savedCells);
             ValidateTrees(data.trees, savedCells);
             ValidateAnimals(data.animals, savedCells);
+            if (data.saveVersion < 7 && data.buildings.Count > 0)
+            {
+                // Some tests/older exports already carry current footprints. Validate before deciding to migrate.
+                var current = true;
+                try { ValidateBuildings(data.buildings, savedCells, data.player); }
+                catch (InvalidDataException) { current = false; }
+                if (!current)
+                {
+                    ValidateBuildings(data.buildings, savedCells, data.player, BuildingDefinition.LegacyCatalog);
+                    ValidateOccupantLinks(data.crops, data.trees, data.buildings, savedCells, BuildingDefinition.LegacyCatalog);
+                    data.grid = grid;
+                    BuildingScaleMigration.Apply(data, _grid, p => _sector != null && !data.sectorUnlocked && _sector.ContainsCell(p));
+                    grid = data.grid;
+                    savedCells = ValidateGrid(grid, data.saveVersion);
+                }
+            }
             ValidateBuildings(data.buildings, savedCells, data.player);
             ValidateOccupantLinks(data.crops, data.trees, data.buildings, savedCells);
 
@@ -314,6 +385,8 @@ namespace MyLittleFarm.Core
                         || !IsValidCellType(entry.cellType)
                         || (saveVersion >= 5 && !entry.hasTerrainData)
                         || (entry.hasTerrainData && !IsValidTerrainType(entry.terrainType))
+                        || (entry.permissions & ~31) != 0
+                        || (entry.permissions != 0 && (entry.permissions & 1) == 0)
                         || (entry.hasTerrainData && IsNaturalCellType((CellType)entry.cellType)
                             && entry.cellType != entry.terrainType))
                         throw new InvalidDataException("Grid contains an invalid cell.");
@@ -390,20 +463,24 @@ namespace MyLittleFarm.Core
         }
 
         private void ValidateBuildings(List<BuildingRuntimeState> buildings, Dictionary<Vector2Int, CellData> cells,
-            PlayerPositionData player)
+            PlayerPositionData player, IReadOnlyList<BuildingDefinition> definitions = null)
         {
+            definitions = definitions ?? BuildingDefinition.Catalog;
             // Layout проверяет ID, цены, повороты и взаимные пересечения независимо от текущего мира.
-            _buildings?.ValidateSnapshot(buildings, (x, z) =>
+            var layout = new BuildingLayout(definitions);
+            Func<int,int,bool> blocked = (x, z) =>
             {
                 var coordinate = new Vector2Int(x, z);
                 var type = cells.TryGetValue(coordinate, out var cell)
                     ? cell.type : _grid.GetBaseTerrainCell(coordinate).type;
                 return type != CellType.Grass && type != CellType.Dirt && type != CellType.Road
                     && type != CellType.Building && type != CellType.BuildingEdge;
-            });
+            };
+            foreach (var state in buildings)
+                if (!layout.TryPlace(state, blocked, out var reason)) throw new InvalidDataException(reason);
             foreach (var state in buildings)
             {
-                var definition = Definition(state.definitionId);
+                var definition = Definition(state.definitionId, definitions);
                 if (definition == null) throw new InvalidDataException("Building definition is missing.");
                 for (var x = 0; x < definition.RotatedWidth(state.quarterTurns); x++)
                 for (var z = 0; z < definition.RotatedDepth(state.quarterTurns); z++)
@@ -427,7 +504,7 @@ namespace MyLittleFarm.Core
 
         private static void ValidateOccupantLinks(List<CropRuntimeState> crops,
             List<TreeRuntimeState> trees, List<BuildingRuntimeState> buildings,
-            Dictionary<Vector2Int, CellData> cells)
+            Dictionary<Vector2Int, CellData> cells, IReadOnlyList<BuildingDefinition> definitions = null)
         {
             // Обратная проверка не даёт файлу спрятать «осиротевшую» занятость без данных подсистемы.
             var cropIds = new HashSet<string>(StringComparer.Ordinal);
@@ -439,7 +516,7 @@ namespace MyLittleFarm.Core
             foreach (var building in buildings)
             {
                 buildingIds.Add(building.id);
-                var definition = Definition(building.definitionId);
+                var definition = Definition(building.definitionId, definitions);
                 for (var x = 0; x < definition.RotatedWidth(building.quarterTurns); x++)
                 for (var z = 0; z < definition.RotatedDepth(building.quarterTurns); z++)
                     expectedBuildingCells[new Vector2Int(building.x + x, building.z + z)] = building.id;
@@ -463,9 +540,9 @@ namespace MyLittleFarm.Core
             }
         }
 
-        private static BuildingDefinition Definition(string id)
+        private static BuildingDefinition Definition(string id, IReadOnlyList<BuildingDefinition> definitions = null)
         {
-            foreach (var definition in BuildingDefinition.Catalog)
+            foreach (var definition in definitions ?? BuildingDefinition.Catalog)
                 if (definition.Id == id) return definition;
             return null;
         }
@@ -487,7 +564,7 @@ namespace MyLittleFarm.Core
                 cells[crop.Position] = new CellData(CellType.Planted) { occupantId = CropSystem.CropOccupantId(crop.Position) };
             foreach (var building in data.buildings)
             {
-                var definition = Definition(building.definitionId);
+                var definition = Definition(building.definitionId, BuildingDefinition.LegacyCatalog);
                 if (definition == null) throw new InvalidDataException("Legacy building definition is missing.");
                 for (var x = 0; x < definition.RotatedWidth(building.quarterTurns); x++)
                 for (var z = 0; z < definition.RotatedDepth(building.quarterTurns); z++)

@@ -95,6 +95,7 @@ namespace MyLittleFarm.Tests.PlayMode
 
             var coinsBeforeSale = wallet.Coins;
             player.Teleport(new Vector3(8.5f, 1.1f, 1.5f));
+            selector.SelectTarget(Farm.transform.Find("Sale Crate").GetComponent<InteractionTarget>());
             Assert.That(interaction.Interact(now), Is.True, "Sell harvested crop");
             Assert.That(wallet.Coins, Is.GreaterThan(coinsBeforeSale));
 

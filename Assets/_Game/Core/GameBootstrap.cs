@@ -241,6 +241,7 @@ namespace MyLittleFarm.Core
             crate.transform.position = position;
             crate.transform.localScale = saleCrateScale;
             RuntimeMaterials.Paint(crate.GetComponent<Renderer>(), saleCrateColor);
+            crate.AddComponent<InteractionTarget>().Configure(InteractionTargetKind.Market);
             return crate.transform;
         }
 
@@ -428,7 +429,8 @@ namespace MyLittleFarm.Core
                 GetComponentInChildren<AnimalSystem>(true),
                 onboarding, onboardingText);
             var promptController = canvasObject.AddComponent<InteractionPromptUI>();
-            promptController.Configure(interaction, prompt, buildings);
+            var buildPrompt = BuildPromptUI.Create(canvasObject.transform, prompt.font);
+            promptController.Configure(interaction, prompt, buildings, buildPrompt);
         }
 
         private static Transform CreatePanel(Transform parent)
@@ -535,7 +537,9 @@ namespace MyLittleFarm.Core
             var onboarding = RequireChild<OnboardingSystem>();
             var player = RequireChild<PlayerController>();
             player.Configure(input, grid);
-            RuntimeMaterials.Paint(player.GetComponent<Renderer>(), playerColor);
+            var prototypePlayerRenderer = player.GetComponent<Renderer>();
+            if (prototypePlayerRenderer != null && prototypePlayerRenderer.enabled)
+                RuntimeMaterials.Paint(prototypePlayerRenderer, playerColor);
             var cameraController = RequireChild<IsometricCameraController>();
             cameraController.Configure(input, player.transform);
             player.SetCamera(cameraController.transform);
@@ -545,7 +549,9 @@ namespace MyLittleFarm.Core
             var selector = RequireChild<CellSelector>();
             selector.Configure(grid, player.transform, input, cameraController.GetComponent<Camera>());
             var saleCrate = FindNamedTransform("Sale Crate");
-            RuntimeMaterials.Paint(saleCrate.GetComponent<Renderer>(), saleCrateColor);
+            var prototypeCrateRenderer = saleCrate.GetComponent<Renderer>();
+            if (prototypeCrateRenderer != null && prototypeCrateRenderer.enabled)
+                RuntimeMaterials.Paint(prototypeCrateRenderer, saleCrateColor);
             shop.Configure(input, catalog, slots, inventory, wallet, player.transform, saleCrate, grid);
 
             var interaction = RequireChild<InteractionSystem>();
@@ -571,7 +577,7 @@ namespace MyLittleFarm.Core
             RequireChild<InteractionPromptUI>().Configure(
                 interaction,
                 FindNamedComponent<Text>("Interaction Prompt"),
-                buildings);
+                buildings, RequireChild<BuildPromptUI>());
 
             GameEvents.RaiseStatusChanged("Прототип готов: наведите курсор на клетку");
             if (Application.isPlaying && SceneManager.GetActiveScene().name == "Prototype")

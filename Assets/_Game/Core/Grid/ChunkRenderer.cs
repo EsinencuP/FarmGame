@@ -10,11 +10,11 @@ namespace MyLittleFarm.Core.Grid
     public sealed class ChunkRenderer : MonoBehaviour
     {
         [Header("Terrain Palette")]
-        [SerializeField] private Color grassColor = new Color(0.24f, 0.45f, 0.18f);
+        [SerializeField] private Color grassColor = new Color(0.24f, 0.45f, 0.18f, 0.76f);
         [SerializeField] private Color dirtColor = new Color(0.45f, 0.32f, 0.18f);
         [SerializeField] private Color soilColor = new Color(0.34f, 0.22f, 0.13f);
         [SerializeField] private Color waterColor = new Color(0.16f, 0.42f, 0.79f);
-        [SerializeField] private Color rockColor = new Color(0.42f, 0.44f, 0.44f);
+        [SerializeField] private Color rockColor = new Color(0.24f, 0.45f, 0.18f, 0.76f);
         [SerializeField] private Color sandColor = new Color(0.76f, 0.67f, 0.43f);
         [SerializeField] private Color roadColor = new Color(0.52f, 0.45f, 0.35f);
         [SerializeField] private Color lockedColor = new Color(0.18f, 0.25f, 0.16f);

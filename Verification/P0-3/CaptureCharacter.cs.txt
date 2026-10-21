@@ -1,0 +1,27 @@
+// Unity MCP execute_code body: static samples of the real controller, isolated from the farm and save files.
+if(Application.isPlaying)throw new System.InvalidOperationException("Use Edit Mode.");
+var scene=UnityEditor.SceneManagement.EditorSceneManager.NewPreviewScene();var root=new GameObject("Kevin animation samples");UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(root,scene);
+var human=UnityEngine.Object.Instantiate(UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>(MyLittleFarm.Editor.PlayerRigSetup.PrefabPath),root.transform,false);
+human.transform.rotation=Quaternion.Euler(0,180,0);var animator=human.GetComponentInChildren<Animator>();
+var skins=human.GetComponentsInChildren<SkinnedMeshRenderer>();var baked=new Mesh[skins.Length];
+// Bake each sampled pose for deterministic Edit Mode rendering; GPU skinning otherwise reuses the first pose within this tool call.
+for(var s=0;s<skins.Length;s++){baked[s]=new Mesh();var frozen=new GameObject("Sampled mesh");frozen.transform.SetParent(root.transform,false);frozen.AddComponent<MeshFilter>().sharedMesh=baked[s];frozen.AddComponent<MeshRenderer>().sharedMaterials=skins[s].sharedMaterials;skins[s].enabled=false;}
+var camera=new GameObject("Sample camera").AddComponent<Camera>();camera.transform.SetParent(root.transform,false);camera.scene=scene;camera.enabled=false;camera.clearFlags=CameraClearFlags.SolidColor;camera.backgroundColor=new Color(.77f,.83f,.79f);camera.orthographic=true;camera.orthographicSize=1.3f;camera.transform.position=new Vector3(3,1.8f,-5);camera.transform.LookAt(new Vector3(0,.85f,0));
+var sun=new GameObject("Sample sun").AddComponent<Light>();sun.transform.SetParent(root.transform,false);sun.type=LightType.Directional;sun.transform.rotation=Quaternion.Euler(48,-32,0);sun.intensity=1.1f;sun.shadows=LightShadows.Soft;
+var floor=GameObject.CreatePrimitive(PrimitiveType.Cube);floor.transform.SetParent(root.transform,false);floor.transform.position=new Vector3(0,-.06f,0);floor.transform.localScale=new Vector3(2,.12f,2);var material=new Material(Shader.Find("Standard"));material.color=new Color(.28f,.43f,.2f);floor.GetComponent<Renderer>().sharedMaterial=material;
+var label=new GameObject("Sample label").AddComponent<TextMesh>();label.transform.SetParent(root.transform,false);label.font=Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");label.GetComponent<Renderer>().sharedMaterial=label.font.material;label.fontSize=44;label.characterSize=.035f;label.anchor=TextAnchor.MiddleCenter;label.color=new Color(.08f,.14f,.10f);label.transform.rotation=camera.transform.rotation;label.transform.position=camera.ViewportToWorldPoint(new Vector3(.5f,.065f,3f));
+var names=new[]{"Покой","Отдых","Ходьба","Шаг влево","Шаг назад","Бег","Спринт","Поворот","Отрыв","Прыжок","Падение","Приземление","Разговор","Хват предмета","Кисти в спринте"};
+var states=new[]{"Locomotion","Relaxed idle","Locomotion","Locomotion","Locomotion","Locomotion","Locomotion","Turn Left","Jump takeoff","Jump rise","Fall","Land","Talk gesture","Locomotion","Locomotion"};
+var rt=new RenderTexture(600,520,24);var image=new Texture2D(600,520,TextureFormat.RGB24,false);var sheet=new Texture2D(1800,2600,TextureFormat.RGB24,false);var old=RenderTexture.active;camera.targetTexture=rt;var report=new System.Text.StringBuilder();
+try{for(var i=0;i<names.Length;i++){
+animator.Rebind();animator.SetBool("Grounded",i<8||i>10);animator.SetFloat("VerticalSpeed",i==10?-2:2);animator.SetBool("Relaxed",i==1);animator.SetFloat("Playback",1);
+var gait=i>=2&&i<=4?1:i==5?2:i==6?3:0;animator.SetFloat("Gait",gait);animator.SetFloat("Speed",gait==0?0:2.2f);animator.SetFloat("MoveX",i==3?-1:0);animator.SetFloat("MoveZ",i==4?-1:1);animator.SetFloat("Turn",i==7?-1:0);
+animator.SetLayerWeight(1,i>=13?1:0);if(i>=13){animator.SetInteger("HandPose",i==13?1:2);animator.Play(i==13?"Object grip":"Closed hands",1,.3f);}
+animator.Play(states[i],0,.3f);animator.Update(.01f);label.text=names[i];
+var bounds=MyLittleFarm.Editor.PlayerRigSetup.BakedBounds(human);
+for(var s=0;s<skins.Length;s++){skins[s].BakeMesh(baked[s],true);var vertices=baked[s].vertices;for(var v=0;v<vertices.Length;v++)vertices[v]=skins[s].transform.TransformPoint(vertices[v]);baked[s].vertices=vertices;baked[s].RecalculateNormals();baked[s].RecalculateBounds();}
+camera.Render();camera.Render();RenderTexture.active=rt;image.ReadPixels(new Rect(0,0,600,520),0,0);image.Apply();sheet.SetPixels(i%3*600,(4-i/3)*520,600,520,image.GetPixels());
+System.IO.File.WriteAllBytes("Verification/P0-3/character-"+i+".png",image.EncodeToPNG());
+report.AppendLine(names[i]+" -> "+states[i]+" body="+bounds.size.ToString("F4"));}
+sheet.Apply();System.IO.File.WriteAllBytes("Verification/P0-3/character-sheet.png",sheet.EncodeToPNG());System.IO.File.WriteAllText("Verification/P0-3/character-samples.txt",report.ToString());return "Captured 15 controller/hand-pose samples.";
+}finally{RenderTexture.active=old;camera.targetTexture=null;rt.Release();UnityEngine.Object.DestroyImmediate(rt);UnityEngine.Object.DestroyImmediate(image);UnityEngine.Object.DestroyImmediate(sheet);UnityEngine.Object.DestroyImmediate(material);foreach(var mesh in baked)UnityEngine.Object.DestroyImmediate(mesh);UnityEditor.SceneManagement.EditorSceneManager.ClosePreviewScene(scene);}

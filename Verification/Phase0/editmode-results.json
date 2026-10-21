@@ -1,0 +1,44 @@
+{
+  "success": true,
+  "message": "Test job status retrieved.",
+  "error": null,
+  "data": {
+    "job_id": "99fe0456baac492f9e50d372798c7e3d",
+    "status": "succeeded",
+    "mode": "EditMode",
+    "started_unix_ms": 1792612908700,
+    "finished_unix_ms": 1792612915606,
+    "last_update_unix_ms": 1792612915606,
+    "progress": {
+      "completed": 37,
+      "total": 37,
+      "current_test_full_name": null,
+      "current_test_started_unix_ms": null,
+      "last_finished_test_full_name": "MyLittleFarm.Tests.EditMode.MetricScaleTests.KevinCharacterHasMetricHeightAndAllThirtyFourInPlaceClips",
+      "last_finished_unix_ms": 1792612915592,
+      "stuck_suspected": false,
+      "editor_is_focused": true,
+      "run_in_background": true,
+      "focus_nudge_attempts": null,
+      "focus_nudge_limit": null,
+      "focus_nudge_status": null,
+      "blocked_reason": null,
+      "failures_so_far": [],
+      "failures_capped": false
+    },
+    "error": null,
+    "result": {
+      "mode": "EditMode",
+      "summary": {
+        "total": 37,
+        "passed": 37,
+        "failed": 0,
+        "skipped": 0,
+        "durationSeconds": 5.8905952,
+        "resultState": "Passed"
+      },
+      "results": []
+    }
+  },
+  "hint": null
+}

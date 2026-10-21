@@ -1,0 +1,5 @@
+chicken hover=Animal layer=FarmInteraction groundMarker=False stable=True prompt=Курице нужна пшеница
+one-pixel move hover=Animal stable=True prompt=Курице нужна пшеница
+tree hover=Tree groundMarker=False prompt=Яблоня слишком далеко — подойдите ближе
+market hover=Market groundMarker=False prompt=Торговая точка слишком далеко — подойдите ближе
+ground hover=none groundMarker=True prompt=Клетка слишком далеко — улучшите инструмент (U)

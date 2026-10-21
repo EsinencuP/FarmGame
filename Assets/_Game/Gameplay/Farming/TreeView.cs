@@ -10,6 +10,7 @@ namespace MyLittleFarm.Gameplay.Farming
         private Renderer _foliage;
         private Color _normalColor;
         private Color _readyColor;
+        private GameObject _readyMarker;
         // Последний показанный режим исключает повторную смену материала при каждом опросе времени.
         private bool _fruitReady;
 
@@ -19,6 +20,49 @@ namespace MyLittleFarm.Gameplay.Farming
             var root = new GameObject("Tree " + definition.TreeId);
             root.transform.SetParent(parent, false);
             root.transform.position = position;
+            var view = root.AddComponent<TreeView>();
+            view._normalColor = definition.FoliageColor;
+            view._readyColor = definition.FruitReadyColor;
+            if (definition.VisualPrefab != null)
+            {
+                var treeVisual = VisualPrefab.Create(definition.VisualPrefab, root.transform, new Vector3(1.8f, 2.6f, 1.8f));
+                VisualPrefab.TryGetBounds(treeVisual, out var treeBounds);
+                var fruitGroup = new GameObject("Ready Fruit");
+                fruitGroup.transform.SetParent(root.transform, false);
+                if (definition.FruitPrefab != null)
+                {
+                    var positions = new[]
+                    {
+                        new Vector3(-0.4f, 0.72f, -0.35f),
+                        new Vector3(0.44f, 0.78f, -0.2f),
+                        new Vector3(0.05f, 0.63f, -0.45f)
+                    };
+                    foreach (var fruitPosition in positions)
+                    {
+                        var fruit = VisualPrefab.Create(definition.FruitPrefab, fruitGroup.transform,
+                            Vector3.one * 0.28f);
+                        fruit.transform.localPosition += root.transform.InverseTransformPoint(
+                            new Vector3(treeBounds.center.x, treeBounds.min.y, treeBounds.center.z))
+                            + Vector3.Scale(fruitPosition, treeBounds.size);
+                        foreach (var renderer in fruit.GetComponentsInChildren<Renderer>())
+                            RuntimeMaterials.Paint(renderer, view._readyColor);
+                    }
+                }
+                else
+                {
+                    var marker = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                    marker.transform.SetParent(fruitGroup.transform, false);
+                    marker.transform.localPosition = new Vector3(0f, 2.25f, 0f);
+                    marker.transform.localScale = Vector3.one * 0.25f;
+                    RuntimeMaterials.RemoveCollider(marker);
+                    RuntimeMaterials.Paint(marker.GetComponent<Renderer>(), view._readyColor);
+                }
+                fruitGroup.SetActive(false);
+                view._readyMarker = fruitGroup;
+                root.AddComponent<MyLittleFarm.Gameplay.World.InteractionTarget>().Configure(
+                    MyLittleFarm.Gameplay.World.InteractionTargetKind.Tree, null, true);
+                return view;
+            }
             var trunk = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
             trunk.name = "Trunk";
             trunk.transform.SetParent(root.transform, false);
@@ -32,20 +76,20 @@ namespace MyLittleFarm.Gameplay.Farming
             canopy.transform.localPosition = new Vector3(0f, 1.55f, 0f);
             canopy.transform.localScale = new Vector3(1.3f, 1.1f, 1.3f);
             RuntimeMaterials.RemoveCollider(canopy);
-            var view = root.AddComponent<TreeView>();
             view._foliage = canopy.GetComponent<Renderer>();
-            view._normalColor = definition.FoliageColor;
-            view._readyColor = definition.FruitReadyColor;
             RuntimeMaterials.Paint(view._foliage, view._normalColor);
+            root.AddComponent<MyLittleFarm.Gameplay.World.InteractionTarget>().Configure(
+                MyLittleFarm.Gameplay.World.InteractionTargetKind.Tree, null, true);
             return view;
         }
 
         /// <summary>Переключает цвет кроны между ростом и готовым повторным сбором.</summary>
         public void SetFruitReady(bool ready)
         {
-            if (_foliage == null || _fruitReady == ready) return;
+            if (_fruitReady == ready) return;
             _fruitReady = ready;
-            RuntimeMaterials.Paint(_foliage, ready ? _readyColor : _normalColor);
+            if (_readyMarker != null) _readyMarker.SetActive(ready);
+            else if (_foliage != null) RuntimeMaterials.Paint(_foliage, ready ? _readyColor : _normalColor);
         }
     }
 }

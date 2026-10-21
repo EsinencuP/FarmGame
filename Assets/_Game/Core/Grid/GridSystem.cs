@@ -24,7 +24,7 @@ namespace MyLittleFarm.Core.Grid
         [Header("Selection")]
         [SerializeField] private GameObject selectionView;
         [Tooltip("Цвет маркера клетки под курсором.")]
-        [SerializeField] private Color selectionColor = new Color(1f, 0.78f, 0.20f, 0.75f);
+        [SerializeField] private Color selectionColor = new Color(1f, 0.78f, 0.20f, 0.22f);
         [Tooltip("Доля размера клетки, которую занимает маркер.")]
         [SerializeField, Range(0.1f, 1f)] private float selectionFill = 0.94f;
         [Tooltip("Толщина маркера клетки.")]
@@ -116,7 +116,18 @@ namespace MyLittleFarm.Core.Grid
             {
                 selectionView.transform.localScale = new Vector3(
                     cellSize * selectionFill, selectionHeight, cellSize * selectionFill);
-                RuntimeMaterials.Paint(selectionView.GetComponent<Renderer>(), selectionColor);
+                var fill = selectionView.GetComponent<MeshRenderer>();
+                if (fill != null) fill.enabled = false;
+                var outline = selectionView.GetComponent<LineRenderer>();
+                if (outline == null) outline = selectionView.AddComponent<LineRenderer>();
+                outline.useWorldSpace = false;
+                outline.widthMultiplier = 0.025f;
+                outline.positionCount = 5;
+                outline.SetPositions(new[] { new Vector3(-0.5f,0,-0.5f), new Vector3(0.5f,0,-0.5f),
+                    new Vector3(0.5f,0,0.5f), new Vector3(-0.5f,0,0.5f), new Vector3(-0.5f,0,-0.5f) });
+                outline.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+                outline.receiveShadows = false;
+                RuntimeMaterials.Paint(outline, selectionColor);
             }
             Select(null);
         }
@@ -221,10 +232,13 @@ namespace MyLittleFarm.Core.Grid
         public IEnumerable<Vector2Int> GetLoadedChunkCoords() => _chunks.Keys;
 
         /// <summary>Считает устойчивую подпись базовой карты для проверки совместимости delta-файла.</summary>
-        public long ComputeBaseMapHash()
+        public long ComputeBaseMapHash() => ComputeBaseMapHash(_chunks.Keys);
+
+        /// <summary>Checks a former scene layout without rejecting saves when new chunks are appended.</summary>
+        public long ComputeBaseMapHash(IEnumerable<Vector2Int> chunkCoordinates)
         {
             // Сортировка убирает зависимость подписи от порядка регистрации сценовых компонентов.
-            var coordinates = new List<Vector2Int>(_chunks.Keys);
+            var coordinates = new List<Vector2Int>(chunkCoordinates);
             coordinates.Sort((left, right) =>
             {
                 var byX = left.x.CompareTo(right.x);
@@ -240,9 +254,10 @@ namespace MyLittleFarm.Core.Grid
                 hash = (hash ^ (uint)BitConverter.ToInt32(BitConverter.GetBytes(cellSize), 0)) * prime;
                 foreach (var coordinate in coordinates)
                 {
+                    if (!_chunks.TryGetValue(coordinate, out var chunk))
+                        throw new InvalidOperationException($"Base chunk {coordinate} is missing.");
                     hash = (hash ^ (uint)coordinate.x) * prime;
                     hash = (hash ^ (uint)coordinate.y) * prime;
-                    var chunk = _chunks[coordinate];
                     for (var z = 0; z < chunkSizeZ; z++)
                     for (var x = 0; x < chunkSizeX; x++)
                     {
@@ -250,6 +265,9 @@ namespace MyLittleFarm.Core.Grid
                         hash = (hash ^ (byte)terrain.type) * prime;
                         hash = (hash ^ terrain.biome) * prime;
                         hash = (hash ^ terrain.moisture) * prime;
+                        // Preserve signatures of existing authored maps whose permissions are inherited.
+                        if (terrain.permissions != CellPermissions.Inherit)
+                            hash = (hash ^ (byte)terrain.permissions) * prime;
                     }
                 }
             }
@@ -416,22 +434,26 @@ namespace MyLittleFarm.Core.Grid
         public bool CanTill(Vector2Int gridPosition)
         {
             var cell = GetCell(gridPosition);
-            return cell.occupantId == null && (cell.type == CellType.Grass || cell.type == CellType.Dirt);
+            return cell.occupantId == null && IsNaturalForActions(cell.type)
+                && GetTerrainCell(gridPosition).Allows(CellPermissions.Farm,
+                    cell.type == CellType.Grass || cell.type == CellType.Dirt);
         }
 
         /// <summary>Проверяет, можно ли посадить культуру на подготовленную свободную клетку.</summary>
         public bool CanPlant(Vector2Int gridPosition)
         {
             var cell = GetCell(gridPosition);
-            return cell.occupantId == null && (cell.type == CellType.Tilled || cell.type == CellType.Watered);
+            return cell.occupantId == null && (cell.type == CellType.Tilled || cell.type == CellType.Watered)
+                && GetTerrainCell(gridPosition).Allows(CellPermissions.Farm, true);
         }
 
         /// <summary>Проверяет свободную природную клетку для многоклеточного объекта дерева.</summary>
         public bool CanPlantTree(Vector2Int gridPosition)
         {
             var cell = GetCell(gridPosition);
-            return cell.occupantId == null
-                && (cell.type == CellType.Grass || cell.type == CellType.Dirt || cell.type == CellType.Sand);
+            return cell.occupantId == null && IsNaturalForActions(cell.type)
+                && GetTerrainCell(gridPosition).Allows(CellPermissions.Orchard,
+                    cell.type == CellType.Grass || cell.type == CellType.Dirt || cell.type == CellType.Sand);
         }
 
         /// <summary>Проверяет проходимость клетки с учётом препятствий и занятости постройкой.</summary>
@@ -440,16 +462,20 @@ namespace MyLittleFarm.Core.Grid
             var type = GetCellType(gridPosition);
             return type != CellType.Water && type != CellType.Rock && type != CellType.Locked
                 && type != CellType.OutOfBounds && type != CellType.Building && type != CellType.BuildingEdge
-                && type != CellType.Tree;
+                && type != CellType.Tree && GetTerrainCell(gridPosition).Allows(CellPermissions.Walk, true);
         }
 
         /// <summary>Проверяет, допускает ли тип свободной клетки строительство.</summary>
         public bool CanBuild(Vector2Int gridPosition)
         {
             var cell = GetCell(gridPosition);
-            return cell.occupantId == null
-                && (cell.type == CellType.Grass || cell.type == CellType.Dirt || cell.type == CellType.Road);
+            return cell.occupantId == null && IsNaturalForActions(cell.type)
+                && GetTerrainCell(gridPosition).Allows(CellPermissions.Build,
+                    cell.type == CellType.Grass || cell.type == CellType.Dirt || cell.type == CellType.Road);
         }
+
+        private static bool IsNaturalForActions(CellType type) => type == CellType.Grass || type == CellType.Dirt
+            || type == CellType.Road || type == CellType.Sand;
 
         /// <summary>Проверяет прямоугольный footprint постройки.</summary>
         public bool IsFreeForBuilding(Vector2Int origin, Vector2Int size)
@@ -555,6 +581,7 @@ namespace MyLittleFarm.Core.Grid
                         terrainType = (byte)terrain.type,
                         biome = terrain.biome,
                         moisture = terrain.moisture,
+                        permissions = (byte)terrain.permissions,
                         farmingMoisture = farming.moisture,
                         fertilizer = farming.fertilizer,
                         lastWateredDay = farming.lastWateredDay,
@@ -580,7 +607,8 @@ namespace MyLittleFarm.Core.Grid
                 {
                     if (cellEntry.hasTerrainData)
                         chunk.SetTerrain(cellEntry.localX, cellEntry.localZ, new TerrainCell((CellType)cellEntry.terrainType)
-                        { biome = cellEntry.biome, moisture = cellEntry.moisture });
+                        { biome = cellEntry.biome, moisture = cellEntry.moisture,
+                            permissions = (CellPermissions)cellEntry.permissions });
                     chunk.SetLegacyType(cellEntry.localX, cellEntry.localZ, (CellType)cellEntry.cellType);
                     if (!string.IsNullOrEmpty(cellEntry.occupantId))
                         chunk.SetOccupant(cellEntry.localX, cellEntry.localZ, cellEntry.occupantId);
@@ -620,14 +648,19 @@ namespace MyLittleFarm.Core.Grid
         private void OnDrawGizmos()
         {
             // Отладочная заливка не нагружает Scene View вне Play Mode.
-            if (!drawGizmos || !Application.isPlaying) return;
+            if (!drawGizmos) return;
             foreach (var pair in _chunks)
             {
                 for (var x = 0; x < chunkSizeX; x++)
                 for (var z = 0; z < chunkSizeZ; z++)
                 {
                     var type = pair.Value.GetCell(x, z).type;
-                    Gizmos.color = GizmoColor(type);
+                    var permissions = pair.Value.GetTerrain(x, z).permissions;
+                    Gizmos.color = permissions == CellPermissions.Inherit || pair.Value.GetCell(x,z).occupantId != null
+                        ? GizmoColor(type) : (permissions & CellPermissions.Farm) != 0
+                        ? new Color(0.2f,0.8f,0.25f,0.25f) : (permissions & CellPermissions.Build) != 0
+                        ? new Color(0.25f,0.4f,1f,0.25f) : (permissions & CellPermissions.Walk) != 0
+                        ? new Color(0.6f,0.6f,0.6f,0.25f) : new Color(1f,0.2f,0.2f,0.25f);
                     Gizmos.DrawCube(
                         GridToWorld(ChunkLocalToGrid(pair.Key, new Vector2Int(x, z))) + Vector3.up * 0.01f,
                         new Vector3(cellSize * 0.95f, 0.01f, cellSize * 0.95f));
@@ -686,6 +719,7 @@ namespace MyLittleFarm.Core.Grid
         public byte terrainType;
         public byte biome;
         public byte moisture;
+        public byte permissions;
         public byte farmingMoisture;
         public byte fertilizer;
         public ushort lastWateredDay;

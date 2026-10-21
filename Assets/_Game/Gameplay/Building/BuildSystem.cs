@@ -16,7 +16,19 @@ namespace MyLittleFarm.Gameplay.Building
     [DefaultExecutionOrder(-175)]
     public sealed class BuildSystem : MonoBehaviour
     {
+        [Serializable]
+        private sealed class BuildingVisual
+        {
+            public string definitionId;
+            public GameObject prefab;
+        }
+
+        [Header("Imported Building Art")]
+        [SerializeField] private BuildingVisual[] visualPrefabs = Array.Empty<BuildingVisual>();
+
         [Header("Build Preview")]
+        [SerializeField] private Shader ghostShader;
+        [SerializeField, Range(0.1f, 0.8f)] private float ghostOpacity = 0.35f;
         [Tooltip("Цвет предпросмотра, когда размещение разрешено.")]
         [SerializeField] private Color validPreviewColor = new Color(0.25f, 0.9f, 0.35f);
         [Tooltip("Цвет предпросмотра, когда размещение запрещено.")]
@@ -48,9 +60,17 @@ namespace MyLittleFarm.Gameplay.Building
         private Camera _camera;
         // Preview — временная геометрия, а два материала обозначают допустимое и запрещённое место.
         private GameObject _preview;
+        private GameObject _previewModel;
+        private string _previewDefinition;
+        private Renderer[] _previewModelRenderers;
         private Renderer _previewRenderer;
         private Material _validPreviewMaterial;
         private Material _invalidPreviewMaterial;
+        private Material _validGhostMaterial;
+        private Material _invalidGhostMaterial;
+        private Material[][] _validModelMaterials;
+        private Material[][] _invalidModelMaterials;
+        private bool? _previewValid;
         // Состояние текущего сеанса строительства и выбранного объекта.
         private int _selected;
         private int _turns;
@@ -77,6 +97,13 @@ namespace MyLittleFarm.Gameplay.Building
             bool allowSceneCreation = false)
         {
             _input = input; _grid = grid; _crops = crops; _wallet = wallet; _camera = camera;
+            if (_previewModel != null)
+            {
+                _previewModel.SetActive(false);
+                if (Application.isPlaying) Destroy(_previewModel); else DestroyImmediate(_previewModel);
+            }
+            _previewModel = null;
+            _previewDefinition = null;
             _layout = NewLayout();
             grid.Buildings = this;
             // При запуске выгруженной сцены переиспользуем сохранённый preview; создаём его только при выгрузке/в тесте.
@@ -98,6 +125,11 @@ namespace MyLittleFarm.Gameplay.Building
             }
             _validPreviewMaterial = materials.Get(validPreviewColor);
             _invalidPreviewMaterial = materials.Get(invalidPreviewColor);
+            ReleaseGhostMaterials();
+            var shader = ghostShader != null ? ghostShader : Shader.Find("MyLittleFarm/BuildingGhost");
+            if (shader == null) throw new MissingReferenceException("Building ghost shader is missing.");
+            _validGhostMaterial = GhostMaterial(shader, validPreviewColor);
+            _invalidGhostMaterial = GhostMaterial(shader, invalidPreviewColor);
             var existingFront = _preview.transform.Find("Preview front");
             if (existingFront == null && !allowSceneCreation)
             {
@@ -111,10 +143,19 @@ namespace MyLittleFarm.Gameplay.Building
             RuntimeMaterials.RemoveCollider(front);
             RuntimeMaterials.Paint(front.GetComponent<Renderer>(), Color.white);
             _preview.SetActive(false);
+            if (_previewModel != null) _previewModel.SetActive(false);
         }
 
         /// <summary>Создаёт пустую модель размещения без искусственных границ мира.</summary>
         private static BuildingLayout NewLayout() => new BuildingLayout(BuildingDefinition.Catalog);
+
+        private GameObject VisualFor(string definitionId)
+        {
+            if (visualPrefabs == null) return null;
+            foreach (var entry in visualPrefabs)
+                if (entry != null && entry.definitionId == definitionId) return entry.prefab;
+            return null;
+        }
 
         /// <summary>Сообщает layout, запрещает ли GridSystem строительство на клетке.</summary>
         private bool IsTerrainBlocked(int x, int z, string ignoreId = null)
@@ -142,8 +183,10 @@ namespace MyLittleFarm.Gameplay.Building
             _input.BuildModeActive = active;
             _input.SuppressGameplayThisFrame = true;
             _preview.SetActive(false);
+            if (_previewModel != null) _previewModel.SetActive(false);
             _grid.Select(null);
             _nextPromptAt = 0;
+            CurrentPrompt = active ? PlacementPrompt(SelectedDefinition, _turns, false, false, "Наведите курсор на участок") : string.Empty;
         }
 
         private void Update()
@@ -176,10 +219,11 @@ namespace MyLittleFarm.Gameplay.Building
             {
                 // В состоянии подтверждения остальные строительные действия временно недоступны.
                 _preview.SetActive(false);
+                if (_previewModel != null) _previewModel.SetActive(false);
                 var state = _layout.Get(_deleteId);
                 if (state == null) { _deleteId = null; return; }
-                CurrentPrompt = $"Удалить {_layout.Definition(state.definitionId).Name}? Возврат: {state.paidCost / 2} монет\nEnter — подтвердить   Esc / ПКМ — отменить";
-                if (_input.ConfirmPressed)
+                CurrentPrompt = $"Удалить {_layout.Definition(state.definitionId).Name}? Возврат: {state.paidCost / 2} монет\nE / Enter — подтвердить\nEsc / ПКМ — отменить";
+                if (_input.ConfirmPressed || (_input.InteractPressed && !_input.PointerInteractPressed))
                 {
                     TryRemove(_deleteId, out var reason);
                     GameEvents.RaiseStatusChanged(reason);
@@ -198,7 +242,7 @@ namespace MyLittleFarm.Gameplay.Building
                         if (BuildingDefinition.Catalog[i].Id == hovered.definitionId) _selected = i;
                 }
                 else if (hovered != null && _input.DeleteBuildingPressed)
-                { _deleteId = hovered.id; _preview.SetActive(false); return; }
+                { _deleteId = hovered.id; _preview.SetActive(false); if (_previewModel != null) _previewModel.SetActive(false); return; }
             }
             if (_input.RotateBuildingPressed) _turns = (_turns + 1) % 4;
             var reasonText = "Наведите курсор на участок";
@@ -207,6 +251,7 @@ namespace MyLittleFarm.Gameplay.Building
             if (valid && _movingId == null && _wallet.Coins < SelectedDefinition.Price)
             { valid = false; reasonText = "Недостаточно монет"; }
             _preview.SetActive(_hasTarget);
+            UpdateModelPreview(valid);
             if (_hasTarget)
             {
                 _preview.transform.position = BuildingView.Center(_target.x, _target.y, _turns, SelectedDefinition, _grid)
@@ -222,9 +267,7 @@ namespace MyLittleFarm.Gameplay.Building
             if (Time.unscaledTime >= _nextPromptAt || _input.BuildSelection >= 0 || _input.RotateBuildingPressed)
             {
                 _nextPromptAt = Time.unscaledTime + promptRefreshInterval;
-                CurrentPrompt = $"{SelectedDefinition.Name} — {(_movingId == null ? SelectedDefinition.Price + " монет" : "бесплатный перенос")}   {SelectedDefinition.RotatedWidth(_turns)}×{SelectedDefinition.RotatedDepth(_turns)}\n"
-                    + "1 Дом (20)   2 Склад (12)   3 Стойка (10)   4 Клумба (3)   5 Курятник (18)\n"
-                    + (valid ? "ЛКМ / E — разместить" : reasonText) + "   R — поворот   M — перенос   Delete — удалить   B / Esc — выход";
+                CurrentPrompt = PlacementPrompt(SelectedDefinition, _turns, _movingId != null, valid, reasonText);
             }
             if (_input.InteractPressed && _hasTarget)
             {
@@ -233,6 +276,92 @@ namespace MyLittleFarm.Gameplay.Building
                     : TryMove(_movingId, _target, _turns, out reasonText);
                 if (success) _movingId = null;
                 GameEvents.RaiseStatusChanged(reasonText);
+            }
+        }
+
+        /// <summary>Shared text for runtime and data-only Editor preview; does not touch game state.</summary>
+        public static string PlacementPrompt(BuildingDefinition definition, int turns, bool moving, bool valid, string reason)
+        {
+            return $"СТРОИТЕЛЬСТВО · {definition.Name} · {(moving ? "бесплатный перенос" : definition.Price + " монет")} · {definition.RotatedWidth(turns)}×{definition.RotatedDepth(turns)}\n"
+                + "1 Дом · 2 Склад · 3 Стойка · 4 Клумба · 5 Курятник\n"
+                + (valid ? "Размещение доступно" : reason)
+                + "\nE / ЛКМ — подтвердить   Q / R — повернуть   Esc / ПКМ — отмена\nM — перенос   Delete — удалить   B — выйти из строительства";
+        }
+
+        private Material GhostMaterial(Shader shader, Color tint)
+        {
+            tint.a = ghostOpacity;
+            return new Material(shader) { color = tint, hideFlags = HideFlags.DontSave };
+        }
+
+        private void ReleaseGhostMaterials()
+        {
+            foreach (var material in new[] { _validGhostMaterial, _invalidGhostMaterial })
+                if (material != null) { if (Application.isPlaying) Destroy(material); else DestroyImmediate(material); }
+            _validGhostMaterial = _invalidGhostMaterial = null;
+            _previewValid = null;
+        }
+
+        private void OnDestroy() => ReleaseGhostMaterials();
+
+        private void UpdateModelPreview(bool valid)
+        {
+            if (_previewDefinition != SelectedDefinition.Id)
+            {
+                if (_previewModel != null) { _previewModel.SetActive(false); Destroy(_previewModel); }
+                _previewDefinition = SelectedDefinition.Id;
+                _previewModel = new GameObject("Building model preview");
+                _previewModel.transform.SetParent(transform, false);
+                var prefab = VisualFor(SelectedDefinition.Id);
+                if (prefab != null)
+                {
+                    var model = VisualPrefab.CreateBuilding(prefab, _previewModel.transform, new Vector3(
+                        SelectedDefinition.Width * _grid.CellSize - 0.12f, SelectedDefinition.Height,
+                        SelectedDefinition.Depth * _grid.CellSize - 0.12f));
+                    var direction = model.transform.localRotation * Vector3.back;
+                    var front = _preview.transform.Find("Preview front");
+                    front.localPosition = new Vector3(direction.x * 0.46f, 0.55f, direction.z * 0.46f);
+                    front.localRotation = Quaternion.LookRotation(direction, Vector3.up);
+                }
+                else
+                {
+                    var body = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                    body.transform.SetParent(_previewModel.transform, false);
+                    body.transform.localScale = new Vector3(SelectedDefinition.Width * _grid.CellSize - 0.12f,
+                        SelectedDefinition.Height, SelectedDefinition.Depth * _grid.CellSize - 0.12f);
+                    body.transform.localPosition = Vector3.up * SelectedDefinition.Height * 0.5f;
+                    RuntimeMaterials.RemoveCollider(body);
+                }
+                _previewModelRenderers = _previewModel.GetComponentsInChildren<Renderer>();
+                _validModelMaterials = new Material[_previewModelRenderers.Length][];
+                _invalidModelMaterials = new Material[_previewModelRenderers.Length][];
+                for (var i = 0; i < _previewModelRenderers.Length; i++)
+                {
+                    var renderer = _previewModelRenderers[i];
+                    renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+                    renderer.receiveShadows = false;
+                    var count = Mathf.Max(1, renderer.sharedMaterials.Length);
+                    _validModelMaterials[i] = new Material[count];
+                    _invalidModelMaterials[i] = new Material[count];
+                    for (var slot = 0; slot < count; slot++)
+                    {
+                        _validModelMaterials[i][slot] = _validGhostMaterial;
+                        _invalidModelMaterials[i][slot] = _invalidGhostMaterial;
+                    }
+                }
+                foreach (var collider in _previewModel.GetComponentsInChildren<Collider>(true)) collider.enabled = false;
+                foreach (var child in _previewModel.GetComponentsInChildren<Transform>(true)) child.gameObject.layer = 2;
+                _previewValid = null;
+            }
+            _previewModel.SetActive(_hasTarget);
+            if (!_hasTarget) return;
+            _previewModel.transform.position = BuildingView.Center(_target.x, _target.y, _turns, SelectedDefinition, _grid);
+            _previewModel.transform.rotation = Quaternion.Euler(0f, _turns * 90f, 0f);
+            if (_previewValid != valid)
+            {
+                for (var i = 0; i < _previewModelRenderers.Length; i++)
+                    _previewModelRenderers[i].sharedMaterials = valid ? _validModelMaterials[i] : _invalidModelMaterials[i];
+                _previewValid = valid;
             }
         }
 
@@ -272,7 +401,8 @@ namespace MyLittleFarm.Gameplay.Building
             var state = new BuildingRuntimeState { id = Guid.NewGuid().ToString("N"), definitionId = definitionId,
                 x = cell.x, z = cell.y, quarterTurns = turns, paidCost = definition.Price };
             if (!_layout.TryPlace(state, (x, z) => IsTerrainBlocked(x, z), out reason)) return false;
-            _views.Add(state.id, BuildingView.Create(transform, definition, state, _grid));
+            _views.Add(state.id, BuildingView.Create(transform, definition, state, _grid,
+                VisualFor(definition.Id)));
             _grid.OccupyWithBuilding(cell,
                 new Vector2Int(definition.RotatedWidth(turns), definition.RotatedDepth(turns)), state.id);
             _wallet.TrySpend(definition.Price);
@@ -343,7 +473,8 @@ namespace MyLittleFarm.Gameplay.Building
                 var definition = candidate.Definition(state.definitionId);
                 _grid.OccupyWithBuilding(new Vector2Int(state.x, state.z),
                     new Vector2Int(definition.RotatedWidth(state.quarterTurns), definition.RotatedDepth(state.quarterTurns)), state.id);
-                _views.Add(state.id, BuildingView.Create(transform, candidate.Definition(state.definitionId), state, _grid));
+                _views.Add(state.id, BuildingView.Create(transform, candidate.Definition(state.definitionId), state,
+                    _grid, VisualFor(state.definitionId)));
             }
         }
 
@@ -366,6 +497,7 @@ namespace MyLittleFarm.Gameplay.Building
             if (_input != null) _input.BuildModeActive = false;
             IsActive = false;
             if (_preview != null) _preview.SetActive(false);
+            if (_previewModel != null) _previewModel.SetActive(false);
         }
     }
 }

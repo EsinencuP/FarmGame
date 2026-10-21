@@ -2,7 +2,8 @@
   "name": "MyLittleFarm.EditModeTests",
   "rootNamespace": "MyLittleFarm.Tests.EditMode",
   "references": [
-    "MyLittleFarm.Runtime"
+    "MyLittleFarm.Runtime",
+    "MyLittleFarm.Editor"
   ],
   "includePlatforms": [
     "Editor"

@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d07a1340587b49598357446b7aa0fb6b, type: 3}
+  m_Name: carrot
+  m_EditorClassIdentifier: MyLittleFarm.Runtime::MyLittleFarm.Gameplay.Farming.CropDefinition
+  cropId: carrot
+  displayName: "\u041C\u043E\u0440\u043A\u043E\u0432\u044C"
+  seedItemId: carrot_seed
+  harvestItemId: carrot
+  growDurationSeconds: 8
+  yieldAmount: 2
+  stageCount: 3
+  matureColor: {r: 0.95, g: 0.42, b: 0.08, a: 1}
+  stagePrefabs:
+  - {fileID: 2570113774523529776, guid: 23448d03e3da2c94bada41abe0fd27df, type: 3}
+  - {fileID: 7522191820220138251, guid: a7ae587507668654c8bf85721cbde732, type: 3}
+  - {fileID: 1298065913956796413, guid: 2cf3827e6cabfc549b877536ce2f68e8, type: 3}
+  stageSizes:
+  - {x: 0.24, y: 0.14, z: 0.24}
+  - {x: 0.46, y: 0.18900001, z: 0.46}
+  - {x: 0.7, y: 0.35, z: 0.7}

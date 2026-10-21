@@ -1,0 +1,1 @@
+Same runtime camera, shadows on/off: 50530 pixels differ by more than 12 RGB levels; total RGB difference=1912337

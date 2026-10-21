@@ -15,6 +15,7 @@ namespace MyLittleFarm.Gameplay.Farming
         [SerializeField, Min(2)] private int stageCount = 3;
         [SerializeField] private Color matureColor = new Color(0.95f, 0.42f, 0.08f);
         [SerializeField] private GameObject[] stagePrefabs;
+        [SerializeField] private Vector3[] stageSizes;
 
         // Стабильные ID используются сохранением; числовые параметры можно менять в Inspector.
         public string CropId => cropId;
@@ -26,6 +27,15 @@ namespace MyLittleFarm.Gameplay.Farming
         public int StageCount => stageCount;
         public Color MatureColor => matureColor;
         public GameObject[] StagePrefabs => stagePrefabs;
+        public Vector3 StageSize(int stage)
+        {
+            stage = Mathf.Clamp(stage, 0, Mathf.Max(0, stageCount - 1));
+            if (stageSizes != null && stage < stageSizes.Length && stageSizes[stage].x > 0f
+                && stageSizes[stage].y > 0f && stageSizes[stage].z > 0f) return stageSizes[stage];
+            var progress = stage / (float)Mathf.Max(1, stageCount - 1);
+            var width = Mathf.Lerp(0.22f, 0.65f, progress);
+            return new Vector3(width, Mathf.Lerp(0.14f, 0.75f, progress), width);
+        }
 
         /// <summary>Заполняет временный ScriptableObject, когда отдельные .asset ещё не созданы.</summary>
         public void ConfigurePlaceholder(string id, string title, float seconds, int amount, Color color)

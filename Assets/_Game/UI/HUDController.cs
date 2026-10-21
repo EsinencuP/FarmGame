@@ -1,4 +1,5 @@
 using MyLittleFarm.Core;
+using System.Text;
 using MyLittleFarm.Gameplay.Economy;
 using MyLittleFarm.Gameplay.Farming;
 using MyLittleFarm.Gameplay.Animals;
@@ -38,9 +39,10 @@ namespace MyLittleFarm.UI
         private Text _statsText;
         private Text _statusText;
         private Text _onboardingText;
-        private int _shownOnboardingStep = -1;
         // Момент скрытия временного сообщения по независимой от паузы шкале времени.
         private float _hideStatusAt;
+        private bool _refreshPending;
+        private readonly StringBuilder _statsBuilder = new StringBuilder(512);
 
         /// <summary>Назначает зависимости, подписывается на события и сразу заполняет интерфейс.</summary>
         public void Configure(InventorySystem inventory, WalletSystem wallet, Text statsText, Text statusText,
@@ -61,7 +63,6 @@ namespace MyLittleFarm.UI
             _animals = animals;
             _onboarding = onboarding;
             _onboardingText = onboardingText;
-            _shownOnboardingStep = -1;
             _seedIcons = seedIcons;
             _harvestIcons = harvestIcons;
             _coinIcon = coinIcon;
@@ -78,33 +79,52 @@ namespace MyLittleFarm.UI
             }
             _statsText = statsText;
             _statusText = statusText;
-            GameEvents.InventoryChanged += Refresh;
-            GameEvents.MoneyChanged += HandleMoneyChanged;
-            GameEvents.StatusChanged += ShowStatus;
+            if (isActiveAndEnabled) Subscribe();
             Refresh();
             RefreshOnboarding();
         }
 
-        private void Update()
+        private void LateUpdate()
         {
+            if (_refreshPending) Refresh();
             // По окончании таймера скрывается только статус, постоянная статистика остаётся видимой.
             if (_statusText != null && _statusText.enabled && Time.unscaledTime >= _hideStatusAt)
             {
                 _statusText.enabled = false;
             }
-            if (_onboarding != null && _shownOnboardingStep != _onboarding.Step) RefreshOnboarding();
         }
+
+        private void OnEnable()
+        {
+            Subscribe();
+            Refresh();
+            RefreshOnboarding();
+        }
+
+        private void OnDisable() => Unsubscribe();
+
+        private void Subscribe()
+        {
+            Unsubscribe();
+            GameEvents.InventoryChanged += RequestRefresh;
+            GameEvents.MoneyChanged += HandleMoneyChanged;
+            GameEvents.StatusChanged += ShowStatus;
+            GameEvents.OnboardingChanged += HandleOnboardingChanged;
+        }
+
+        private void RequestRefresh() => _refreshPending = true;
+        private void HandleOnboardingChanged(int ignored) => RefreshOnboarding();
 
         /// <summary>Держит текущую цель обучения на экране до завершения действия.</summary>
         private void RefreshOnboarding()
         {
             if (_onboardingText == null || _onboarding == null) return;
-            _shownOnboardingStep = _onboarding.Step;
             _onboardingText.text = _onboarding.CurrentHint;
         }
 
         private void Refresh()
         {
+            _refreshPending = false;
             // Показывает деньги, содержимое инвентаря и активный быстрый слот.
             if (_statsText == null || _inventory == null || _wallet == null)
             {
@@ -116,24 +136,33 @@ namespace MyLittleFarm.UI
                 _statsText.text = $"МОНЕТЫ  {_wallet.Coins}\nСЕМЕНА  {_inventory.GetAmount(InventorySystem.CarrotSeedId)}\nМОРКОВЬ  {_inventory.GetAmount(InventorySystem.CarrotId)}";
                 return;
             }
-            var lines = $"МОНЕТЫ  {_wallet.Coins}\n";
+            var lines = _statsBuilder;
+            lines.Clear();
+            lines.Append("<b>МОНЕТЫ  ").Append(_wallet.Coins).Append("</b>\nСЕМЕНА / УРОЖАЙ\n");
             for (var i = 0; i < _catalog.Crops.Count; i++)
             {
                 var crop = _catalog.Crops[i];
-                var marker = _slots != null && _slots.SelectedIndex == i ? ">" : " ";
-                lines += $"{marker}{i + 1} {crop.DisplayName}: семена {_inventory.GetAmount(crop.SeedItemId)}, урожай {_inventory.GetAmount(crop.HarvestItemId)}\n";
+                var active = _slots != null && _slots.SelectedIndex == i;
+                if (active) lines.Append("<color=#F0CF78><b>");
+                lines.Append(i + 1).Append("  ").Append(crop.DisplayName).Append("  ")
+                    .Append(_inventory.GetAmount(crop.SeedItemId)).Append(" / ")
+                    .Append(_inventory.GetAmount(crop.HarvestItemId));
+                if (active) lines.Append("</b></color>");
+                lines.Append('\n');
             }
-            lines += _sector == null ? string.Empty : _sector.IsUnlocked
-                ? "СЕКТОР: открыт\n" : $"СЕКТОР: L / {_sector.PurchasePrice} монет\n";
-            lines += _upgrades == null ? string.Empty : _upgrades.Level >= 2
-                ? "ИНСТРУМЕНТ: уровень 2\n" : $"ИНСТРУМЕНТ: уровень {_upgrades.Level}, U / {_upgrades.NextPrice} монет\n";
+            lines.Append(_sector == null ? string.Empty : _sector.IsUnlocked
+                ? "СЕКТОР: открыт\n" : $"СЕКТОР  L: {_sector.PurchasePrice}\n");
+            lines.Append(_upgrades == null ? string.Empty : _upgrades.Level >= 2
+                ? "ИНСТРУМЕНТ: ур. 2\n" : $"ИНСТРУМЕНТ  U: {_upgrades.NextPrice}\n");
             var selected = _slots?.SelectedCrop;
             var shopHint = selected != null && _catalog.TryGetItem(selected.SeedItemId, out var seed)
-                ? $"P у рынка — {selected.DisplayName}: {_shop?.PurchaseAmount ?? 4} семени × {seed.BuyPrice}"
-                : "P у рынка — купить выбранные семена";
-            lines += $"ЯБЛОКИ  {_inventory.GetAmount("apple")}   ЯЙЦА  {_inventory.GetAmount("egg")}\n";
-            if (_animals != null) lines += $"КУРЫ  {_animals.Count}/{_animals.MaxAnimals}\n";
-            _statsText.text = lines + shopHint;
+                ? $"P: {_shop?.PurchaseAmount ?? 4} сем. × {seed.BuyPrice}"
+                : "P: купить семена";
+            lines.Append("ЯБЛОКИ ").Append(_inventory.GetAmount("apple"))
+                .Append("   ЯЙЦА ").Append(_inventory.GetAmount("egg"));
+            if (_animals != null) lines.Append("   КУРЫ ").Append(_animals.Count).Append('/').Append(_animals.MaxAnimals);
+            lines.Append('\n').Append(shopHint);
+            _statsText.text = lines.ToString();
             RefreshIcons();
         }
 
@@ -164,7 +193,7 @@ namespace MyLittleFarm.UI
         private void HandleMoneyChanged(int ignored)
         {
             // Новый баланс уже доступен через WalletSystem, поэтому аргумент события не требуется.
-            Refresh();
+            RequestRefresh();
         }
 
         private void ShowStatus(string message)
@@ -189,9 +218,10 @@ namespace MyLittleFarm.UI
         private void Unsubscribe()
         {
             // Метод безопасен при повторном вызове и также используется перед новой конфигурацией.
-            GameEvents.InventoryChanged -= Refresh;
+            GameEvents.InventoryChanged -= RequestRefresh;
             GameEvents.MoneyChanged -= HandleMoneyChanged;
             GameEvents.StatusChanged -= ShowStatus;
+            GameEvents.OnboardingChanged -= HandleOnboardingChanged;
         }
     }
 }

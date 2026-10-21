@@ -62,6 +62,7 @@ namespace MyLittleFarm.Gameplay.World
         /// <summary>Показывает текущую подсказку через общий HUD без прямой ссылки на UI.</summary>
         private void PublishHint()
         {
+            GameEvents.RaiseOnboardingChanged(_step);
             if (enabledInNewGame && !string.IsNullOrWhiteSpace(CurrentHint))
                 GameEvents.RaiseStatusChanged(CurrentHint);
         }

@@ -1,0 +1,44 @@
+// Unity MCP execute_code method body. Uses only an isolated preview scene, never the player's save.
+if(Application.isPlaying)throw new System.InvalidOperationException("Use Edit Mode.");
+var scene=UnityEditor.SceneManagement.EditorSceneManager.NewPreviewScene();
+var root=new GameObject("Metric scale preview");UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(root,scene);
+var camera=new GameObject("Metric camera").AddComponent<Camera>();camera.transform.SetParent(root.transform,false);
+camera.scene=scene;camera.enabled=false;camera.orthographic=true;camera.clearFlags=CameraClearFlags.SolidColor;
+camera.backgroundColor=new Color(.76f,.83f,.78f);
+var light=new GameObject("Metric sun").AddComponent<Light>();light.transform.SetParent(root.transform,false);
+light.type=LightType.Directional;light.transform.rotation=Quaternion.Euler(48,-32,0);light.intensity=1.25f;light.shadows=LightShadows.Soft;
+var floor=GameObject.CreatePrimitive(PrimitiveType.Cube);floor.transform.SetParent(root.transform,false);
+floor.transform.position=new Vector3(0,-.1f,0);floor.transform.localScale=new Vector3(24,.2f,24);
+var material=new Material(Shader.Find("Standard"));material.color=new Color(.27f,.43f,.19f);floor.GetComponent<Renderer>().sharedMaterial=material;
+var rt=new RenderTexture(1000,900,24);var texture=new Texture2D(1000,900,TextureFormat.RGB24,false);
+var sheet=new Texture2D(3000,1800,TextureFormat.RGB24,false);var old=RenderTexture.active;
+var report=new System.Text.StringBuilder();var number=0;
+try{
+foreach(var definition in MyLittleFarm.Gameplay.Building.BuildingDefinition.Catalog){
+var prefab=UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>(MyLittleFarm.Editor.MetricScaleSetup.Folder+"/"+definition.Id+".prefab");
+var model=UnityEngine.Object.Instantiate(prefab,root.transform,false);
+var human=UnityEngine.Object.Instantiate(UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>(MyLittleFarm.Editor.PlayerRigSetup.PrefabPath),root.transform,false);
+try{
+MyLittleFarm.Core.VisualPrefab.TryGetBounds(model,out var b);
+human.transform.position=new Vector3(1.25f,0,b.min.z-.5f);human.transform.rotation=Quaternion.Euler(0,180,0);
+var animator=human.GetComponentInChildren<Animator>();animator.Rebind();animator.Update(0);
+var humanBounds=MyLittleFarm.Editor.PlayerRigSetup.BakedBounds(human);
+var metrics=model.GetComponent<MyLittleFarm.Gameplay.Building.BuildingArtMetrics>();
+report.AppendLine(definition.Id+" footprint="+definition.Width+"x"+definition.Depth+" model="+b.size.ToString("F4")+" door="+metrics.DoorHeight+" player="+humanBounds.size.y);
+var center=new Vector3(0,b.size.y*.42f,b.min.z*.3f);
+camera.transform.position=center+new Vector3(8,5,-12);camera.transform.LookAt(center);
+camera.orthographicSize=Mathf.Max(2.25f,Mathf.Max(b.size.y*.65f,b.size.x*.56f));camera.targetTexture=rt;
+camera.Render();RenderTexture.active=rt;texture.ReadPixels(new Rect(0,0,1000,900),0,0);texture.Apply();
+System.IO.File.WriteAllBytes("Verification/P0-3/scale-"+definition.Id+".png",texture.EncodeToPNG());
+sheet.SetPixels(number%3*1000,(1-number/3)*900,1000,900,texture.GetPixels());number++;
+if(definition.Id=="house"||definition.Id=="storage"||definition.Id=="coop"){
+camera.orthographicSize=1.75f;var target=new Vector3(.45f,metrics.DoorBottom.y+1.0f,b.min.z);
+var direction=-1f;
+if(definition.Id=="coop"){direction=1f;target=new Vector3(0,metrics.DoorBottom.y+1f,metrics.DoorBottom.z);human.transform.position=new Vector3(0,metrics.DoorBottom.y,metrics.DoorBottom.z+.2f);human.transform.rotation=Quaternion.identity;}
+camera.transform.position=target+new Vector3(0,.45f,10*direction);camera.transform.LookAt(target);camera.Render();
+RenderTexture.active=rt;texture.ReadPixels(new Rect(0,0,1000,900),0,0);texture.Apply();
+System.IO.File.WriteAllBytes("Verification/P0-3/door-"+definition.Id+".png",texture.EncodeToPNG());}
+}finally{UnityEngine.Object.DestroyImmediate(model);UnityEngine.Object.DestroyImmediate(human);}}
+sheet.Apply();System.IO.File.WriteAllBytes("Verification/P0-3/metric-scale-sheet.png",sheet.EncodeToPNG());
+System.IO.File.WriteAllText("Verification/P0-3/metric-measurements.txt",report.ToString());return report.ToString();
+}finally{RenderTexture.active=old;camera.targetTexture=null;rt.Release();UnityEngine.Object.DestroyImmediate(rt);UnityEngine.Object.DestroyImmediate(texture);UnityEngine.Object.DestroyImmediate(sheet);UnityEngine.Object.DestroyImmediate(material);UnityEditor.SceneManagement.EditorSceneManager.ClosePreviewScene(scene);}

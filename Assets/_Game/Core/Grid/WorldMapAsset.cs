@@ -12,13 +12,21 @@ namespace MyLittleFarm.Core.Grid
         // Индекс строится лениво, чтобы Unity продолжал сериализовать обычный список.
         private Dictionary<Vector2Int, int> _indices;
         public int CellCount => cells.Count;
+        public bool TryGetTerrain(Vector2Int coordinate, out TerrainCell terrain)
+        {
+            EnsureIndex();
+            if (_indices.TryGetValue(coordinate, out var index)) { terrain = cells[index].terrain; return true; }
+            terrain = default;
+            return false;
+        }
 
         /// <summary>Сохраняет изменённую в Scene View клетку в базовой карте.</summary>
         public void SetTerrain(Vector2Int coordinate, TerrainCell terrain)
         {
             if (terrain.type == CellType.Tilled || terrain.type == CellType.Planted
                 || terrain.type == CellType.Watered || terrain.type == CellType.Building
-                || terrain.type == CellType.BuildingEdge || terrain.type == CellType.OutOfBounds)
+                || terrain.type == CellType.BuildingEdge || terrain.type == CellType.OutOfBounds
+                || terrain.type == CellType.Tree)
                 throw new ArgumentOutOfRangeException(nameof(terrain));
             EnsureIndex();
             if (_indices.TryGetValue(coordinate, out var index))

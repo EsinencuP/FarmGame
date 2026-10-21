@@ -1,0 +1,44 @@
+{
+  "success": true,
+  "message": "Test job status retrieved.",
+  "error": null,
+  "data": {
+    "job_id": "a533ed6c908948e6aeaf5e20e71b628b",
+    "status": "succeeded",
+    "mode": "PlayMode",
+    "started_unix_ms": 1792611195774,
+    "finished_unix_ms": 1792611206447,
+    "last_update_unix_ms": 1792611206447,
+    "progress": {
+      "completed": 34,
+      "total": 34,
+      "current_test_full_name": null,
+      "current_test_started_unix_ms": null,
+      "last_finished_test_full_name": "MyLittleFarm.Tests.PlayMode.StageZeroSmokeTests.SaveFile_RestoresGridCropInventoryMoneyAndPlayer",
+      "last_finished_unix_ms": 1792611206443,
+      "stuck_suspected": false,
+      "editor_is_focused": false,
+      "run_in_background": true,
+      "focus_nudge_attempts": null,
+      "focus_nudge_limit": null,
+      "focus_nudge_status": null,
+      "blocked_reason": null,
+      "failures_so_far": [],
+      "failures_capped": false
+    },
+    "error": null,
+    "result": {
+      "mode": "PlayMode",
+      "summary": {
+        "total": 34,
+        "passed": 34,
+        "failed": 0,
+        "skipped": 0,
+        "durationSeconds": 7.1795697,
+        "resultState": "Passed"
+      },
+      "results": []
+    }
+  },
+  "hint": null
+}

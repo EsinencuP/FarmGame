@@ -26,12 +26,20 @@ namespace MyLittleFarm.Gameplay.World
         [SerializeField, Min(0.1f)] private float minDistance = 7f;
         [Tooltip("Максимальная дистанция удаления камеры.")]
         [SerializeField, Min(0.1f)] private float maxDistance = 20f;
+        [Tooltip("Время сглаживания поворота камеры в секундах.")]
+        [SerializeField, Min(0.01f)] private float orbitSmoothTime = 0.18f;
+        [Tooltip("Время сглаживания масштаба в секундах.")]
+        [SerializeField, Min(0.01f)] private float zoomSmoothTime = 0.12f;
 
         // Input задаёт команды, target — игрок, yaw — текущий угол, distance — текущий масштаб обзора.
         private InputReader _input;
         private Transform _target;
         private float _yaw;
         private float _distance;
+        private float _targetYaw;
+        private float _targetDistance;
+        private float _yawVelocity;
+        private float _distanceVelocity;
 
         private void OnValidate()
         {
@@ -47,6 +55,10 @@ namespace MyLittleFarm.Gameplay.World
             _target = target;
             _yaw = initialYaw;
             _distance = Mathf.Clamp(initialDistance, minDistance, Mathf.Max(minDistance, maxDistance));
+            _targetYaw = _yaw;
+            _targetDistance = _distance;
+            _yawVelocity = 0f;
+            _distanceVelocity = 0f;
             SnapToTarget();
         }
 
@@ -58,19 +70,30 @@ namespace MyLittleFarm.Gameplay.World
                 return;
             }
 
-            if (_input.RotateLeftPressed)
+            if (!_input.BuildModeActive && _input.RotateLeftPressed)
             {
-                _yaw -= keyboardRotationStep;
+                _targetYaw -= keyboardRotationStep;
             }
 
-            if (_input.RotateRightPressed)
+            if (!_input.BuildModeActive && _input.RotateRightPressed)
             {
-                _yaw += keyboardRotationStep;
+                _targetYaw += keyboardRotationStep;
             }
 
-            _yaw += _input.OrbitDelta * orbitSensitivity;
-            _distance = Mathf.Clamp(_distance - _input.ZoomDelta * zoomSensitivity,
+            _targetYaw += _input.OrbitDelta * orbitSensitivity;
+            _targetDistance = Mathf.Clamp(_targetDistance - _input.ZoomDelta * zoomSensitivity,
                 minDistance, Mathf.Max(minDistance, maxDistance));
+            _yaw = Mathf.SmoothDamp(_yaw, _targetYaw, ref _yawVelocity,
+                orbitSmoothTime, Mathf.Infinity, Time.deltaTime);
+            _distance = Mathf.SmoothDamp(_distance, _targetDistance, ref _distanceVelocity,
+                zoomSmoothTime, Mathf.Infinity, Time.deltaTime);
+            // Keep both angles in the same range without losing the direction of repeated turns.
+            if (Mathf.Abs(_yaw) > 360f)
+            {
+                var offset = Mathf.Floor(_yaw / 360f) * 360f;
+                _yaw -= offset;
+                _targetYaw -= offset;
+            }
             SnapToTarget();
         }
 

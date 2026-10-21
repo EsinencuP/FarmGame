@@ -1,0 +1,522 @@
+{
+    "saveVersion": 7,
+    "savedAtUnixMs": 1792613692663,
+    "player": {
+        "x": 3.5,
+        "y": 0.9300000071525574,
+        "z": 0.5
+    },
+    "coins": 9947,
+    "inventory": [
+        {
+            "itemId": "carrot_seed",
+            "amount": 8
+        },
+        {
+            "itemId": "wheat",
+            "amount": 96
+        },
+        {
+            "itemId": "apple",
+            "amount": 24
+        },
+        {
+            "itemId": "carrot",
+            "amount": 4
+        },
+        {
+            "itemId": "egg",
+            "amount": 7
+        },
+        {
+            "itemId": "potato",
+            "amount": 6
+        },
+        {
+            "itemId": "tomato",
+            "amount": 5
+        },
+        {
+            "itemId": "corn",
+            "amount": 4
+        },
+        {
+            "itemId": "cucumber",
+            "amount": 3
+        }
+    ],
+    "grid": {
+        "chunks": [
+            {
+                "chunkX": 0,
+                "chunkZ": 0,
+                "modifiedCells": [
+                    {
+                        "localX": 6,
+                        "localZ": 4,
+                        "cellType": 23,
+                        "occupantId": "tree:6:4",
+                        "hasTerrainData": true,
+                        "terrainType": 0,
+                        "biome": 0,
+                        "moisture": 0,
+                        "permissions": 0,
+                        "farmingMoisture": 0,
+                        "fertilizer": 0,
+                        "lastWateredDay": 0,
+                        "farmingFlags": 0
+                    }
+                ]
+            },
+            {
+                "chunkX": 0,
+                "chunkZ": -1,
+                "modifiedCells": [
+                    {
+                        "localX": 0,
+                        "localZ": 4,
+                        "cellType": 11,
+                        "occupantId": "crop:0:-6",
+                        "hasTerrainData": true,
+                        "terrainType": 0,
+                        "biome": 0,
+                        "moisture": 0,
+                        "permissions": 0,
+                        "farmingMoisture": 0,
+                        "fertilizer": 0,
+                        "lastWateredDay": 0,
+                        "farmingFlags": 0
+                    },
+                    {
+                        "localX": 0,
+                        "localZ": 5,
+                        "cellType": 11,
+                        "occupantId": "crop:0:-5",
+                        "hasTerrainData": true,
+                        "terrainType": 0,
+                        "biome": 0,
+                        "moisture": 0,
+                        "permissions": 0,
+                        "farmingMoisture": 0,
+                        "fertilizer": 0,
+                        "lastWateredDay": 0,
+                        "farmingFlags": 0
+                    },
+                    {
+                        "localX": 0,
+                        "localZ": 6,
+                        "cellType": 11,
+                        "occupantId": "crop:0:-4",
+                        "hasTerrainData": true,
+                        "terrainType": 0,
+                        "biome": 0,
+                        "moisture": 0,
+                        "permissions": 0,
+                        "farmingMoisture": 0,
+                        "fertilizer": 0,
+                        "lastWateredDay": 0,
+                        "farmingFlags": 0
+                    },
+                    {
+                        "localX": 1,
+                        "localZ": 4,
+                        "cellType": 11,
+                        "occupantId": "crop:1:-6",
+                        "hasTerrainData": true,
+                        "terrainType": 0,
+                        "biome": 0,
+                        "moisture": 0,
+                        "permissions": 0,
+                        "farmingMoisture": 0,
+                        "fertilizer": 0,
+                        "lastWateredDay": 0,
+                        "farmingFlags": 0
+                    },
+                    {
+                        "localX": 1,
+                        "localZ": 5,
+                        "cellType": 11,
+                        "occupantId": "crop:1:-5",
+                        "hasTerrainData": true,
+                        "terrainType": 0,
+                        "biome": 0,
+                        "moisture": 0,
+                        "permissions": 0,
+                        "farmingMoisture": 0,
+                        "fertilizer": 0,
+                        "lastWateredDay": 0,
+                        "farmingFlags": 0
+                    },
+                    {
+                        "localX": 1,
+                        "localZ": 6,
+                        "cellType": 11,
+                        "occupantId": "crop:1:-4",
+                        "hasTerrainData": true,
+                        "terrainType": 0,
+                        "biome": 0,
+                        "moisture": 0,
+                        "permissions": 0,
+                        "farmingMoisture": 0,
+                        "fertilizer": 0,
+                        "lastWateredDay": 0,
+                        "farmingFlags": 0
+                    },
+                    {
+                        "localX": 2,
+                        "localZ": 4,
+                        "cellType": 11,
+                        "occupantId": "crop:2:-6",
+                        "hasTerrainData": true,
+                        "terrainType": 0,
+                        "biome": 0,
+                        "moisture": 0,
+                        "permissions": 0,
+                        "farmingMoisture": 0,
+                        "fertilizer": 0,
+                        "lastWateredDay": 0,
+                        "farmingFlags": 0
+                    },
+                    {
+                        "localX": 2,
+                        "localZ": 5,
+                        "cellType": 11,
+                        "occupantId": "crop:2:-5",
+                        "hasTerrainData": true,
+                        "terrainType": 0,
+                        "biome": 0,
+                        "moisture": 0,
+                        "permissions": 0,
+                        "farmingMoisture": 0,
+                        "fertilizer": 0,
+                        "lastWateredDay": 0,
+                        "farmingFlags": 0
+                    },
+                    {
+                        "localX": 2,
+                        "localZ": 6,
+                        "cellType": 11,
+                        "occupantId": "crop:2:-4",
+                        "hasTerrainData": true,
+                        "terrainType": 0,
+                        "biome": 0,
+                        "moisture": 0,
+                        "permissions": 0,
+                        "farmingMoisture": 0,
+                        "fertilizer": 0,
+                        "lastWateredDay": 0,
+                        "farmingFlags": 0
+                    },
+                    {
+                        "localX": 3,
+                        "localZ": 4,
+                        "cellType": 11,
+                        "occupantId": "crop:3:-6",
+                        "hasTerrainData": true,
+                        "terrainType": 0,
+                        "biome": 0,
+                        "moisture": 0,
+                        "permissions": 0,
+                        "farmingMoisture": 0,
+                        "fertilizer": 0,
+                        "lastWateredDay": 0,
+                        "farmingFlags": 0
+                    },
+                    {
+                        "localX": 3,
+                        "localZ": 5,
+                        "cellType": 11,
+                        "occupantId": "crop:3:-5",
+                        "hasTerrainData": true,
+                        "terrainType": 0,
+                        "biome": 0,
+                        "moisture": 0,
+                        "permissions": 0,
+                        "farmingMoisture": 0,
+                        "fertilizer": 0,
+                        "lastWateredDay": 0,
+                        "farmingFlags": 0
+                    },
+                    {
+                        "localX": 3,
+                        "localZ": 6,
+                        "cellType": 11,
+                        "occupantId": "crop:3:-4",
+                        "hasTerrainData": true,
+                        "terrainType": 0,
+                        "biome": 0,
+                        "moisture": 0,
+                        "permissions": 0,
+                        "farmingMoisture": 0,
+                        "fertilizer": 0,
+                        "lastWateredDay": 0,
+                        "farmingFlags": 0
+                    },
+                    {
+                        "localX": 4,
+                        "localZ": 4,
+                        "cellType": 11,
+                        "occupantId": "crop:4:-6",
+                        "hasTerrainData": true,
+                        "terrainType": 0,
+                        "biome": 0,
+                        "moisture": 0,
+                        "permissions": 0,
+                        "farmingMoisture": 0,
+                        "fertilizer": 0,
+                        "lastWateredDay": 0,
+                        "farmingFlags": 0
+                    },
+                    {
+                        "localX": 4,
+                        "localZ": 5,
+                        "cellType": 11,
+                        "occupantId": "crop:4:-5",
+                        "hasTerrainData": true,
+                        "terrainType": 0,
+                        "biome": 0,
+                        "moisture": 0,
+                        "permissions": 0,
+                        "farmingMoisture": 0,
+                        "fertilizer": 0,
+                        "lastWateredDay": 0,
+                        "farmingFlags": 0
+                    },
+                    {
+                        "localX": 4,
+                        "localZ": 6,
+                        "cellType": 11,
+                        "occupantId": "crop:4:-4",
+                        "hasTerrainData": true,
+                        "terrainType": 0,
+                        "biome": 0,
+                        "moisture": 0,
+                        "permissions": 0,
+                        "farmingMoisture": 0,
+                        "fertilizer": 0,
+                        "lastWateredDay": 0,
+                        "farmingFlags": 0
+                    },
+                    {
+                        "localX": 5,
+                        "localZ": 4,
+                        "cellType": 11,
+                        "occupantId": "crop:5:-6",
+                        "hasTerrainData": true,
+                        "terrainType": 0,
+                        "biome": 0,
+                        "moisture": 0,
+                        "permissions": 0,
+                        "farmingMoisture": 0,
+                        "fertilizer": 0,
+                        "lastWateredDay": 0,
+                        "farmingFlags": 0
+                    },
+                    {
+                        "localX": 5,
+                        "localZ": 5,
+                        "cellType": 11,
+                        "occupantId": "crop:5:-5",
+                        "hasTerrainData": true,
+                        "terrainType": 0,
+                        "biome": 0,
+                        "moisture": 0,
+                        "permissions": 0,
+                        "farmingMoisture": 0,
+                        "fertilizer": 0,
+                        "lastWateredDay": 0,
+                        "farmingFlags": 0
+                    },
+                    {
+                        "localX": 5,
+                        "localZ": 6,
+                        "cellType": 11,
+                        "occupantId": "crop:5:-4",
+                        "hasTerrainData": true,
+                        "terrainType": 0,
+                        "biome": 0,
+                        "moisture": 0,
+                        "permissions": 0,
+                        "farmingMoisture": 0,
+                        "fertilizer": 0,
+                        "lastWateredDay": 0,
+                        "farmingFlags": 0
+                    }
+                ]
+            }
+        ]
+    },
+    "worldBaseHash": 7370389723730493432,
+    "gridCells": [],
+    "crops": [
+        {
+            "x": 0,
+            "z": -6,
+            "cropId": "carrot",
+            "plantedAtUnixMs": 1792612984271,
+            "growDurationSeconds": 8.0,
+            "stageCount": 3
+        },
+        {
+            "x": 1,
+            "z": -6,
+            "cropId": "potato",
+            "plantedAtUnixMs": 1792612984281,
+            "growDurationSeconds": 16.0,
+            "stageCount": 3
+        },
+        {
+            "x": 2,
+            "z": -6,
+            "cropId": "wheat",
+            "plantedAtUnixMs": 1792612984282,
+            "growDurationSeconds": 12.0,
+            "stageCount": 3
+        },
+        {
+            "x": 3,
+            "z": -6,
+            "cropId": "tomato",
+            "plantedAtUnixMs": 1792612984283,
+            "growDurationSeconds": 24.0,
+            "stageCount": 3
+        },
+        {
+            "x": 4,
+            "z": -6,
+            "cropId": "corn",
+            "plantedAtUnixMs": 1792612984284,
+            "growDurationSeconds": 18.0,
+            "stageCount": 3
+        },
+        {
+            "x": 5,
+            "z": -6,
+            "cropId": "cucumber",
+            "plantedAtUnixMs": 1792612984285,
+            "growDurationSeconds": 10.0,
+            "stageCount": 3
+        },
+        {
+            "x": 0,
+            "z": -5,
+            "cropId": "carrot",
+            "plantedAtUnixMs": 1792612979880,
+            "growDurationSeconds": 8.0,
+            "stageCount": 3
+        },
+        {
+            "x": 1,
+            "z": -5,
+            "cropId": "potato",
+            "plantedAtUnixMs": 1792612975482,
+            "growDurationSeconds": 16.0,
+            "stageCount": 3
+        },
+        {
+            "x": 2,
+            "z": -5,
+            "cropId": "wheat",
+            "plantedAtUnixMs": 1792612977683,
+            "growDurationSeconds": 12.0,
+            "stageCount": 3
+        },
+        {
+            "x": 3,
+            "z": -5,
+            "cropId": "tomato",
+            "plantedAtUnixMs": 1792612971083,
+            "growDurationSeconds": 24.0,
+            "stageCount": 3
+        },
+        {
+            "x": 4,
+            "z": -5,
+            "cropId": "corn",
+            "plantedAtUnixMs": 1792612974384,
+            "growDurationSeconds": 18.0,
+            "stageCount": 3
+        },
+        {
+            "x": 5,
+            "z": -5,
+            "cropId": "cucumber",
+            "plantedAtUnixMs": 1792612978785,
+            "growDurationSeconds": 10.0,
+            "stageCount": 3
+        },
+        {
+            "x": 0,
+            "z": -4,
+            "cropId": "carrot",
+            "plantedAtUnixMs": 1792613594838,
+            "growDurationSeconds": 8.0,
+            "stageCount": 3
+        },
+        {
+            "x": 1,
+            "z": -4,
+            "cropId": "potato",
+            "plantedAtUnixMs": 1792613685662,
+            "growDurationSeconds": 16.0,
+            "stageCount": 3
+        },
+        {
+            "x": 2,
+            "z": -4,
+            "cropId": "wheat",
+            "plantedAtUnixMs": 1792613232013,
+            "growDurationSeconds": 12.0,
+            "stageCount": 3
+        },
+        {
+            "x": 3,
+            "z": -4,
+            "cropId": "tomato",
+            "plantedAtUnixMs": 1792613324728,
+            "growDurationSeconds": 24.0,
+            "stageCount": 3
+        },
+        {
+            "x": 4,
+            "z": -4,
+            "cropId": "corn",
+            "plantedAtUnixMs": 1792613414836,
+            "growDurationSeconds": 18.0,
+            "stageCount": 3
+        },
+        {
+            "x": 5,
+            "z": -4,
+            "cropId": "cucumber",
+            "plantedAtUnixMs": 1792613504838,
+            "growDurationSeconds": 10.0,
+            "stageCount": 3
+        }
+    ],
+    "trees": [
+        {
+            "x": 6,
+            "z": 4,
+            "treeId": "apple",
+            "plantedAtUnixMs": 1792612864250,
+            "lastHarvestAtUnixMs": 1792613650842
+        }
+    ],
+    "animals": [
+        {
+            "animalId": "chicken_1",
+            "definitionId": "chicken",
+            "x": 2,
+            "z": 3,
+            "lastFedAtUnixMs": 1792613639840,
+            "nextProductAtUnixMs": 1792613679840,
+            "readyProductCount": 1
+        }
+    ],
+    "buildings": [],
+    "selectedQuickSlot": 0,
+    "sectorUnlocked": false,
+    "toolUpgradeLevel": 0,
+    "onboardingStep": 2
+}

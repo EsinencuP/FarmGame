@@ -1,0 +1,47 @@
+VBCSCompilerPreWarmer: watching VBCSCompiler (PID 31216)
+VBCSCompilerPreWarmer: pre-warm launched (dotnet PID 20412)
+VBCSCompiler prewarm took 5.15 ms
+[Licensing::Module] Trying to connect to existing licensing client channel...
+Built from '6000.6/staging' branch; Version is '6000.6.4f1 (12bfff696524) revision 1228799'; Using compiler version '194234433'; Build Type 'Release'
+OS: 'Windows 10  (10.0.19044) 64bit IoTEnterpriseS' Language: 'ru' Physical Memory: 15742 MB
+BatchMode: 1, IsHumanControllingUs: 0, StartBugReporterOnCrash: 0, Is64bit: 1
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-esinencuP" at "2026-10-08T18:43:02.0694612Z"
+System  architecture: x64
+Process architecture: x64
+Date: 2026-10-08T18:43:02Z
+[Licensing::Client] Code 10 while verifying Licensing Client signature (process Id: 20804, path: "D:/Soft/Unity/Unity Hub/UnityLicensingClient_V1/Unity.Licensing.Client.exe")
+[Licensing::Module] LicensingClient has failed validation; ignoring
+[Licensing::Client] Handshaking with LicensingClient:
+  Version:                 1.18.3+d7ffd15
+  Session Id:              72cf088f0b5c4836a33ce69e7d594cde
+  Correlation Id:          79c37eb0b0fd1a485319aadba0a93071
+  External correlation Id: 8451138625604821431
+  Machine Id:              o7q0VzjgxtV32rt60U1oaUAvw70=
+[Licensing::Module] Successfully connected to LicensingClient on channel: "LicenseClient-esinencuP" (connect: 0.00s, validation: 0.00s, handshake: 0.03s)
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-esinencuP-notifications" at "2026-10-08T18:43:02.1014169Z"
+[Licensing::Module] Error: Access token is unavailable; failed to update
+[Licensing::Client] Successfully resolved entitlement details
+[Licensing::Module] License group:
+  Id: 7972499343790-UnityPersXXXX
+  Product: Unity Personal
+  Type: Assigned
+  Expiration: Unlimited
+[Licensing::Client] Successfully updated license, isAsync: True, time: 0.00
+[Licensing::Module] Licensing Background thread has ended after 0.03s
+
+COMMAND LINE ARGUMENTS:
+C:\Program Files\Unity\Hub\Editor\6000.6.4f1\Editor\Unity.exe
+-batchmode
+-nographics
+-projectPath
+D:\Evo Web Design\FarmGame
+-runTests
+-testPlatform
+EditMode
+-testResults
+D:\Evo Web Design\FarmGame\Verification\baseline-editmode.xml
+-logFile
+D:\Evo Web Design\FarmGame\Verification\baseline-editmode.log
+Successfully changed project path to: D:\Evo Web Design\FarmGame
+D:/Evo Web Design/FarmGame
+[ExitDontLaunchBugReporter] Exiting without the bug reporter. Application will exit with return code 1

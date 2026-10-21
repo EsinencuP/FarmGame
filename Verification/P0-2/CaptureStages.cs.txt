@@ -1,0 +1,98 @@
+// Unity MCP execute_code method body, with Prototype open in Edit Mode.
+// Renders real CropView instances in an isolated preview scene, without changing the source scene.
+if (Application.isPlaying) throw new System.InvalidOperationException("Use Edit Mode for the contact sheet.");
+var scene = UnityEditor.SceneManagement.EditorSceneManager.NewPreviewScene();
+var root = new GameObject("Crop stage contact sheet");
+UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(root, scene);
+root.AddComponent<MyLittleFarm.Core.RuntimeMaterials>();
+var cameraObject = new GameObject("Contact sheet camera");
+cameraObject.transform.SetParent(root.transform, false);
+var camera = cameraObject.AddComponent<Camera>();
+camera.scene = scene;
+camera.enabled = false;
+camera.clearFlags = CameraClearFlags.SolidColor;
+camera.backgroundColor = new Color(0.80f, 0.86f, 0.81f);
+camera.orthographic = true;
+camera.orthographicSize = 1.0f;
+camera.transform.position = new Vector3(2.8f, 2.4f, -3.4f);
+camera.transform.LookAt(new Vector3(0f, 0.55f, 0f));
+var sun = new GameObject("Contact sheet sun").AddComponent<Light>();
+sun.transform.SetParent(root.transform, false);
+sun.type = LightType.Directional;
+sun.transform.rotation = Quaternion.Euler(48f, -32f, 0f);
+sun.intensity = 1.25f;
+sun.color = new Color(1f, 0.93f, 0.78f);
+sun.shadows = LightShadows.Soft;
+var soil = GameObject.CreatePrimitive(PrimitiveType.Cube);
+soil.transform.SetParent(root.transform, false);
+soil.name = "One cell of soil";
+soil.transform.localPosition = Vector3.down * 0.045f;
+soil.transform.localScale = new Vector3(1f, 0.09f, 1f);
+MyLittleFarm.Core.RuntimeMaterials.Paint(soil.GetComponent<Renderer>(), new Color(0.32f, 0.21f, 0.12f));
+var label = new GameObject("Stage label").AddComponent<TextMesh>();
+label.transform.SetParent(root.transform, false);
+label.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+label.GetComponent<MeshRenderer>().sharedMaterial = label.font.material;
+label.fontSize = 44;
+label.characterSize = 0.035f;
+label.anchor = TextAnchor.MiddleCenter;
+label.alignment = TextAlignment.Center;
+label.color = new Color(0.06f, 0.12f, 0.09f);
+label.transform.rotation = camera.transform.rotation;
+label.transform.position = camera.ViewportToWorldPoint(new Vector3(0.5f, 0.035f, 3f));
+const int width = 600, height = 420;
+var rt = new RenderTexture(width, height, 24);
+var texture = new Texture2D(width, height, TextureFormat.RGB24, false);
+var sheet = new Texture2D(width * 3, height * 6, TextureFormat.RGB24, false);
+var previousRT = RenderTexture.active;
+camera.targetTexture = rt;
+var report = new System.Text.StringBuilder();
+try
+{
+    var ids = MyLittleFarm.Gameplay.Farming.FarmCatalog.CropIds;
+    var stageNames = new[] { "Росток", "Рост", "Зрелая" };
+    var directory = System.IO.Path.GetFullPath("Verification/P0-2");
+    System.IO.Directory.CreateDirectory(directory);
+    for (var row = 0; row < ids.Length; row++)
+    {
+        var definition = UnityEditor.AssetDatabase.LoadAssetAtPath<MyLittleFarm.Gameplay.Farming.CropDefinition>("Assets/_Game/Content/Crops/" + ids[row] + ".asset");
+        var view = MyLittleFarm.Gameplay.Farming.CropView.Create(Vector3.zero, definition, root.transform);
+        try
+        {
+            for (var stage = 0; stage < 3; stage++)
+            {
+                view.SetStage(stage, 3);
+                GameObject active = null;
+                foreach (Transform child in view.transform) if (child.gameObject.activeSelf) active = child.gameObject;
+                MyLittleFarm.Core.VisualPrefab.TryGetBounds(active, out var bounds);
+                var triangles = 0;
+                foreach (var filter in active.GetComponentsInChildren<MeshFilter>())
+                    for (var sub = 0; sub < filter.sharedMesh.subMeshCount; sub++)
+                        triangles += (int)filter.sharedMesh.GetIndexCount(sub) / 3;
+                report.AppendLine(ids[row] + " stage=" + stage + " size=" + bounds.size.ToString("F4") + " bottom=" + bounds.min.y + " triangles(all LODs)=" + triangles);
+                label.text = definition.DisplayName + " · " + stageNames[stage];
+                camera.Render();
+                RenderTexture.active = rt;
+                texture.ReadPixels(new Rect(0, 0, width, height), 0, 0);
+                texture.Apply();
+                sheet.SetPixels(stage * width, (5 - row) * height, width, height, texture.GetPixels());
+                System.IO.File.WriteAllBytes(System.IO.Path.Combine(directory, ids[row] + "-" + stage + ".png"), texture.EncodeToPNG());
+            }
+        }
+        finally { UnityEngine.Object.DestroyImmediate(view.gameObject); }
+    }
+    sheet.Apply();
+    System.IO.File.WriteAllBytes(System.IO.Path.Combine(directory, "all-stages.png"), sheet.EncodeToPNG());
+    System.IO.File.WriteAllText(System.IO.Path.Combine(directory, "stage-measurements.txt"), report.ToString());
+    return report.ToString();
+}
+finally
+{
+    RenderTexture.active = previousRT;
+    camera.targetTexture = null;
+    rt.Release();
+    UnityEngine.Object.DestroyImmediate(rt);
+    UnityEngine.Object.DestroyImmediate(texture);
+    UnityEngine.Object.DestroyImmediate(sheet);
+    UnityEditor.SceneManagement.EditorSceneManager.ClosePreviewScene(scene);
+}

@@ -1,0 +1,35 @@
+Ground validation issues: 0
+TileBlock_Start visualTop=0 colliderTop=0
+TileBlock_Extra visualTop=0 colliderTop=0
+TileBlock_-1_-1 visualTop=0 colliderTop=0
+TileBlock_-1_0 visualTop=0 colliderTop=0
+TileBlock_-1_1 visualTop=0 colliderTop=0
+TileBlock_0_-1 visualTop=0 colliderTop=0
+TileBlock_0_1 visualTop=0 colliderTop=0
+TileBlock_1_-1 visualTop=0 colliderTop=0
+TileBlock_1_1 visualTop=0 colliderTop=0
+Player compensated renderer bottom=-0,05794626
+Player baked mesh bottom (Hat)=1,048404
+Player baked mesh bottom (Peasant Nolant)=0
+Chicken feet bottom=0
+house rotation=0 visualBottom=0 colliderBottom=0
+house rotation=90 visualBottom=0 colliderBottom=0
+house rotation=180 visualBottom=0 colliderBottom=0
+house rotation=270 visualBottom=0 colliderBottom=0
+storage rotation=0 visualBottom=0 colliderBottom=0
+storage rotation=90 visualBottom=0 colliderBottom=0
+storage rotation=180 visualBottom=0 colliderBottom=0
+storage rotation=270 visualBottom=0 colliderBottom=0
+market rotation=0 visualBottom=0 colliderBottom=0
+market rotation=90 visualBottom=0 colliderBottom=0
+market rotation=180 visualBottom=0 colliderBottom=0
+market rotation=270 visualBottom=0 colliderBottom=0
+flowerbed rotation=0 visualBottom=0 colliderBottom=0
+flowerbed rotation=90 visualBottom=0 colliderBottom=0
+flowerbed rotation=180 visualBottom=0 colliderBottom=0
+flowerbed rotation=270 visualBottom=0 colliderBottom=0
+coop rotation=0 visualBottom=0 colliderBottom=0
+coop rotation=90 visualBottom=0 colliderBottom=0
+coop rotation=180 visualBottom=0 colliderBottom=0
+coop rotation=270 visualBottom=0 colliderBottom=0
+Shadows=Soft; quality=All; distance=150

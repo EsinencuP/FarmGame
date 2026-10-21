@@ -14,6 +14,8 @@ namespace MyLittleFarm.Gameplay.Farming
         [SerializeField, Min(1)] private int yieldAmount = 3;
         [SerializeField] private Color foliageColor = new Color(0.16f, 0.48f, 0.12f);
         [SerializeField] private Color fruitReadyColor = new Color(0.82f, 0.16f, 0.08f);
+        [SerializeField] private GameObject visualPrefab;
+        [SerializeField] private GameObject fruitPrefab;
 
         // Стабильные идентификаторы и параметры можно изменять в Inspector без отдельного кода дерева.
         public string TreeId => treeId;
@@ -24,6 +26,8 @@ namespace MyLittleFarm.Gameplay.Farming
         public int YieldAmount => yieldAmount;
         public Color FoliageColor => foliageColor;
         public Color FruitReadyColor => fruitReadyColor;
+        public GameObject VisualPrefab => visualPrefab;
+        public GameObject FruitPrefab => fruitPrefab;
 
         /// <summary>Заполняет временное определение яблони для прототипа без .asset-файла.</summary>
         public void ConfigurePlaceholder(string id, string title, float firstHarvest, float regrow,

@@ -1,0 +1,75 @@
+{
+  "ground": [
+    {
+      "name": "TileBlock_Start",
+      "visualTop": 0.0,
+      "colliderTop": 0.0
+    },
+    {
+      "name": "TileBlock_Extra",
+      "visualTop": 0.0,
+      "colliderTop": 0.0
+    },
+    {
+      "name": "TileBlock_-1_-1",
+      "visualTop": 0.0,
+      "colliderTop": 0.0
+    },
+    {
+      "name": "TileBlock_-1_0",
+      "visualTop": 0.0,
+      "colliderTop": 0.0
+    },
+    {
+      "name": "TileBlock_-1_1",
+      "visualTop": 0.0,
+      "colliderTop": 0.0
+    },
+    {
+      "name": "TileBlock_0_-1",
+      "visualTop": 0.0,
+      "colliderTop": 0.0
+    },
+    {
+      "name": "TileBlock_0_1",
+      "visualTop": 0.0,
+      "colliderTop": 0.0
+    },
+    {
+      "name": "TileBlock_1_-1",
+      "visualTop": 0.0,
+      "colliderTop": 0.0
+    },
+    {
+      "name": "TileBlock_1_1",
+      "visualTop": 0.0,
+      "colliderTop": 0.0
+    }
+  ],
+  "feet": 0.000171065331,
+  "prompt": "Дом — 20 монет   2×2\n1 Дом (20)   2 Склад (12)   3 Стойка (10)   4 Клумба (3)   5 Курятник (18)\nРазмещение доступно\nЛКМ / E — разместить   R — поворот   M — перенос\nDelete — удалить   B / Esc / ПКМ — отмена",
+  "promptHeight": 180.0,
+  "promptPreferredHeight": 107.66407,
+  "buildings": [
+    {
+      "DefinitionId": "house",
+      "size": "(1.88, 2.80, 1.65)"
+    },
+    {
+      "DefinitionId": "storage",
+      "size": "(1.19, 1.80, 0.88)"
+    },
+    {
+      "DefinitionId": "market",
+      "size": "(0.88, 1.60, 1.57)"
+    },
+    {
+      "DefinitionId": "flowerbed",
+      "size": "(0.64, 0.45, 0.88)"
+    },
+    {
+      "DefinitionId": "coop",
+      "size": "(1.31, 1.70, 1.88)"
+    }
+  ]
+}

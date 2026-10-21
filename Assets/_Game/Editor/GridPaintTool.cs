@@ -13,6 +13,8 @@ namespace MyLittleFarm.Editor
         // Общие настройки доступны окну палитры и сохраняются при переключении инструмента.
         public static CellType SelectedTerrain { get; set; } = CellType.Grass;
         public static int BrushSize { get; set; } = 1;
+        public static bool PaintPermissions { get; set; }
+        public static CellPermissions SelectedPermissions { get; set; } = CellPermissions.Inherit;
         private Vector2Int? _lastPainted;
 
         /// <summary>Показывает кисть и записывает клетки карты при движении нажатой мыши.</summary>
@@ -84,7 +86,10 @@ namespace MyLittleFarm.Editor
             {
                 var coordinate = new Vector2Int(x, z);
                 if (grid.GridToChunk(coordinate) != chunkCoordinate) continue;
-                chunk.WorldMap.SetTerrain(coordinate, new TerrainCell(SelectedTerrain));
+                var terrain = grid.GetTerrainCell(coordinate);
+                if (PaintPermissions) terrain.permissions = SelectedPermissions;
+                else terrain.type = SelectedTerrain;
+                chunk.WorldMap.SetTerrain(coordinate, terrain);
             }
             chunk.ApplyTo(grid);
             chunk.GetComponent<ChunkRenderer>()?.Rebuild();

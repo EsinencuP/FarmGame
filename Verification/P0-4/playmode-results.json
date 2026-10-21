@@ -1,0 +1,9 @@
+{
+  "job_id": "f3c9d2bb535d4b2fbe8fbc01bf648cf4",
+  "mode": "PlayMode",
+  "status": "succeeded",
+  "started_unix_ms": 1792611612110,
+  "finished_unix_ms": 1792611623760,
+  "summary": { "total": 36, "passed": 36, "failed": 0, "skipped": 0, "durationSeconds": 8.1355705 },
+  "note": "Run before the user's testing-cadence instruction. The subsequently added E-place / cancel move / E-delete scenario is compiled but deferred to the end of Phase 0."
+}

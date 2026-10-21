@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d07a1340587b49598357446b7aa0fb6b, type: 3}
+  m_Name: potato
+  m_EditorClassIdentifier: MyLittleFarm.Runtime::MyLittleFarm.Gameplay.Farming.CropDefinition
+  cropId: potato
+  displayName: "\u041A\u0430\u0440\u0442\u043E\u0444\u0435\u043B\u044C"
+  seedItemId: potato_seed
+  harvestItemId: potato
+  growDurationSeconds: 16
+  yieldAmount: 3
+  stageCount: 3
+  matureColor: {r: 0.62, g: 0.44, b: 0.22, a: 1}
+  stagePrefabs:
+  - {fileID: 7361683089704422037, guid: 94bf62d907baea94fa29e523c5472a85, type: 3}
+  - {fileID: 8632788471289784817, guid: 5b2f0553bd714e34d88333a68e6ed46e, type: 3}
+  - {fileID: 5792401802147771035, guid: 82c80672f6a1aed418d9bb299cb30bbe, type: 3}
+  stageSizes:
+  - {x: 0.24, y: 0.14, z: 0.24}
+  - {x: 0.46, y: 0.27, z: 0.46}
+  - {x: 0.7, y: 0.5, z: 0.7}

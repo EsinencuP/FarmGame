@@ -1,0 +1,148 @@
+// Method body for unity-mcp execute_code; run with Prototype open in Edit Mode.
+// Creates an isolated preview scene. No source objects, assets or saves are changed.
+var source = UnityEngine.SceneManagement.SceneManager.GetActiveScene();
+if (Application.isPlaying || source.path != "Assets/_Game/Scenes/Prototype.unity")
+    throw new System.InvalidOperationException("Open Prototype in Edit Mode.");
+var farm = UnityEngine.Object.FindAnyObjectByType<MyLittleFarm.Core.GameBootstrap>();
+var grid = farm.GetComponentInChildren<MyLittleFarm.Core.Grid.GridSystem>();
+var originalPlayer = farm.GetComponentInChildren<MyLittleFarm.Gameplay.World.PlayerController>();
+var originalController = originalPlayer.GetComponent<CharacterController>();
+var build = new UnityEditor.SerializedObject(farm.GetComponentInChildren<MyLittleFarm.Gameplay.Building.BuildSystem>());
+var visuals = build.FindProperty("visualPrefabs");
+var report = new System.Text.StringBuilder();
+var issues = MyLittleFarm.Editor.GroundAlignmentValidator.ValidateScene(source);
+report.AppendLine("Ground validation issues: " + issues.Count);
+foreach (var issue in issues) report.AppendLine(issue);
+foreach (var chunk in farm.GetComponentsInChildren<MyLittleFarm.Core.Grid.TilemapChunk>(true))
+{
+    MyLittleFarm.Core.VisualPrefab.TryGetBounds(chunk.transform.Find("Ground Visual").gameObject, out var b);
+    report.AppendLine(chunk.name + " visualTop=" + b.max.y + " colliderTop=" + chunk.TerrainCollider.bounds.max.y);
+}
+var scene = UnityEditor.SceneManagement.EditorSceneManager.NewPreviewScene();
+var root = new GameObject("P0 contact preview");
+UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(root, scene);
+root.AddComponent<MyLittleFarm.Core.RuntimeMaterials>();
+var previousRT = RenderTexture.active;
+RenderTexture rt = null;
+Texture2D texture = null;
+try
+{
+    foreach (var chunk in farm.GetComponentsInChildren<MyLittleFarm.Core.Grid.TilemapChunk>(true))
+    {
+        var ground = UnityEngine.Object.Instantiate(chunk.transform.Find("Ground Visual").gameObject, root.transform);
+        ground.transform.position = chunk.transform.Find("Ground Visual").position;
+    }
+    var playerRoot = new GameObject("Player contact");
+    playerRoot.transform.SetParent(root.transform, false);
+    playerRoot.transform.position = new Vector3(3f, 1.1f, 4f);
+    var controller = playerRoot.AddComponent<CharacterController>();
+    controller.height = originalController.height;
+    controller.radius = originalController.radius;
+    controller.center = originalController.center;
+    controller.skinWidth = originalController.skinWidth;
+    var art = UnityEngine.Object.Instantiate(originalPlayer.transform.Find("Nolant Visual").gameObject, playerRoot.transform, false);
+    var animator = art.GetComponentInChildren<Animator>();
+    animator.Rebind();
+    animator.Update(0f);
+    animator.enabled = false;
+    // Preview scenes have no gameplay physics. Put the capsule at its grounded contact height.
+    playerRoot.transform.position = new Vector3(3f, controller.height * 0.5f - controller.center.y + controller.skinWidth, 4f);
+    MyLittleFarm.Core.VisualPrefab.TryGetBounds(art, out var playerBounds);
+    report.AppendLine("Player compensated renderer bottom=" + playerBounds.min.y);
+    foreach (var skin in art.GetComponentsInChildren<SkinnedMeshRenderer>())
+    {
+        var mesh = new Mesh();
+        try
+        {
+            skin.BakeMesh(mesh, true);
+            var minY = float.PositiveInfinity;
+            foreach (var v in mesh.vertices) minY = Mathf.Min(minY, skin.transform.TransformPoint(v).y);
+            report.AppendLine("Player baked mesh bottom (" + skin.name + ")=" + minY);
+        }
+        finally { UnityEngine.Object.DestroyImmediate(mesh); }
+    }
+    var chickenDefinition = ScriptableObject.CreateInstance<MyLittleFarm.Gameplay.Animals.AnimalDefinition>();
+    try
+    {
+        var chicken = MyLittleFarm.Gameplay.Animals.AnimalView.Create(new Vector3(5f, 0f, 4f), chickenDefinition, root.transform);
+        MyLittleFarm.Core.VisualPrefab.TryGetBounds(chicken.gameObject, out var chickenBounds);
+        report.AppendLine("Chicken feet bottom=" + chickenBounds.min.y);
+    }
+    finally { UnityEngine.Object.DestroyImmediate(chickenDefinition); }
+    var index = 0;
+    foreach (var definition in MyLittleFarm.Gameplay.Building.BuildingDefinition.Catalog)
+    {
+        GameObject prefab = null;
+        for (var i = 0; i < visuals.arraySize; i++)
+        {
+            var entry = visuals.GetArrayElementAtIndex(i);
+            if (entry.FindPropertyRelative("definitionId").stringValue == definition.Id)
+                prefab = entry.FindPropertyRelative("prefab").objectReferenceValue as GameObject;
+        }
+        if (prefab == null) throw new System.InvalidOperationException("Missing building art: " + definition.Id);
+        MyLittleFarm.Gameplay.Building.BuildingView view = null;
+        for (var turns = 0; turns < 4; turns++)
+        {
+            var state = new MyLittleFarm.Gameplay.Building.BuildingRuntimeState
+                { id = "p0-" + definition.Id, definitionId = definition.Id, x = index * 3, z = 0, quarterTurns = turns };
+            if (view == null) view = MyLittleFarm.Gameplay.Building.BuildingView.Create(root.transform, definition, state, grid, prefab);
+            else view.Apply(state, definition, grid);
+            MyLittleFarm.Core.VisualPrefab.TryGetBounds(view.gameObject, out var bounds);
+            var collider = view.GetComponent<BoxCollider>();
+            var bottom = collider.transform.TransformPoint(collider.center - Vector3.up * collider.size.y * 0.5f).y;
+            report.AppendLine(definition.Id + " rotation=" + turns * 90 + " visualBottom=" + bounds.min.y + " colliderBottom=" + bottom);
+        }
+        view.Apply(new MyLittleFarm.Gameplay.Building.BuildingRuntimeState
+            { id = "p0-" + definition.Id, definitionId = definition.Id, x = index * 3, z = 0 }, definition, grid);
+        index++;
+    }
+    var lightObject = new GameObject("Preview sun");
+    lightObject.transform.SetParent(root.transform, false);
+    var sun = lightObject.AddComponent<Light>();
+    var originalSun = farm.GetComponentInChildren<Light>();
+    sun.type = LightType.Directional;
+    sun.transform.rotation = originalSun.transform.rotation;
+    sun.intensity = originalSun.intensity;
+    sun.color = originalSun.color;
+    sun.shadows = originalSun.shadows;
+    sun.shadowBias = originalSun.shadowBias;
+    sun.shadowNormalBias = originalSun.shadowNormalBias;
+    var cameraObject = new GameObject("Preview camera");
+    cameraObject.transform.SetParent(root.transform, false);
+    var camera = cameraObject.AddComponent<Camera>();
+    camera.scene = scene;
+    camera.enabled = false;
+    camera.clearFlags = CameraClearFlags.SolidColor;
+    camera.backgroundColor = new Color(0.58f, 0.77f, 0.92f);
+    camera.orthographic = true;
+    camera.orthographicSize = 6.5f;
+    camera.transform.position = new Vector3(16f, 12f, 18f);
+    camera.transform.LookAt(new Vector3(6f, 0.3f, 2f));
+    rt = new RenderTexture(1600, 900, 24);
+    texture = new Texture2D(1600, 900, TextureFormat.RGB24, false);
+    camera.targetTexture = rt;
+    var directory = System.IO.Path.GetFullPath("Verification/P0-1");
+    System.IO.Directory.CreateDirectory(directory);
+    for (var pass = 0; pass < 2; pass++)
+    {
+        sun.shadows = pass == 0 ? originalSun.shadows : LightShadows.None;
+        camera.Render();
+        RenderTexture.active = rt;
+        texture.ReadPixels(new Rect(0, 0, 1600, 900), 0, 0);
+        texture.Apply();
+        System.IO.File.WriteAllBytes(System.IO.Path.Combine(directory, pass == 0 ? "contacts-shadows.png" : "contacts-no-shadows.png"), texture.EncodeToPNG());
+    }
+    report.AppendLine("Shadows=" + originalSun.shadows + "; quality=" + QualitySettings.shadows + "; distance=" + QualitySettings.shadowDistance);
+    foreach (var renderer in root.GetComponentsInChildren<Renderer>())
+        if (renderer.name == "Ground Visual")
+            report.AppendLine("Ground receiveShadows=" + renderer.receiveShadows + "; shader=" + renderer.sharedMaterial.shader.name);
+    System.IO.File.WriteAllText(System.IO.Path.Combine(directory, "contact-measurements.txt"), report.ToString());
+    return report.ToString();
+}
+finally
+{
+    RenderTexture.active = previousRT;
+    if (rt != null) { rt.Release(); UnityEngine.Object.DestroyImmediate(rt); }
+    if (texture != null) UnityEngine.Object.DestroyImmediate(texture);
+    UnityEditor.SceneManagement.EditorSceneManager.ClosePreviewScene(scene);
+}

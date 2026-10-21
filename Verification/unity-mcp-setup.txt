@@ -1,0 +1,3 @@
+connected=True
+project=D:/Evo Web Design/FarmGame/Assets
+unity=6000.6.4f1

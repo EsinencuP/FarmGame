@@ -31,6 +31,16 @@ namespace MyLittleFarm.Gameplay.Building
         // Каталог прототипа хранится в коде; идентификаторы являются частью формата сохранения.
         public static IReadOnlyList<BuildingDefinition> Catalog { get; } = Array.AsReadOnly(new[]
         {
+            new BuildingDefinition("house", "Дом", 7, 6, 20, 5f),
+            new BuildingDefinition("storage", "Склад", 5, 6, 12, 4f),
+            new BuildingDefinition("market", "Торговая стойка", 8, 5, 10, 3.1f),
+            new BuildingDefinition("flowerbed", "Клумба", 1, 1, 3, 0.45f),
+            new BuildingDefinition("coop", "Курятник", 3, 5, 18, 4f)
+        });
+
+        // Version <= 6 footprints are used only to validate and migrate older saves.
+        public static IReadOnlyList<BuildingDefinition> LegacyCatalog { get; } = Array.AsReadOnly(new[]
+        {
             new BuildingDefinition("house", "Дом", 2, 2, 20, 2.8f),
             new BuildingDefinition("storage", "Склад", 2, 1, 12, 1.8f),
             new BuildingDefinition("market", "Торговая стойка", 1, 2, 10, 1.6f),

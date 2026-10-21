@@ -1,0 +1,48 @@
+HumanM@Idle01-Idle02 | Assets/Kevin Iglesias/Human Animations/Animations/Male/Idles/HumanM@Idle01-Idle02.fbx length=0,6666667 loop=False human=True rootY=True
+HumanM@Idle01 | Assets/Kevin Iglesias/Human Animations/Animations/Male/Idles/HumanM@Idle01.fbx length=2,7 loop=True human=True rootY=True
+HumanM@Idle02-Idle01 | Assets/Kevin Iglesias/Human Animations/Animations/Male/Idles/HumanM@Idle02-Idle01.fbx length=0,7666667 loop=False human=True rootY=True
+HumanM@Idle02 | Assets/Kevin Iglesias/Human Animations/Animations/Male/Idles/HumanM@Idle02.fbx length=2,7 loop=True human=True rootY=True
+HumanM@Fall01 | Assets/Kevin Iglesias/Human Animations/Animations/Male/Movement/Jump/HumanM@Fall01.fbx length=1 loop=True human=True rootY=True
+HumanM@Jump01 - Begin | Assets/Kevin Iglesias/Human Animations/Animations/Male/Movement/Jump/HumanM@Jump01 - Begin.fbx length=0,6666667 loop=False human=True rootY=True
+HumanM@Jump01 - Land | Assets/Kevin Iglesias/Human Animations/Animations/Male/Movement/Jump/HumanM@Jump01 - Land.fbx length=0,6 loop=False human=True rootY=True
+HumanM@Jump01 | Assets/Kevin Iglesias/Human Animations/Animations/Male/Movement/Jump/HumanM@Jump01.fbx length=1,533333 loop=False human=True rootY=True
+HumanM@Run01_Backward | Assets/Kevin Iglesias/Human Animations/Animations/Male/Movement/Run/HumanM@Run01_Backward.fbx length=0,6 loop=True human=True rootY=True
+HumanM@Run01_BackwardLeft | Assets/Kevin Iglesias/Human Animations/Animations/Male/Movement/Run/HumanM@Run01_BackwardLeft.fbx length=0,6 loop=True human=True rootY=True
+HumanM@Run01_BackwardRight | Assets/Kevin Iglesias/Human Animations/Animations/Male/Movement/Run/HumanM@Run01_BackwardRight.fbx length=0,6 loop=True human=True rootY=True
+HumanM@Run01_Forward | Assets/Kevin Iglesias/Human Animations/Animations/Male/Movement/Run/HumanM@Run01_Forward.fbx length=0,6 loop=True human=True rootY=True
+HumanM@Run01_ForwardLeft | Assets/Kevin Iglesias/Human Animations/Animations/Male/Movement/Run/HumanM@Run01_ForwardLeft.fbx length=0,6 loop=True human=True rootY=True
+HumanM@Run01_ForwardRight | Assets/Kevin Iglesias/Human Animations/Animations/Male/Movement/Run/HumanM@Run01_ForwardRight.fbx length=0,6 loop=True human=True rootY=True
+HumanM@Run01_Left | Assets/Kevin Iglesias/Human Animations/Animations/Male/Movement/Run/HumanM@Run01_Left.fbx length=0,6 loop=True human=True rootY=True
+HumanM@Run01_Right | Assets/Kevin Iglesias/Human Animations/Animations/Male/Movement/Run/HumanM@Run01_Right.fbx length=0,6 loop=True human=True rootY=True
+HumanM@Sprint01_Forward | Assets/Kevin Iglesias/Human Animations/Animations/Male/Movement/Sprint/HumanM@Sprint01_Forward.fbx length=0,5333334 loop=True human=True rootY=True
+HumanM@Sprint01_ForwardLeft | Assets/Kevin Iglesias/Human Animations/Animations/Male/Movement/Sprint/HumanM@Sprint01_ForwardLeft.fbx length=0,5333334 loop=True human=True rootY=True
+HumanM@Sprint01_ForwardRight | Assets/Kevin Iglesias/Human Animations/Animations/Male/Movement/Sprint/HumanM@Sprint01_ForwardRight.fbx length=0,5333334 loop=True human=True rootY=True
+HumanM@Sprint01_Left | Assets/Kevin Iglesias/Human Animations/Animations/Male/Movement/Sprint/HumanM@Sprint01_Left.fbx length=0,5333334 loop=True human=True rootY=True
+HumanM@Sprint01_Right | Assets/Kevin Iglesias/Human Animations/Animations/Male/Movement/Sprint/HumanM@Sprint01_Right.fbx length=0,5333334 loop=True human=True rootY=True
+HumanM@Turn01_Left | Assets/Kevin Iglesias/Human Animations/Animations/Male/Movement/Turn/HumanM@Turn01_Left.fbx length=1 loop=True human=True rootY=True
+HumanM@Turn01_Right | Assets/Kevin Iglesias/Human Animations/Animations/Male/Movement/Turn/HumanM@Turn01_Right.fbx length=1 loop=True human=True rootY=True
+HumanM@Walk01_Backward | Assets/Kevin Iglesias/Human Animations/Animations/Male/Movement/Walk/HumanM@Walk01_Backward.fbx length=0,8000001 loop=True human=True rootY=True
+HumanM@Walk01_BackwardLeft | Assets/Kevin Iglesias/Human Animations/Animations/Male/Movement/Walk/HumanM@Walk01_BackwardLeft.fbx length=0,8000001 loop=True human=True rootY=True
+HumanM@Walk01_BackwardRight | Assets/Kevin Iglesias/Human Animations/Animations/Male/Movement/Walk/HumanM@Walk01_BackwardRight.fbx length=0,8000001 loop=True human=True rootY=True
+HumanM@Walk01_Forward | Assets/Kevin Iglesias/Human Animations/Animations/Male/Movement/Walk/HumanM@Walk01_Forward.fbx length=0,8000001 loop=True human=True rootY=True
+HumanM@Walk01_ForwardLeft | Assets/Kevin Iglesias/Human Animations/Animations/Male/Movement/Walk/HumanM@Walk01_ForwardLeft.fbx length=0,8000001 loop=True human=True rootY=True
+HumanM@Walk01_ForwardRight | Assets/Kevin Iglesias/Human Animations/Animations/Male/Movement/Walk/HumanM@Walk01_ForwardRight.fbx length=0,8000001 loop=True human=True rootY=True
+HumanM@Walk01_Left | Assets/Kevin Iglesias/Human Animations/Animations/Male/Movement/Walk/HumanM@Walk01_Left.fbx length=0,8000001 loop=True human=True rootY=True
+HumanM@Walk01_Right | Assets/Kevin Iglesias/Human Animations/Animations/Male/Movement/Walk/HumanM@Walk01_Right.fbx length=0,8000001 loop=True human=True rootY=True
+HumanM@Talk01 | Assets/Kevin Iglesias/Human Animations/Animations/Male/Social/Conversation/HumanM@Talk01.fbx length=2,266667 loop=False human=True rootY=True
+Assets/Kevin Iglesias/Human Animations/Models/HumanM_Model.fbx
+Animator HumanM_Model
+SkinnedMeshRenderer HumanM_BodyMesh
+Assets/Kevin Iglesias/Human Animations/Unity Demo Scenes/Human Basic Motions/Prefabs/Human_BasicMotionsDummy_M.prefab
+Animator Human_BasicMotionsDummy_M
+SkinnedMeshRenderer HumanM_BodyMesh
+Bld_FarmerHouse bounds=Center: (0.00, 3.12, 0.02), Extents: (4.08, 3.12, 3.58)
+  Bld_FarmerHouse(Clone) 1717
+Bld_Barn_01 bounds=Center: (0.00, 3.60, 0.00), Extents: (3.83, 3.60, 5.18)
+  Bld_Barn_01(Clone) 1272
+Bld_Barn_02 bounds=Center: (0.00, 3.77, 0.07), Extents: (4.66, 3.96, 6.87)
+  Bld_Barn_02(Clone) 2096
+Bld_StoreBuilding_01 bounds=Center: (0.00, 2.40, 0.21), Extents: (5.74, 2.40, 3.21)
+  Bld_StoreBuilding_01(Clone) 401
+Bld_ChickenCoop bounds=Center: (0.00, 2.05, 0.45), Extents: (1.45, 2.05, 2.08)
+  Bld_ChickenCoop(Clone) 354

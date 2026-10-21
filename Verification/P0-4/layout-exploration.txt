@@ -1,0 +1,4 @@
+exploration (1280, 720) canvas=(1920.00, 1080.00) card=(1100.00, 180.00) text=(1064.00, 156.00) preferredHeight=22,5
+exploration (1920, 1080) canvas=(1920.00, 1080.00) card=(1100.00, 180.00) text=(1064.00, 156.00) preferredHeight=22
+exploration (2560, 1440) canvas=(1920.00, 1080.00) card=(1100.00, 180.00) text=(1064.00, 156.00) preferredHeight=22,5
+exploration (1280, 800) canvas=(1821.47, 1138.42) card=(1100.00, 180.00) text=(1064.00, 156.00) preferredHeight=22,7684

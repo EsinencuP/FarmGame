@@ -100,7 +100,7 @@ namespace MyLittleFarm.Gameplay.Animals
             };
             _animals.Add(stateToAdd.animalId, stateToAdd);
             _views.Add(stateToAdd.animalId,
-                AnimalView.Create(_grid.GridToWorld(position), _chicken, transform));
+                AnimalView.Create(_grid.GridToWorld(position), _chicken, transform, stateToAdd.animalId));
             GameEvents.RaiseInventoryChanged();
             return true;
         }
@@ -160,6 +160,32 @@ namespace MyLittleFarm.Gameplay.Animals
         /// <summary>Возвращает true, если рядом есть животное и для него показывается подсказка.</summary>
         public bool HasNearby(Vector3 playerPosition) => FindNearest(playerPosition) != null;
 
+        public bool IsWithinReach(string id, Vector3 playerPosition)
+        {
+            if (id == null || !_views.TryGetValue(id, out var view) || view == null) return false;
+            var offset = view.transform.position - playerPosition;
+            offset.y = 0f;
+            return offset.sqrMagnitude <= interactionDistance * interactionDistance;
+        }
+
+        public bool TryInteract(string id, Vector3 playerPosition, long nowUnixMs)
+        {
+            if (!IsWithinReach(id, playerPosition)) return false;
+            if (TryCollect(id, out _) || Feed(id, nowUnixMs)) return true;
+            GameEvents.RaiseStatusChanged(TargetPrompt(id, playerPosition));
+            return false;
+        }
+
+        public string TargetPrompt(string id, Vector3 playerPosition)
+        {
+            if (!IsWithinReach(id, playerPosition)) return "Курица слишком далеко — подойдите ближе";
+            if (!_animals.TryGetValue(id, out var animal)) return string.Empty;
+            if (animal.readyProductCount > 0) return "E / ЛКМ — собрать яйцо";
+            if (animal.nextProductAtUnixMs > 0) return "Курица накормлена — яйцо созревает";
+            return _inventory.GetAmount(_chicken.FeedItemId) > 0
+                ? "E / ЛКМ — покормить курицу пшеницей" : "Курице нужна пшеница";
+        }
+
         /// <summary>Подсказывает сбор, ожидание или кормление ближайшей курицы.</summary>
         public string NearbyPrompt(Vector3 playerPosition)
         {
@@ -204,7 +230,7 @@ namespace MyLittleFarm.Gameplay.Animals
                     readyProductCount = saved.readyProductCount
                 };
                 _animals.Add(copy.animalId, copy);
-                _views.Add(copy.animalId, AnimalView.Create(_grid.GridToWorld(copy.Position), _chicken, transform));
+                _views.Add(copy.animalId, AnimalView.Create(_grid.GridToWorld(copy.Position), _chicken, transform, copy.animalId));
             }
         }
 
