@@ -14,6 +14,7 @@ namespace MyLittleFarm.Gameplay.Farming
         public long plantedAtUnixMs;
         // Длительность и число стадий позволяют рассчитать прогресс и внешний вид после загрузки.
         public float growDurationSeconds;
+        public float weatherGrowthBonusSeconds;
         public int stageCount;
 
         /// <summary>Возвращает клеточную позицию в формате, принятом GridSystem.</summary>
@@ -49,7 +50,7 @@ namespace MyLittleFarm.Gameplay.Farming
             }
 
             var elapsedSeconds = (float)(((double)nowUnixMs - plantedAtUnixMs) / 1000.0);
-            return Mathf.Clamp01(elapsedSeconds / growDurationSeconds);
+            return Mathf.Clamp01((elapsedSeconds+weatherGrowthBonusSeconds) / growDurationSeconds);
         }
     }
 }

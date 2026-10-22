@@ -91,7 +91,7 @@ namespace MyLittleFarm.Gameplay.Farming
                     || !usedItemIds.Add(crop.HarvestItemId)
                     || !_items.TryGetValue(crop.SeedItemId, out var seed)
                     || !_items.TryGetValue(crop.HarvestItemId, out var harvest)
-                    || !seed.CanBuy || seed.BuyPrice < 0 || harvest.SellPrice < 1)
+                    || (!seed.CanBuy && !crop.RareSeeds) || seed.BuyPrice < 0 || harvest.SellPrice < 1)
                     throw new InvalidOperationException($"Crop '{id}' has invalid growth, seed or sale data.");
                 _orderedCrops.Add(crop);
             }
@@ -106,6 +106,7 @@ namespace MyLittleFarm.Gameplay.Farming
 
         /// <summary>Возвращает предмет и его цены для торговли.</summary>
         public bool TryGetItem(string id, out ItemDefinition item) => _items.TryGetValue(id ?? string.Empty, out item);
+        public bool IsRareSeed(string id){foreach(var crop in _orderedCrops)if(crop.SeedItemId==id)return crop.RareSeeds;return false;}
 
         private void AddPlaceholder(string id, PlaceholderCropSettings settings)
         {
@@ -117,7 +118,7 @@ namespace MyLittleFarm.Gameplay.Farming
             _placeholders.Add(crop);
             var seed = ScriptableObject.CreateInstance<ItemDefinition>();
             seed.ConfigurePlaceholder(crop.SeedItemId, "Семена: " + settings.displayName,
-                settings.seedPrice, 0, true);
+                settings.seedPrice, 0, id!="corn");
             _items.Add(seed.ItemId, seed);
             _placeholders.Add(seed);
             var harvest = ScriptableObject.CreateInstance<ItemDefinition>();

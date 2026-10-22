@@ -28,3 +28,7 @@ MonoBehaviour:
   - {x: 0.24, y: 0.14, z: 0.24}
   - {x: 0.46, y: 0.45900002, z: 0.46}
   - {x: 0.7, y: 0.85, z: 0.7}
+  rareSeeds: 0
+  bonusStartHour: 11
+  bonusEndHour: 15
+  bonusHarvestYield: 2

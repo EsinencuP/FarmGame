@@ -17,6 +17,9 @@ namespace MyLittleFarm.UI
         [SerializeField] private UnityEngine.UI.Text help;
         [SerializeField] private UnityEngine.UI.Text status;
         [SerializeField] private UnityEngine.UI.Text onboarding;
+        [SerializeField] private OnboardingOverlay onboardingOverlay;
+        [SerializeField] private UnityEngine.UI.Text worldClock;
+        [SerializeField] private RectTransform clockSpeedButton;
         [SerializeField] private UnityEngine.UI.Text prompt;
         [SerializeField] private RectTransform quickSlots;
 
@@ -27,6 +30,7 @@ namespace MyLittleFarm.UI
         private Rect _safeArea;
         private bool _styled;
         private bool _buildingVisible;
+        private bool _tutorialVisible;
         private bool _layoutDirty;
 
         public void Configure(RectTransform panel, UnityEngine.UI.Text statsText,
@@ -69,7 +73,8 @@ namespace MyLittleFarm.UI
             stats.text = "<b>МОНЕТЫ  —</b>\nСЕМЕНА / УРОЖАЙ\n<color=#F0CF78><b>1  Морковь  — / —</b></color>\n2  Картофель  — / —\n3  Пшеница  — / —\n4  Томат  — / —\n5  Кукуруза  — / —\n6  Огурец  — / —\nСЕКТОР  L\nИНСТРУМЕНТ  U\nЯБЛОКИ —   ЯЙЦА —   КУРЫ —\nP: купить семена";
             if (prompt != null) prompt.text = "Наведите курсор на объект или грядку";
             if (status != null) status.text = string.Empty;
-            if (onboarding != null) onboarding.text = "Постройте дом (B → 1 → ЛКМ)";
+            if (onboarding != null) onboarding.text = MyLittleFarm.Gameplay.World.OnboardingSystem.HintFor(0);
+            if(worldClock!=null)worldClock.text="08:00 · Утро\nМорковь: 05:00–09:00, +1 к сбору";
             var building = editorPreview != PreviewMode.Exploration;
             if (buildPrompt != null) buildPrompt.Show(building, BuildSystem.PlacementPrompt(
                 BuildingDefinition.Catalog[0], 0, false, editorPreview == PreviewMode.BuildAllowed, "Место занято"));
@@ -89,7 +94,8 @@ namespace MyLittleFarm.UI
             }
             if (!_styled || _width != Screen.width || _height != Screen.height || _safeArea != Screen.safeArea
                 || (_canvas != null && _canvasSize != _canvas.rect.size)
-                || _buildingVisible != (buildPrompt != null && buildPrompt.gameObject.activeSelf)) ApplyLayout();
+                || _buildingVisible != (buildPrompt != null && buildPrompt.gameObject.activeSelf)
+                || _tutorialVisible != (onboardingOverlay != null && onboardingOverlay.IsVisible)) ApplyLayout();
         }
 
         private void ApplyLayout()
@@ -110,9 +116,11 @@ namespace MyLittleFarm.UI
             var centerOffset = (leftInset - rightInset) * 0.5f;
             var narrow = width < 1050f;
             _buildingVisible = buildPrompt != null && buildPrompt.gameObject.activeSelf;
+            _tutorialVisible = onboardingOverlay != null && onboardingOverlay.IsVisible;
             var promptHeight = _buildingVisible ? BuildPromptUI.Height : 56f;
-            var panelWidth = Mathf.Min(390f, width - 32f);
-            var panelHeight = Mathf.Min(380f, Mathf.Max(160f, canvasHeight - topInset - bottomInset - 330f));
+            var panelWidth = narrow ? Mathf.Min(320f, width * .42f) : Mathf.Min(390f, width - 32f);
+            var reservedBottom = narrow ? 215f + promptHeight : 330f;
+            var panelHeight = Mathf.Min(380f, Mathf.Max(160f, canvasHeight - topInset - bottomInset - reservedBottom - 16f));
             if (!_styled)
             {
                 var background = statsPanel.GetComponent<Image>();
@@ -152,7 +160,7 @@ namespace MyLittleFarm.UI
                 help.enabled = !_buildingVisible;
                 if (narrow)
                 {
-                    help.text = "WASD ходьба  ·  E/ЛКМ действие  ·  B стройка\n1–6 семена  ·  P магазин  ·  F5/F9 сохранение";
+                    help.text = "WASD ходьба  ·  E/ЛКМ действие  ·  B стройка\n1–6 семена  ·  P магазин  ·  J журнал  ·  F5/F9 сохранения";
                     Place(help.rectTransform, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f),
                         new Vector2(centerOffset, bottomInset + 82f), new Vector2(width - 24f, 48f));
                     help.alignment = TextAnchor.MiddleCenter;
@@ -160,9 +168,9 @@ namespace MyLittleFarm.UI
                 }
                 else
                 {
-                    help.text = "WASD — движение  ·  Shift — бег  ·  Space — прыжок\nQ / Shift+E — камера  ·  B — строительство\n1–6 — семена  ·  P — магазин  ·  T — яблоня  ·  C — курица\nL — сектор  ·  U — инструмент  ·  F5 — сохранить  ·  F9 — загрузить";
+                    help.text = "WASD — движение  ·  Shift — бег  ·  Space — прыжок\nQ / Shift+E — камера  ·  B — строительство  ·  J — журнал фермы\n1–6 — семена  ·  P — магазин  ·  T — яблоня  ·  C — курица\nL — сектор  ·  U — инструмент  ·  F5 — сохранить  ·  F9 — слоты";
                     Place(help.rectTransform, new Vector2(1f, 1f), new Vector2(1f, 1f),
-                        new Vector2(-rightInset - 20f, -topInset - 145f), new Vector2(Mathf.Min(800f, width - panelWidth - 64f), 110f));
+                        new Vector2(-rightInset - 20f, -topInset - (_tutorialVisible ? 250f : 145f)), new Vector2(Mathf.Min(800f, width - panelWidth - 64f), 110f));
                     help.alignment = TextAnchor.UpperRight;
                     help.fontSize = 19;
                 }
@@ -199,6 +207,26 @@ namespace MyLittleFarm.UI
                     narrow ? new Vector2(centerOffset, bottomInset + 202f + promptHeight + 10f) : new Vector2(-rightInset - 20f, -topInset - 78f),
                     new Vector2(narrow ? width - 24f : Mathf.Min(800f, width - panelWidth - 64f), 56f));
                 onboarding.fontSize = narrow ? 20 : 23;
+            }
+            if (onboardingOverlay != null && onboardingOverlay.Card != null)
+            {
+                Place(onboardingOverlay.Card, new Vector2(1f, 1f), new Vector2(1f, 1f),
+                    new Vector2(-rightInset - 20f, -topInset - (narrow ? 16f : 78f)),
+                    new Vector2(narrow ? width - panelWidth - 48f : Mathf.Min(760f, width - panelWidth - 64f), narrow ? 220f : 160f));
+            }
+            if(worldClock!=null)
+            {
+                Place(worldClock.rectTransform,new Vector2(1,1),new Vector2(1,1),
+                    new Vector2(-rightInset-20,-topInset-(narrow?246:_tutorialVisible?370:265)),
+                    new Vector2(narrow?width-panelWidth-48:Mathf.Min(800,width-panelWidth-64),64));
+                worldClock.fontSize=21;worldClock.resizeTextForBestFit=true;worldClock.resizeTextMinSize=14;worldClock.resizeTextMaxSize=21;
+                worldClock.alignment=TextAnchor.UpperRight;worldClock.raycastTarget=false;
+            }
+            if(clockSpeedButton!=null)
+            {
+                Place(clockSpeedButton,new Vector2(1,1),new Vector2(1,1),
+                    new Vector2(-rightInset-20,-topInset-(narrow?316:_tutorialVisible?440:335)),
+                    new Vector2(Mathf.Min(250,narrow?width-panelWidth-48:width-panelWidth-64),44));
             }
         }
 

@@ -63,6 +63,7 @@ namespace MyLittleFarm.Gameplay.World
                 return false;
             }
             Restore(true);
+            GameEvents.Record("sector");
             GameEvents.RaiseStatusChanged("Новый сектор фермы открыт");
             return true;
         }

@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using MyLittleFarm.Core.Grid;
+using MyLittleFarm.Core;
+using MyLittleFarm.Gameplay.World;
 using UnityEngine;
 
 namespace MyLittleFarm.Gameplay.Farming
@@ -28,6 +30,10 @@ namespace MyLittleFarm.Gameplay.Farming
         private IWorldGridWriter _grid;
         // Каталог определяет параметры каждого вида; null сохраняет совместимость старых тестовых сцен.
         private FarmCatalog _catalog;
+        private WeatherController _weather;
+        private DayNightCycle _dayNight;
+        // Each planting/load starts its own baseline: earlier rain never benefits a new crop.
+        private readonly Dictionary<Vector2Int,double> _rainBaselines=new Dictionary<Vector2Int,double>();
         // Время следующего визуального обновления ограничивает работу четырьмя проверками в секунду.
         private float _nextRefresh;
 
@@ -42,6 +48,9 @@ namespace MyLittleFarm.Gameplay.Farming
         {
             _grid = grid;
             _catalog = catalog;
+            var root=GetComponentInParent<GameBootstrap>();
+            _weather=root==null?null:root.GetComponentInChildren<WeatherController>(true);
+            _dayNight=root==null?null:root.GetComponentInChildren<DayNightCycle>(true);
         }
 
         private void Update()
@@ -70,7 +79,17 @@ namespace MyLittleFarm.Gameplay.Farming
             var farming = _grid.GetFarmingCell(position);
             if (farming.soilType != CellType.Planted || string.IsNullOrEmpty(farming.cropId)) return false;
             crop = ToRuntimeState(position, farming);
+            crop.weatherGrowthBonusSeconds=GetWeatherBonus(position,farming);
             return true;
+        }
+
+        private float GetWeatherBonus(Vector2Int position,FarmingCell farming)
+        {
+            if(_weather==null)return farming.weatherGrowthBonusSeconds;
+            if(!_rainBaselines.TryGetValue(position,out var baseline))
+                _rainBaselines[position]=baseline=_weather.GrowthBonusSeconds;
+            return (float)Math.Min(farming.growDurationSeconds,farming.weatherGrowthBonusSeconds
+                +Math.Max(0,_weather.GrowthBonusSeconds-baseline));
         }
 
         public bool Plant(Vector2Int position, long plantedAtUnixMs)
@@ -99,7 +118,9 @@ namespace MyLittleFarm.Gameplay.Farming
                 stageCount = definition == null ? stageCount : definition.StageCount
             };
             _grid.SetFarmingCell(position, ToFarmingCell(crop));
+            _rainBaselines[position]=_weather==null?0:_weather.GrowthBonusSeconds;
             AddView(crop);
+            GameEvents.Record("plant",cropId);
             return true;
         }
 
@@ -124,14 +145,19 @@ namespace MyLittleFarm.Gameplay.Farming
             if (_views.TryGetValue(position, out var view))
             {
                 _views.Remove(position);
+                view.gameObject.SetActive(false);
                 Destroy(view.gameObject);
             }
 
             _grid.SetFarmingCell(position, new FarmingCell { soilType = CellType.Tilled });
+            _rainBaselines.Remove(position);
             itemId = definition == null ? crop.cropId : definition.HarvestItemId;
-            yield = definition == null ? yieldAmount : definition.YieldAmount;
+            yield = HarvestYield(crop.cropId);
             return true;
         }
+        public float HarvestHour => _dayNight==null?-1:_dayNight.Hour;
+        public int HarvestYield(string cropId) => _catalog!=null&&_catalog.TryGetCrop(cropId,out var definition)
+            ? definition.HarvestYield(HarvestHour) : yieldAmount;
 
         public List<CropRuntimeState> Capture()
         {
@@ -147,6 +173,7 @@ namespace MyLittleFarm.Gameplay.Farming
                     cropId = crop.cropId,
                     plantedAtUnixMs = crop.plantedAtUnixMs,
                     growDurationSeconds = crop.growDurationSeconds,
+                    weatherGrowthBonusSeconds = crop.weatherGrowthBonusSeconds,
                     stageCount = crop.stageCount
                 });
             }
@@ -169,7 +196,8 @@ namespace MyLittleFarm.Gameplay.Farming
                     && _grid.GetFarmingCell(crop.Position).occupantId == CropOccupantId(crop.Position))
                 {
                     var copy = new CropRuntimeState { x = crop.x, z = crop.z, cropId = crop.cropId,
-                        plantedAtUnixMs = crop.plantedAtUnixMs, growDurationSeconds = crop.growDurationSeconds, stageCount = crop.stageCount };
+                        plantedAtUnixMs = crop.plantedAtUnixMs, growDurationSeconds = crop.growDurationSeconds,
+                        weatherGrowthBonusSeconds = crop.weatherGrowthBonusSeconds, stageCount = crop.stageCount };
                     var existing = _grid.GetFarmingCell(crop.Position);
                     var restored = ToFarmingCell(copy);
                     restored.moisture = existing.moisture;
@@ -177,6 +205,7 @@ namespace MyLittleFarm.Gameplay.Farming
                     restored.lastWateredDay = existing.lastWateredDay;
                     restored.flags = existing.flags;
                     _grid.SetFarmingCell(crop.Position, restored);
+                    _rainBaselines[crop.Position]=_weather==null?0:_weather.GrowthBonusSeconds;
                     AddView(copy);
                 }
             }
@@ -189,11 +218,13 @@ namespace MyLittleFarm.Gameplay.Farming
             {
                 if (view != null)
                 {
-                    Destroy(view.gameObject);
+                    view.gameObject.SetActive(false);
+                    if (Application.isPlaying) Destroy(view.gameObject); else DestroyImmediate(view.gameObject);
                 }
             }
 
             _views.Clear();
+            _rainBaselines.Clear();
         }
 
         /// <summary>Создаёт представление для состояния, уже записанного в чанке.</summary>
@@ -215,14 +246,12 @@ namespace MyLittleFarm.Gameplay.Farming
             // Синхронизирует визуальную стадию каждой культуры с рассчитанным прогрессом.
             foreach (var pair in _views)
             {
-                var farming = _grid.GetFarmingCell(pair.Key);
-                if (farming.soilType != CellType.Planted) continue;
-                var elapsed = ((double)nowUnixMs - farming.plantedAtUnixMs) / 1000.0;
-                var ratio = farming.growDurationSeconds <= 0f ? 1f
-                    : Mathf.Clamp01((float)(elapsed / farming.growDurationSeconds));
-                var stage = ratio >= 1f ? farming.stageCount - 1
-                    : Mathf.FloorToInt(ratio * Mathf.Max(1, farming.stageCount - 1));
-                pair.Value.SetStage(stage, farming.stageCount);
+                var farming=_grid.GetFarmingCell(pair.Key);
+                if(farming.soilType!=CellType.Planted)continue;
+                var elapsed=((double)nowUnixMs-farming.plantedAtUnixMs)/1000.0+GetWeatherBonus(pair.Key,farming);
+                var ratio=farming.growDurationSeconds<=0f?1f:Mathf.Clamp01((float)(elapsed/farming.growDurationSeconds));
+                var stage=ratio>=1f?farming.stageCount-1:Mathf.FloorToInt(ratio*Mathf.Max(1,farming.stageCount-1));
+                pair.Value.SetStage(stage,farming.stageCount);
             }
         }
 
@@ -234,6 +263,7 @@ namespace MyLittleFarm.Gameplay.Farming
             cropId = crop.cropId,
             plantedAtUnixMs = crop.plantedAtUnixMs,
             growDurationSeconds = crop.growDurationSeconds,
+            weatherGrowthBonusSeconds = crop.weatherGrowthBonusSeconds,
             stageCount = crop.stageCount
         };
 
@@ -246,6 +276,7 @@ namespace MyLittleFarm.Gameplay.Farming
                 cropId = farming.cropId,
                 plantedAtUnixMs = farming.plantedAtUnixMs,
                 growDurationSeconds = farming.growDurationSeconds,
+                weatherGrowthBonusSeconds = farming.weatherGrowthBonusSeconds,
                 stageCount = farming.stageCount
             };
     }

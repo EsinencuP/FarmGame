@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace MyLittleFarm.Gameplay.World
 {
-    public enum InteractionTargetKind { Animal, Tree, Market, Building, Obstacle }
+    public enum InteractionTargetKind { Animal, Tree, Market, Building, Obstacle, SeedCache, Helper }
 
     /// <summary>Pointer target. Trigger pick volumes never block movement or placement.</summary>
     public sealed class InteractionTarget : MonoBehaviour

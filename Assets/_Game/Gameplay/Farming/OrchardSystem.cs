@@ -69,6 +69,7 @@ namespace MyLittleFarm.Gameplay.Farming
                 buildingId = TreeOccupantId(position)
             });
             AddView(state);
+            GameEvents.Record("tree");
             return true;
         }
 
@@ -84,6 +85,7 @@ namespace MyLittleFarm.Gameplay.Farming
             state.lastHarvestAtUnixMs = nowUnixMs;
             _inventory.Add(itemId, _appleTree.YieldAmount);
             yield = _appleTree.YieldAmount;
+            GameEvents.Record("apples",amount:yield);
             UpdateView(position, nowUnixMs);
             GameEvents.RaiseStatusChanged($"Собрано: {yield} × {_appleTree.DisplayName}");
             GameEvents.RaiseActionFeedback("harvest", _grid.GridToWorld(position));
@@ -131,6 +133,7 @@ namespace MyLittleFarm.Gameplay.Farming
             foreach (var view in _views.Values)
                 if (view != null)
                 {
+                    view.gameObject.SetActive(false);
                     if (Application.isPlaying) Destroy(view.gameObject);
                     else DestroyImmediate(view.gameObject);
                 }

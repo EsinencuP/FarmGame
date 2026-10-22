@@ -36,6 +36,7 @@ namespace MyLittleFarm.Gameplay.Economy
             }
 
             SetCoins(Coins - amount);
+            if(amount>0)GameEvents.Record("spent",value:amount);
             return true;
         }
 

@@ -63,7 +63,7 @@ namespace MyLittleFarm.Gameplay.Building
         {
             // Операция сначала полностью проверяется и только затем записывает состояние и занятость.
             if (state == null || string.IsNullOrWhiteSpace(state.id) || _buildings.ContainsKey(state.id)
-                || state.paidCost < 0 || Definition(state.definitionId) == null
+                || state.paidCost < 0 || !FarmDecorationCatalog.ValidCustomization(state) || Definition(state.definitionId) == null
                 || state.paidCost != Definition(state.definitionId).Price)
             { reason = "Некорректные данные постройки"; return false; }
             if (!CanPlace(state.definitionId, state.x, state.z, state.quarterTurns, blocked, null, out reason)) return false;
@@ -102,6 +102,15 @@ namespace MyLittleFarm.Gameplay.Building
             var result = new List<BuildingRuntimeState>(_buildings.Count);
             foreach (var state in _buildings.Values) result.Add(state.Copy());
             return result;
+        }
+
+        public bool TryCustomize(string id,int level,string text,out string reason)
+        {
+            var candidate=Get(id);
+            if(candidate==null){reason="Объект не найден";return false;}
+            candidate.appearanceLevel=level;candidate.customText=text;
+            if(!FarmDecorationCatalog.ValidCustomization(candidate)){reason="Некорректные настройки объекта";return false;}
+            _buildings[id]=candidate;reason=string.Empty;return true;
         }
 
         private void SetOccupancy(BuildingRuntimeState state, bool occupied)

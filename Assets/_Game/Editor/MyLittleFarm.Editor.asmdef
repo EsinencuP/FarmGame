@@ -2,7 +2,9 @@
   "name": "MyLittleFarm.Editor",
   "rootNamespace": "MyLittleFarm.Editor",
   "references": [
-    "MyLittleFarm.Runtime"
+    "MyLittleFarm.Runtime",
+    "Unity.InputSystem",
+    "UnityEngine.UI"
   ],
   "includePlatforms": [
     "Editor"

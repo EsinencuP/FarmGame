@@ -16,15 +16,15 @@ namespace MyLittleFarm.Core
     /// Создаёт, проверяет и восстанавливает полный снимок игры. GridSystem v2 сохраняется
     /// разреженно по чанкам, а запись на диск выполняется через временный файл.
     /// </summary>
-    public sealed class SaveSystem : MonoBehaviour
+    public sealed partial class SaveSystem : MonoBehaviour
     {
         // Версия 5 сохраняет только отличия от базовой карты и поверхность под игровыми слоями.
-        public const int CurrentSaveVersion = 7;
+        public const int CurrentSaveVersion = 11;
         private const int MaxCollectionEntries = 100_000;
 
         [Header("Persistence")]
         [Tooltip("Интервал автоматического сохранения в секундах реального времени.")]
-        [SerializeField, Min(10f)] private float autosaveIntervalSeconds = 180f;
+        [SerializeField, Min(10f)] private float autosaveIntervalSeconds = 300f;
 
         // Все зависимости передаются bootstrap, поэтому Update не выполняет поиски по сцене.
         private InputReader _input;
@@ -42,6 +42,8 @@ namespace MyLittleFarm.Core
         private AnimalSystem _animals;
         private OnboardingSystem _onboarding;
         private DayNightCycle _dayNight;
+        private WeatherController _weather;
+        private FarmProgression _progression;
         private float _nextAutosaveAt;
         // false запрещает автозапись после ошибки загрузки, чтобы не затереть повреждённый файл.
         private bool _persistenceEnabled;
@@ -51,7 +53,7 @@ namespace MyLittleFarm.Core
         public bool LastLoadUsedBackup { get; private set; }
 
         /// <summary>Платформенно безопасный путь основного файла сохранения.</summary>
-        public string SavePath => Path.Combine(Application.persistentDataPath, "my-little-farm-save.json");
+        public string SavePath => SlotPath(ActiveSlot, false);
 
         /// <summary>Передаёт все источники состояния и запускает таймер автосохранения.</summary>
         public void Configure(InputReader input, PlayerController player, GridSystem grid, CropSystem crops,
@@ -75,25 +77,38 @@ namespace MyLittleFarm.Core
             _onboarding = onboarding;
             var root=grid==null?null:grid.GetComponentInParent<GameBootstrap>();
             _dayNight=root==null?null:root.GetComponentInChildren<DayNightCycle>(true);
+            _weather=root==null?null:root.GetComponentInChildren<WeatherController>(true);
+            _progression=root==null?null:root.GetComponentInChildren<FarmProgression>(true);
             _persistenceEnabled = false;
+            _playTimeSeconds = 0;
+            _lastPreview = null;
+            _newFarm = null; _showStartupMenu = false; _legacyUnavailable = false;
+            _recoveredPath = null; LastLoadUsedBackup = false; ActiveSlot = 0;
+            if (slotMenu != null) slotMenu.Configure(this, input);
             _nextAutosaveAt = Time.unscaledTime + autosaveIntervalSeconds;
         }
 
-        /// <summary>Загружает существующий файл или разрешает сохранение новой игры.</summary>
+        /// <summary>Готовит новую ферму, переносит старый файл и планирует открытие трёх слотов.</summary>
         public void StartPersistence()
         {
-            _persistenceEnabled = (!File.Exists(SavePath) && !File.Exists(SavePath + ".bak")) || LoadFromDisk();
+            StartSlotPersistence();
         }
 
         private void Update()
         {
             // Ручная загрузка имеет приоритет над записью и автосохранением в том же кадре.
             if (_input == null) return;
-            if (_input.LoadPressed) { LoadFromDisk(); return; }
-            if (_input.SavePressed) { SaveToDisk(); return; }
-            if (_persistenceEnabled && Time.unscaledTime >= _nextAutosaveAt)
+            if (_persistenceEnabled && !_input.ModalInputActive && Application.isFocused)
+                _playTimeSeconds += Time.unscaledDeltaTime;
+            if (_input.LoadPressed)
             {
-                SaveToDisk();
+                if (slotMenu != null) slotMenu.Open(); else LoadFromDisk();
+                return;
+            }
+            if (_input.SavePressed) { SaveToDisk(); return; }
+            if (_persistenceEnabled && !_input.ModalInputActive && Time.unscaledTime >= _nextAutosaveAt)
+            {
+                SaveActivePoint(true);
                 _nextAutosaveAt = Time.unscaledTime + autosaveIntervalSeconds;
             }
         }
@@ -106,6 +121,9 @@ namespace MyLittleFarm.Core
             {
                 saveVersion = CurrentSaveVersion,
                 savedAtUnixMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+                playTimeSeconds = _playTimeSeconds,
+                previewPngBase64 = _lastPreview,
+                progression = _progression==null?null:_progression.Capture(),
                 player = new PlayerPositionData { x = position.x, y = position.y, z = position.z },
                 coins = _wallet.Coins,
                 inventory = _inventory.Capture(),
@@ -120,8 +138,15 @@ namespace MyLittleFarm.Core
                 sectorUnlocked = _sector != null && _sector.IsUnlocked,
                 toolUpgradeLevel = _upgrades == null ? 0 : _upgrades.Level,
                 onboardingStep = _onboarding == null ? 0 : _onboarding.Capture(),
+                onboardingSchema = 1,
+                onboardingSuppliesGranted = _onboarding != null && _onboarding.SuppliesGranted,
+                onboardingGardenPlanted = _onboarding != null && _onboarding.GardenPlanted,
+                onboardingSaleCompleted = _onboarding != null && _onboarding.SaleCompleted,
+                onboardingGardenX = _onboarding == null ? 0 : _onboarding.GardenCell.x,
+                onboardingGardenZ = _onboarding == null ? 0 : _onboarding.GardenCell.y,
                 hasWorldTime = _dayNight != null,
-                worldHour = _dayNight == null ? 0f : _dayNight.Hour
+                worldHour = _dayNight == null ? 0f : _dayNight.Hour,
+                weather = _weather == null ? null : _weather.Capture()
             };
         }
 
@@ -131,7 +156,27 @@ namespace MyLittleFarm.Core
             // Migrations operate on a detached candidate; failures preserve both the live farm and caller's snapshot.
             if (data != null) data = JsonUtility.FromJson<SaveData>(JsonUtility.ToJson(data));
             var migratedGrid = ValidateAndMigrate(data);
+            var rollback = Capture();
+            _progression?.BeginRestore();
+            try { ApplySnapshot(data, migratedGrid); }
+            catch
+            {
+                try { ApplySnapshot(rollback, ValidateAndMigrate(rollback)); }
+                catch (Exception recoveryError)
+                {
+                    _persistenceEnabled = false;
+                    Debug.LogException(recoveryError);
+                }
+                throw;
+            }
+            finally{_progression?.EndRestore();}
+        }
+
+        private void ApplySnapshot(SaveData data, GridSaveData migratedGrid)
+        {
             _crops.ClearAll();
+            _orchard?.ClearAll();
+            _animals?.ClearAll();
             _grid.Deserialize(migratedGrid);
             _inventory.Restore(data.inventory);
             _wallet.SetCoins(data.coins);
@@ -139,52 +184,47 @@ namespace MyLittleFarm.Core
             _buildings?.Restore(data.buildings);
             _orchard?.Restore(data.trees);
             _animals?.Restore(data.animals);
-            _onboarding?.Restore(data.onboardingStep);
+            _onboarding?.Restore(data.onboardingStep, data.onboardingSuppliesGranted,
+                data.onboardingGardenPlanted, new Vector2Int(data.onboardingGardenX, data.onboardingGardenZ),
+                data.onboardingSaleCompleted);
             _sector?.Restore(data.sectorUnlocked);
             _upgrades?.Restore(data.toolUpgradeLevel);
             _slots?.Select(data.selectedQuickSlot);
             _player.Teleport(new Vector3(data.player.x, data.player.y, data.player.z));
-            if(data.hasWorldTime && _dayNight!=null)_dayNight.SetHour(data.worldHour);
+            if (_weather != null && (data.weather ?? _newFarm?.weather) != null)
+                _weather.Restore(data.weather ?? _newFarm.weather);
+            if (_dayNight != null) _dayNight.SetHour(data.hasWorldTime ? data.worldHour : _dayNight.StartingHour);
+            _playTimeSeconds = data.playTimeSeconds;
+            _lastPreview = data.previewPngBase64;
+            _progression?.Restore(data.progression);
+            if (previewCamera != null)
+            {
+                var follow = previewCamera.GetComponent<IsometricCameraController>();
+                if (follow != null) follow.RefreshPosition();
+            }
             GameEvents.RaiseInventoryChanged();
         }
 
         /// <summary>Сохраняет рабочий снимок и сообщает результат в HUD.</summary>
         public void SaveToDisk()
         {
-            if (SaveToPath(SavePath))
-            {
-                _persistenceEnabled = true;
-                _nextAutosaveAt = Time.unscaledTime + autosaveIntervalSeconds;
-                GameEvents.RaiseStatusChanged("Игра сохранена  F9 — загрузить");
-            }
-            else GameEvents.RaiseStatusChanged("Не удалось сохранить игру");
+            SaveActivePoint(false);
         }
 
-        /// <summary>Загружает рабочий снимок и блокирует автозапись при ошибке.</summary>
+        /// <summary>Загружает последнюю доступную точку активного слота.</summary>
         public bool LoadFromDisk()
         {
-            if (LoadFromPath(SavePath))
-            {
-                _persistenceEnabled = true;
-                _nextAutosaveAt = Time.unscaledTime + autosaveIntervalSeconds;
-                GameEvents.RaiseStatusChanged(LastLoadUsedBackup
-                    ? "Игра восстановлена из резервной копии" : "Сохранение загружено");
-                return true;
-            }
-            _persistenceEnabled = false;
-            GameEvents.RaiseStatusChanged(File.Exists(SavePath)
-                ? "Сохранение повреждено или несовместимо"
-                : "Сохранение ещё не создано  F5 — сохранить");
-            return false;
+            return LoadSlot(ActiveSlot, false);
         }
 
         /// <summary>Записывает снимок по произвольному пути; используется интеграционными тестами.</summary>
-        public bool SaveToPath(string path)
+        public bool SaveToPath(string path, bool includePreview = false)
         {
             try
             {
                 if (string.IsNullOrWhiteSpace(path)) throw new ArgumentException("Save path is required.", nameof(path));
                 var snapshot = Capture();
+                if (includePreview) snapshot.previewPngBase64 = CapturePreview();
                 ValidateAndMigrate(snapshot);
                 var json = JsonUtility.ToJson(snapshot, true);
                 ValidateAndMigrate(JsonUtility.FromJson<SaveData>(json));
@@ -192,6 +232,7 @@ namespace MyLittleFarm.Core
                 var preserveBackup = string.Equals(fullPath, _recoveredPath, StringComparison.Ordinal);
                 WriteAtomically(fullPath, json, preserveBackup);
                 if (preserveBackup) _recoveredPath = null;
+                if (includePreview) _lastPreview = snapshot.previewPngBase64;
                 return true;
             }
             catch (Exception exception)
@@ -230,12 +271,14 @@ namespace MyLittleFarm.Core
         }
 
         /// <summary>Validates a candidate completely before any live subsystem is changed.</summary>
-        private bool TryReadValidated(string path, out SaveData data)
+        private bool TryReadValidated(string path, out SaveData data, bool quiet = false)
         {
             data = null;
             if (!File.Exists(path)) return false;
             try
             {
+                if (new FileInfo(path).Length > 16 * 1024 * 1024)
+                    throw new InvalidDataException("Save file is too large.");
                 var candidate = JsonUtility.FromJson<SaveData>(File.ReadAllText(path));
                 ValidateAndMigrate(candidate);
                 data = candidate;
@@ -244,7 +287,7 @@ namespace MyLittleFarm.Core
             catch (Exception exception) when (exception is ArgumentException || exception is InvalidDataException
                 || exception is IOException || exception is UnauthorizedAccessException)
             {
-                Debug.LogWarning($"My Little Farm: cannot read save '{Path.GetFileName(path)}': {exception.Message}");
+                if (!quiet) Debug.LogWarning($"My Little Farm: cannot read save '{Path.GetFileName(path)}': {exception.Message}");
                 return false;
             }
         }
@@ -273,8 +316,17 @@ namespace MyLittleFarm.Core
             if (data == null) throw new InvalidDataException("Save data is empty.");
             if (data.saveVersion < 1 || data.saveVersion > CurrentSaveVersion)
                 throw new InvalidDataException($"Unsupported save version {data.saveVersion}.");
+            if(!FarmProgression.IsValid(data.progression)||(data.progression!=null&&_progression==null))
+                throw new InvalidDataException("Farm progression state is invalid or its system is missing.");
+            if (double.IsNaN(data.playTimeSeconds) || double.IsInfinity(data.playTimeSeconds)
+                || data.playTimeSeconds < 0 || data.playTimeSeconds > 1e12)
+                throw new InvalidDataException("Save metadata is invalid.");
+            if (data.previewPngBase64 != null && data.previewPngBase64.Length > 512 * 1024)
+                data.previewPngBase64 = null;
             if(data.hasWorldTime && (!IsFinite(data.worldHour)||data.worldHour<0f||data.worldHour>=24f))
                 throw new InvalidDataException("World clock is invalid.");
+            if(data.weather!=null&&!WeatherController.IsValid(data.weather))
+                throw new InvalidDataException("Weather state is invalid.");
             if (data.saveVersion >= 5 && data.worldBaseHash != _grid.ComputeBaseMapHash())
             {
                 // The MVP expands the original two-chunk scene without changing their authored cells.
@@ -302,8 +354,17 @@ namespace MyLittleFarm.Core
                 data.sectorUnlocked = false;
                 data.toolUpgradeLevel = 0;
             }
-            if (data.onboardingStep < 0 || data.onboardingStep > 6)
+            if (data.onboardingSchema < 0 || data.onboardingSchema > 1
+                || data.onboardingStep < 0 || data.onboardingStep > (data.onboardingSchema == 0 ? 6 : 5))
                 throw new InvalidDataException("Onboarding state is invalid.");
+            if (data.onboardingSchema == 0)
+            {
+                var legacyStep = data.onboardingStep;
+                data.onboardingStep = legacyStep >= 6 ? 5 : legacyStep >= 4 ? 3 : legacyStep >= 2 ? 2 : legacyStep;
+                data.onboardingGardenPlanted = legacyStep == 3;
+                data.onboardingSaleCompleted = legacyStep == 5;
+                data.onboardingSchema = 1;
+            }
             if (data.selectedQuickSlot < 0 || data.selectedQuickSlot > 5
                 || data.toolUpgradeLevel < 0 || data.toolUpgradeLevel > 2)
                 throw new InvalidDataException("Progression state is invalid.");
@@ -421,6 +482,8 @@ namespace MyLittleFarm.Core
                 if (crop == null || (_catalog == null ? crop.cropId != CropSystem.PrototypeCropId
                         : !_catalog.TryGetCrop(crop.cropId, out _))
                     || !IsFinite(crop.growDurationSeconds) || crop.growDurationSeconds <= 0f
+                    || !IsFinite(crop.weatherGrowthBonusSeconds) || crop.weatherGrowthBonusSeconds<0f
+                    || crop.weatherGrowthBonusSeconds>crop.growDurationSeconds
                     || crop.stageCount < 2 || crop.plantedAtUnixMs < 0 || !positions.Add(crop.Position)
                     || !cells.TryGetValue(crop.Position, out var cell) || cell.type != CellType.Planted
                     || cell.occupantId != CropSystem.CropOccupantId(crop.Position))
@@ -478,6 +541,12 @@ namespace MyLittleFarm.Core
             PlayerPositionData player, IReadOnlyList<BuildingDefinition> definitions = null)
         {
             definitions = definitions ?? BuildingDefinition.Catalog;
+            var controller = _player == null ? null : _player.GetComponent<CharacterController>();
+            var playerScale = _player == null ? Vector3.one : _player.transform.lossyScale;
+            var radius = controller == null ? .24f : Mathf.Max(.01f,
+                controller.radius * Mathf.Max(Mathf.Abs(playerScale.x),Mathf.Abs(playerScale.z)) - controller.skinWidth);
+            var halfHeight = controller == null ? .72f : controller.height * Mathf.Abs(playerScale.y) * .5f;
+            var centerY = player.y + (controller == null ? 0 : controller.center.y * playerScale.y);
             // Layout проверяет ID, цены, повороты и взаимные пересечения независимо от текущего мира.
             var layout = new BuildingLayout(definitions);
             Func<int,int,bool> blocked = (x, z) =>
@@ -503,13 +572,17 @@ namespace MyLittleFarm.Core
                         throw new InvalidDataException("Building footprint does not match grid occupancy.");
                 }
 
-                // Игрок не может быть восстановлен внутри физического объёма постройки.
+                // Use current physical art and capsule, not the old mannequin radius/reserved rectangle.
                 var center = BuildingView.Center(state.x, state.z, state.quarterTurns, definition, _grid);
-                var dx = Mathf.Max(0f, Mathf.Abs(player.x - center.x)
-                    - (definition.RotatedWidth(state.quarterTurns) * _grid.CellSize * 0.5f - 0.06f));
-                var dz = Mathf.Max(0f, Mathf.Abs(player.z - center.z)
-                    - (definition.RotatedDepth(state.quarterTurns) * _grid.CellSize * 0.5f - 0.06f));
-                if (dx * dx + dz * dz < 0.36f * 0.36f && player.y < definition.Height + 1f)
+                var bounds = _buildings != null && ReferenceEquals(definitions,BuildingDefinition.Catalog)
+                    ? _buildings.SavedCollisionBounds(state,definition)
+                    : new Bounds(center+Vector3.up*definition.Height*.5f,
+                        new Vector3(definition.RotatedWidth(state.quarterTurns)*_grid.CellSize-.12f,
+                            definition.Height,definition.RotatedDepth(state.quarterTurns)*_grid.CellSize-.12f));
+                var dx = Mathf.Max(0f,Mathf.Abs(player.x-bounds.center.x)-bounds.extents.x);
+                var dz = Mathf.Max(0f,Mathf.Abs(player.z-bounds.center.z)-bounds.extents.z);
+                if (dx * dx + dz * dz < radius * radius
+                    && centerY+halfHeight > bounds.min.y+.01f && centerY-halfHeight < bounds.max.y-.01f)
                     throw new InvalidDataException("Player overlaps a saved building.");
             }
         }
@@ -633,7 +706,7 @@ namespace MyLittleFarm.Core
         {
             // Выход сохраняет игру только после успешной инициализации подсистемы хранения.
             if (_persistenceEnabled && _player != null && _grid != null && _crops != null
-                && _crops.IsConfigured && _inventory != null && _wallet != null) SaveToDisk();
+                && _crops.IsConfigured && _inventory != null && _wallet != null) SaveActivePoint(true);
         }
     }
 }

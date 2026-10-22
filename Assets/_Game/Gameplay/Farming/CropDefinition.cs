@@ -16,6 +16,22 @@ namespace MyLittleFarm.Gameplay.Farming
         [SerializeField] private Color matureColor = new Color(0.95f, 0.42f, 0.08f);
         [SerializeField] private GameObject[] stagePrefabs;
         [SerializeField] private Vector3[] stageSizes;
+        [Header("Time-of-day harvest bonus")]
+        [SerializeField] private bool rareSeeds;
+        [SerializeField, Range(0,23.99f)] private float bonusStartHour;
+        [SerializeField, Range(0,23.99f)] private float bonusEndHour;
+        [SerializeField, Range(0,10)] private int bonusHarvestYield;
+        public bool RareSeeds => rareSeeds;
+        public int BonusHarvestYield => bonusHarvestYield;
+        public string BonusDescription => bonusHarvestYield <= 0 ? string.Empty
+            : $"{displayName}: {HourText(bonusStartHour)}–{HourText(bonusEndHour)}, +{bonusHarvestYield} к сбору";
+        private static string HourText(float hour){var m=Mathf.FloorToInt(Mathf.Repeat(hour,24)*60);return (m/60).ToString("00")+":"+(m%60).ToString("00");}
+        public int HarvestYield(float hour)
+        {
+            var active=hour>=0 && bonusStartHour!=bonusEndHour && (bonusStartHour<bonusEndHour
+                ? hour>=bonusStartHour&&hour<bonusEndHour : hour>=bonusStartHour||hour<bonusEndHour);
+            return (int)System.Math.Min(int.MaxValue,(long)yieldAmount+(active?Mathf.Clamp(bonusHarvestYield,0,10):0));
+        }
 
         // Стабильные ID используются сохранением; числовые параметры можно менять в Inspector.
         public string CropId => cropId;
@@ -48,6 +64,10 @@ namespace MyLittleFarm.Gameplay.Farming
             yieldAmount = Mathf.Max(1, amount);
             stageCount = 3;
             matureColor = color;
+            rareSeeds=id=="corn";
+            bonusHarvestYield=id=="tomato"?2:id=="carrot"||id=="cucumber"?1:0;
+            bonusStartHour=id=="carrot"?5:id=="tomato"?11:id=="cucumber"?18:0;
+            bonusEndHour=id=="carrot"?9:id=="tomato"?15:id=="cucumber"?22:0;
         }
     }
 }

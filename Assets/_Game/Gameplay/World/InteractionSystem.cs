@@ -116,6 +116,10 @@ namespace MyLittleFarm.Gameplay.World
             if (_input != null && (_input.BuildModeActive || _input.SuppressGameplayThisFrame)) return false;
             if (_input != null && _input.PointerInteractPressed && !_selector.HasSelection) return false;
             var target = _selector.HoveredTarget;
+            if(target!=null&&target.Kind==InteractionTargetKind.SeedCache)
+                return target.GetComponent<RareSeedCache>()?.Collect()??false;
+            if(target!=null&&target.Kind==InteractionTargetKind.Helper)
+            {GameEvents.RaiseStatusChanged("Пастух кормит кур пшеницей из инвентаря и собирает яйца · J — журнал");return true;}
             if (target != null && target.Kind == InteractionTargetKind.Animal)
                 return _animals != null && _animals.TryInteract(target.TargetId, _player.position, nowUnixMs);
             if (target != null && target.Kind == InteractionTargetKind.Tree)
@@ -175,7 +179,7 @@ namespace MyLittleFarm.Gameplay.World
                 if (_catalog != null && _catalog.TryGetCrop(crop.cropId, out var definition))
                 {
                     harvestId = definition.HarvestItemId;
-                    expectedYield = definition.YieldAmount;
+                    expectedYield = _crops.HarvestYield(crop.cropId);
                 }
                 if (_inventory.GetAmount(harvestId) > int.MaxValue - expectedYield) return false;
                 if (!_crops.TryHarvest(position, nowUnixMs, out var itemId, out var yield))
@@ -184,6 +188,9 @@ namespace MyLittleFarm.Gameplay.World
                 }
 
                 _inventory.Add(itemId, yield);
+                var baseYield=_catalog!=null&&_catalog.TryGetCrop(crop.cropId,out var harvestedDefinition)
+                    ? harvestedDefinition.YieldAmount : _crops.YieldAmount;
+                GameEvents.Record("harvest",crop.cropId,yield,yield>baseYield?1:0,_crops.HarvestHour);
                 GameEvents.RaiseActionFeedback("harvest", _grid.CellToWorld(position));
                 GameEvents.RaiseProgressAction("harvest");
                 GameEvents.RaiseStatusChanged($"Собрано: {yield} × {CropName(crop.cropId)}");
@@ -234,6 +241,9 @@ namespace MyLittleFarm.Gameplay.World
         {
             // Формирует текст по тому же приоритету, что и реальное действие, чтобы подсказка не вводила в заблуждение.
             var target = _selector.HoveredTarget;
+            if(target!=null&&target.Kind==InteractionTargetKind.SeedCache)
+                return target.GetComponent<RareSeedCache>()?.Prompt??string.Empty;
+            if(target!=null&&target.Kind==InteractionTargetKind.Helper)return "Пастух заботится о курах · J — журнал фермы";
             if (target != null && target.Kind == InteractionTargetKind.Animal)
                 return _animals == null ? string.Empty : _animals.TargetPrompt(target.TargetId, _player.position);
             if (target != null && target.Kind == InteractionTargetKind.Tree)
@@ -243,7 +253,7 @@ namespace MyLittleFarm.Gameplay.World
                 return IsWithinReach(position) ? "Яблоня — E / ЛКМ собрать зрелые плоды" : "Яблоня слишком далеко — подойдите ближе";
             }
             if (target != null && target.Kind == InteractionTargetKind.Obstacle) return "Препятствие — клетка недоступна";
-            if (target != null && target.Kind == InteractionTargetKind.Building) return "B — строительство   M — перенос в режиме строительства";
+            if (target != null && target.Kind == InteractionTargetKind.Building) return "B — строительство   F — настройка дома или вывески в режиме строительства";
             if (target != null && target.Kind == InteractionTargetKind.Market && !IsNearTarget(target))
                 return "Торговая точка слишком далеко — подойдите ближе";
             if ((target != null && target.Kind == InteractionTargetKind.Market && IsNearTarget(target))
@@ -257,6 +267,7 @@ namespace MyLittleFarm.Gameplay.World
                     amount += (long)_inventory.GetAmount("apple") + _inventory.GetAmount("egg");
                 var selected = _slots?.SelectedCrop;
                 var shopHint = selected == null ? "P — купить семена"
+                    : selected.RareSeeds ? "Редкие семена: тайники · J — журнал"
                     : $"P — купить семена: {selected.DisplayName}";
                 var actionKey = target == null ? "E" : "E / ЛКМ";
                 return amount > 0
@@ -276,7 +287,7 @@ namespace MyLittleFarm.Gameplay.World
             if (_crops.TryGet(_selector.SelectedPosition, out var crop))
             {
                 return crop.IsMature(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds())
-                    ? $"E / ЛКМ — собрать {CropName(crop.cropId)}"
+                    ? $"E / ЛКМ — собрать {CropName(crop.cropId)} × {_crops.HarvestYield(crop.cropId)}"
                     : $"{CropName(crop.cropId)} растёт — {Mathf.RoundToInt(crop.GetGrowthRatio(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()) * 100f)}%";
             }
 

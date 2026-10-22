@@ -25,6 +25,7 @@ namespace MyLittleFarm.Gameplay.World
         private Material _runtimeSkybox;
         private Material _previousSkybox;
         private CameraClearFlags _previousClearFlags;
+        private float _cloudCover, _rainIntensity, _cloudRotation;
         [Header("Lighting over 24 hours")]
         [SerializeField] private AnimationCurve sunlight=new AnimationCurve(
             new Keyframe(0,0,0,0),new Keyframe(5,0,0,0),new Keyframe(6,.16f,0,0),
@@ -46,7 +47,12 @@ namespace MyLittleFarm.Gameplay.World
         private readonly HashSet<FarmLantern> _lanterns=new HashSet<FarmLantern>();
         private double _hour;
         private bool _initialized;
-        public float Hour=>Mathf.Repeat((float)_hour,24f);
+        private bool _hasEditorHour;
+        private static readonly int[] ClockSpeeds={1,10,30,60};
+        private int _speedIndex;
+        public int ClockSpeed=>ClockSpeeds[_speedIndex];
+        public event System.Action ClockSpeedChanged;
+        public float Hour=>!Application.isPlaying&&!_hasEditorHour?startingHour:Mathf.Repeat((float)_hour,24f);
         public float StartingHour=>startingHour;
         public float DayLengthMinutes=>dayLengthMinutes;
         public float LanternWeight { get; private set; }
@@ -54,6 +60,7 @@ namespace MyLittleFarm.Gameplay.World
         private void OnEnable()
         {
             if(!Application.isPlaying)return;
+            ResetClockSpeed();
             _previousSkybox=RenderSettings.skybox;
             if(worldCamera!=null)_previousClearFlags=worldCamera.clearFlags;
             if(skyboxMaterial!=null)_runtimeSkybox=new Material(skyboxMaterial){name=skyboxMaterial.name+" (Runtime)",hideFlags=HideFlags.DontSave};
@@ -75,8 +82,22 @@ namespace MyLittleFarm.Gameplay.World
 
         private void Update()
         {
-            _hour=(_hour+Time.unscaledDeltaTime*24.0/(dayLengthMinutes*60.0))%24.0;
+            _hour=(_hour+Time.unscaledDeltaTime*ClockSpeed*24.0/(dayLengthMinutes*60.0))%24.0;
             ApplyLighting();
+        }
+
+        /// <summary>Preview the lighting cycle faster without changing simulation or UTC timers.</summary>
+        public void CycleClockSpeed()
+        {
+            if(!Application.isPlaying)return;
+            _speedIndex=(_speedIndex+1)%ClockSpeeds.Length;
+            ClockSpeedChanged?.Invoke();
+        }
+
+        private void ResetClockSpeed()
+        {
+            if(_speedIndex==0)return;
+            _speedIndex=0;ClockSpeedChanged?.Invoke();
         }
 
         private void OnValidate()
@@ -89,7 +110,9 @@ namespace MyLittleFarm.Gameplay.World
         public void SetHour(float hour)
         {
             if(float.IsNaN(hour)||float.IsInfinity(hour))return;
+            ResetClockSpeed();
             _hour=Mathf.Repeat(hour,24f);
+            if(!Application.isPlaying)_hasEditorHour=true;
             if(Application.isPlaying)_initialized=true;
             ApplyLighting();
         }
@@ -101,6 +124,11 @@ namespace MyLittleFarm.Gameplay.World
         }
         public void Unregister(FarmLantern lantern)=>_lanterns.Remove(lantern);
 
+        public void SetWeather(float clouds,float rain,float rotation)
+        {
+            _cloudCover=Mathf.Clamp01(clouds);_rainIntensity=Mathf.Clamp01(rain);_cloudRotation=rotation;
+        }
+
         private void ApplyLighting()
         {
             var hour=Hour;var time=hour/24f;
@@ -109,7 +137,8 @@ namespace MyLittleFarm.Gameplay.World
             if(sun!=null)
             {
                 sun.transform.rotation=Quaternion.Euler(hour*15f-90f,sunAzimuth,0);
-                sun.color=sunColors.Evaluate(time);sun.intensity=intensity;
+                sun.color=sunColors.Evaluate(time);sun.intensity=intensity*Mathf.Lerp(1f,.52f,_cloudCover)*Mathf.Lerp(1f,.82f,_rainIntensity);
+                sun.shadowStrength=Mathf.Lerp(1f,.3f,_cloudCover);
                 RenderSettings.sun=sun;
             }
             if(moon!=null)
@@ -118,7 +147,7 @@ namespace MyLittleFarm.Gameplay.World
                 moon.color=moonColor;moon.intensity=moonIntensity*LanternWeight;
             }
             RenderSettings.ambientMode=AmbientMode.Flat;
-            RenderSettings.ambientLight=ambientColors.Evaluate(time);
+            RenderSettings.ambientLight=ambientColors.Evaluate(time)*Mathf.Lerp(1f,.86f,_cloudCover);
             RenderSettings.reflectionIntensity=Mathf.Lerp(.12f,.8f,1f-LanternWeight);
             ApplySkybox(hour);
             if(worldCamera!=null)
@@ -145,6 +174,8 @@ namespace MyLittleFarm.Gameplay.World
             twilight=Mathf.SmoothStep(0f,1f,Mathf.Clamp01(twilight));
             material.SetFloat("_Blend",1f-daylight);
             material.SetFloat("_Rotation",skyboxRotation);
+            material.SetFloat("_CloudCover",_cloudCover);
+            material.SetFloat("_CloudRotation",_cloudRotation);
             material.SetColor("_DayTint",Color.Lerp(new Color(.5f,.5f,.5f),new Color(.65f,.32f,.20f),twilight));
             RenderSettings.skybox=material;
         }

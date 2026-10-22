@@ -139,6 +139,7 @@ namespace MyLittleFarm.Core
             animals.Configure(grid, inventory, catalog, wallet);
             CreatePenMockup(grid, animals);
             var onboarding = CreateSystem<OnboardingSystem>("Onboarding System");
+            var progression = CreateSystem<FarmProgression>("Farm Progression");
 
             var player = CreatePlayer(grid.CellToWorld(playerStartCell) + Vector3.up * playerStartHeight, input, grid);
             player.transform.SetParent(transform, true);
@@ -154,6 +155,8 @@ namespace MyLittleFarm.Core
             var saleCrate = CreateSaleCrate(saleCratePosition);
             saleCrate.SetParent(transform, true);
             shop.Configure(input, catalog, slots, inventory, wallet, player.transform, saleCrate, grid);
+            onboarding.Configure(grid, buildings, crops, inventory, wallet, player.transform, saleCrate);
+            progression.Configure(input,wallet,inventory,catalog,buildings,orchard,animals,sector,player.transform,saleCrate);
 
             var interaction = CreateSystem<InteractionSystem>("Interaction System");
             interaction.Configure(
@@ -535,6 +538,7 @@ namespace MyLittleFarm.Core
             var animals = RequireChild<AnimalSystem>();
             animals.Configure(grid, inventory, catalog, wallet);
             var onboarding = RequireChild<OnboardingSystem>();
+            var progression = RequireChild<FarmProgression>();
             var player = RequireChild<PlayerController>();
             player.Configure(input, grid);
             var prototypePlayerRenderer = player.GetComponent<Renderer>();
@@ -553,6 +557,8 @@ namespace MyLittleFarm.Core
             if (prototypeCrateRenderer != null && prototypeCrateRenderer.enabled)
                 RuntimeMaterials.Paint(prototypeCrateRenderer, saleCrateColor);
             shop.Configure(input, catalog, slots, inventory, wallet, player.transform, saleCrate, grid);
+            onboarding.Configure(grid, buildings, crops, inventory, wallet, player.transform, saleCrate);
+            progression.Configure(input,wallet,inventory,catalog,buildings,orchard,animals,sector,player.transform,saleCrate);
 
             var interaction = RequireChild<InteractionSystem>();
             interaction.Configure(input, player.transform, saleCrate, selector, grid, soil, crops,

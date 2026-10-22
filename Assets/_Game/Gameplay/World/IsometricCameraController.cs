@@ -97,6 +97,8 @@ namespace MyLittleFarm.Gameplay.World
             SnapToTarget();
         }
 
+        public void RefreshPosition() { if (_target != null) SnapToTarget(); }
+
         private void SnapToTarget()
         {
             // Камера смотрит немного выше основания игрока под постоянным углом 38 градусов.

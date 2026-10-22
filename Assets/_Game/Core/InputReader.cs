@@ -10,6 +10,9 @@ namespace MyLittleFarm.Core
     [DefaultExecutionOrder(-200)]
     public sealed class InputReader : MonoBehaviour
     {
+        [SerializeField] private RectTransform onboardingPointerBlock;
+        [SerializeField] private RectTransform clockSpeedPointerBlock;
+        public bool WorldPointerBlocked { get; private set; }
         [Header("Movement Keys")]
         [SerializeField] private Key moveForwardKey = Key.W;
         [SerializeField] private Key moveBackwardKey = Key.S;
@@ -48,6 +51,9 @@ namespace MyLittleFarm.Core
         [SerializeField] private Key buildingSlot3Key = Key.Digit3;
         [SerializeField] private Key buildingSlot4Key = Key.Digit4;
         [SerializeField] private Key buildingSlot5Key = Key.Digit5;
+        [SerializeField] private Key catalogKey=Key.Tab;
+        [SerializeField] private Key customizeBuildingKey=Key.F;
+        [SerializeField] private Key journalKey=Key.J;
         [Header("Seed Slots")]
         [SerializeField] private Key seedSlot1Key = Key.Digit1;
         [SerializeField] private Key seedSlot2Key = Key.Digit2;
@@ -99,6 +105,12 @@ namespace MyLittleFarm.Core
         // Состояния совместного доступа не дают движению и обычному взаимодействию сработать в режиме строительства.
         public bool BuildModeActive { get; internal set; }
         public bool SuppressGameplayThisFrame { get; internal set; }
+        public bool ModalInputActive { get; internal set; }
+        public bool CatalogPressed { get; private set; }
+        public bool CustomizeBuildingPressed { get; private set; }
+        public bool ModalSubmitPressed { get; private set; }
+        public bool ModalCancelPressed { get; private set; }
+        public bool JournalPressed { get; private set; }
 
         private void Update()
         {
@@ -108,6 +120,7 @@ namespace MyLittleFarm.Core
             SuppressGameplayThisFrame = false;
             HasPointer = mouse != null;
             PointerPosition = mouse == null ? Vector2.zero : mouse.position.ReadValue();
+            WorldPointerBlocked = HasPointer && (BlocksPointer(onboardingPointerBlock) || BlocksPointer(clockSpeedPointerBlock));
             BuildTogglePressed = WasPressed(keyboard, buildToggleKey);
             RotateBuildingPressed = WasPressed(keyboard, rotateBuildingKey) || WasPressed(keyboard, alternateRotateBuildingKey);
             MoveBuildingPressed = WasPressed(keyboard, moveBuildingKey);
@@ -143,7 +156,7 @@ namespace MyLittleFarm.Core
             FastSprintHeld = shift && IsPressed(keyboard, fastSprintKey);
             GesturePressed = WasPressed(keyboard, gestureKey);
             JumpPressed = WasPressed(keyboard, jumpKey);
-            PointerInteractPressed = allowMouseInteraction && mouse != null && mouse.leftButton.wasPressedThisFrame;
+            PointerInteractPressed = !WorldPointerBlocked && allowMouseInteraction && mouse != null && mouse.leftButton.wasPressedThisFrame;
             InteractPressed = (WasPressed(keyboard, interactKey) && !shift) || PointerInteractPressed;
             RotateLeftPressed = WasPressed(keyboard, rotateCameraLeftKey);
             RotateRightPressed = WasPressed(keyboard, rotateCameraRightKey) && shift;
@@ -154,6 +167,26 @@ namespace MyLittleFarm.Core
             UpgradePressed = WasPressed(keyboard, upgradeKey);
             PlantTreePressed = WasPressed(keyboard, plantTreeKey);
             BuyChickenPressed = WasPressed(keyboard, buyChickenKey);
+            CatalogPressed=WasPressed(keyboard,catalogKey);
+            CustomizeBuildingPressed=WasPressed(keyboard,customizeBuildingKey);
+            ModalSubmitPressed=WasPressed(keyboard,confirmKey);
+            ModalCancelPressed=WasPressed(keyboard,cancelKey);
+            JournalPressed=WasPressed(keyboard,journalKey);
+            if(ModalInputActive)
+            {
+                Movement=Vector2.zero;ZoomDelta=OrbitDelta=0;BuildSelection=SeedSelection=-1;
+                InteractPressed=PointerInteractPressed=BuildTogglePressed=RotateBuildingPressed=MoveBuildingPressed=DeleteBuildingPressed=false;
+                ConfirmPressed=CancelPressed=CustomizeBuildingPressed=false;
+                RotateLeftPressed=RotateRightPressed=SavePressed=LoadPressed=ShopPressed=SectorPressed=UpgradePressed=false;
+                PlantTreePressed=BuyChickenPressed=SprintHeld=JumpPressed=StrafeHeld=FastSprintHeld=GesturePressed=false;
+                JournalPressed=false;SuppressGameplayThisFrame=true;
+            }
+        }
+
+        private bool BlocksPointer(RectTransform rect)
+        {
+            return rect != null && rect.gameObject.activeInHierarchy
+                && RectTransformUtility.RectangleContainsScreenPoint(rect, PointerPosition);
         }
 
         private static bool IsPressed(Keyboard keyboard, Key key)

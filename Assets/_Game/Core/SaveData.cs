@@ -16,6 +16,11 @@ namespace MyLittleFarm.Core
         public int saveVersion = 1;
         // UTC-время записи используется для диагностики и проверки корректности файла.
         public long savedAtUnixMs;
+        // Real play time excludes the slot menu and time spent outside the application.
+        public double playTimeSeconds;
+        // Small PNG travels atomically with the exact state it previews; absent in older saves.
+        public string previewPngBase64;
+        public FarmProgressData progression;
         // Отдельные блоки сохраняют позицию, экономику, клетки, посевы и постройки.
         public PlayerPositionData player = new PlayerPositionData();
         public int coins;
@@ -37,9 +42,18 @@ namespace MyLittleFarm.Core
         public int toolUpgradeLevel;
         // Номер шага короткого онбординга сохраняется вместе с остальным прогрессом.
         public int onboardingStep;
+        // Schema 1 has five goals; schema 0 is the legacy six-action tutorial.
+        public int onboardingSchema;
+        public bool onboardingSuppliesGranted;
+        public bool onboardingGardenPlanted;
+        public bool onboardingSaleCompleted;
+        public int onboardingGardenX;
+        public int onboardingGardenZ;
         // Optional lighting clock; older saves keep the authored starting hour.
         public bool hasWorldTime;
         public float worldHour;
+        // Optional in older saves. The weather clock pauses while the game is closed.
+        public WeatherSaveData weather;
     }
 
     /// <summary>Положение игрока в мировых координатах Unity.</summary>

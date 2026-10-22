@@ -70,8 +70,9 @@ namespace MyLittleFarm.Gameplay.Animals
         {
             if (_wallet == null || _wallet.Coins < chickenPrice || !CanAddChicken(position)) return false;
             if (!_wallet.TrySpend(chickenPrice)) return false;
-            if (AddChicken(position, nowUnixMs)) return true;
+            if (AddChicken(position, nowUnixMs)){GameEvents.Record("chicken");return true;}
             _wallet.AddCoins(chickenPrice);
+            GameEvents.Record("refund",value:chickenPrice);
             return false;
         }
 
@@ -116,19 +117,20 @@ namespace MyLittleFarm.Gameplay.Animals
         }
 
         /// <summary>Кормит конкретную курицу одной единицей пшеницы.</summary>
-        public bool Feed(string animalId, long nowUnixMs)
+        public bool Feed(string animalId, long nowUnixMs, bool quiet=false)
         {
             if (animalId == null || _chicken == null || !_animals.TryGetValue(animalId, out var state)
                 || state.readyProductCount > 0 || state.nextProductAtUnixMs > 0
                 || _inventory == null || !_inventory.TryRemove(_chicken.FeedItemId, 1)) return false;
             state.lastFedAtUnixMs = nowUnixMs;
             state.nextProductAtUnixMs = nowUnixMs + (long)(_chicken.ProductIntervalSeconds * 1000f);
-            GameEvents.RaiseStatusChanged("Курица накормлена");
+            if(!quiet)GameEvents.RaiseStatusChanged("Курица накормлена");
+            GameEvents.Record("fed");
             return true;
         }
 
         /// <summary>Собирает накопившиеся яйца из конкретной курицы.</summary>
-        public bool TryCollect(string animalId, out int yield)
+        public bool TryCollect(string animalId, out int yield, bool quiet=false)
         {
             yield = 0;
             if (animalId == null || _chicken == null || !_animals.TryGetValue(animalId, out var state)
@@ -140,9 +142,22 @@ namespace MyLittleFarm.Gameplay.Animals
             _inventory.Add(_chicken.ProductItemId, yield);
             state.readyProductCount = 0;
             state.nextProductAtUnixMs = 0;
-            GameEvents.RaiseStatusChanged($"Собрано: {yield} × яйцо");
+            if(!quiet)GameEvents.RaiseStatusChanged($"Собрано: {yield} × яйцо");
+            GameEvents.Record("eggs",amount:yield);
             GameEvents.RaiseActionFeedback("collect", _grid.GridToWorld(state.Position));
             return true;
+        }
+
+        /// <summary>Hired service uses the same finite inventory/feed/product rules as manual care.</summary>
+        public void AutomaticCare(long nowUnixMs)
+        {
+            foreach(var state in _animals.Values)
+            {
+                if(state.nextProductAtUnixMs>0&&nowUnixMs>=state.nextProductAtUnixMs&&state.readyProductCount==0)
+                    state.readyProductCount=1;
+                TryCollect(state.animalId,out _,true);
+                Feed(state.animalId,nowUnixMs,true);
+            }
         }
 
         /// <summary>Обрабатывает ближайшую курицу: сначала сбор яйца, затем кормление.</summary>
@@ -240,6 +255,7 @@ namespace MyLittleFarm.Gameplay.Animals
             foreach (var view in _views.Values)
                 if (view != null)
                 {
+                    view.gameObject.SetActive(false);
                     if (Application.isPlaying) Destroy(view.gameObject);
                     else DestroyImmediate(view.gameObject);
                 }

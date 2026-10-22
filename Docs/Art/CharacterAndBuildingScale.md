@@ -64,3 +64,7 @@
 Версия 7 поддерживает старые footprint. Миграция сначала работает с копией данных: освобождает прежние строительные клетки, расширяет/перемещает здания в ближайшее подходящее место, сохраняет ID, цены и остальные игровые данные. Учитываются культура/деревья, животные, игрок, права клеток, закрытые сектора и физические препятствия. Если разместить всё невозможно, загрузка отклоняется до применения данных. Удалять здания или затирать посевы ради размера миграция не должна.
 
 Проверки и изображения: [отчёт P0-3](../../Verification/P0-3/report.md).
+
+### P2-4 house variants — 22 October 2026
+
+The three new house prefabs under `Content/World/Personalization` use 1.584-unit doors (current character 1.44 × 1.1), a fixed 7×6 reserved footprint, and separate calibrated silhouettes. Existing imported storage/coop art and its historical 1.98-unit door metrics are retained. Decorations use DecorationArtMetrics instead of pretending to carry door endpoints.

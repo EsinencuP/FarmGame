@@ -63,6 +63,7 @@ namespace MyLittleFarm.Gameplay.Building
             // Положение задаётся центром всего следа, поворот применяется вокруг вертикальной оси.
             transform.position = Center(state.x, state.z, state.quarterTurns, definition, grid);
             transform.rotation = Quaternion.Euler(0, state.quarterTurns * 90f, 0);
+            foreach(var sign in GetComponentsInChildren<FarmSign>(true))sign.SetText(state.customText);
         }
 
         public static Vector3 Center(int x, int z, int turns, BuildingDefinition definition, GridSystem grid)

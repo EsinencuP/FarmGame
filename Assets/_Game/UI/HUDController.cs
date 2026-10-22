@@ -119,7 +119,9 @@ namespace MyLittleFarm.UI
         private void RefreshOnboarding()
         {
             if (_onboardingText == null || _onboarding == null) return;
+            if (_onboarding.UsesOverlay) return;
             _onboardingText.text = _onboarding.CurrentHint;
+            _onboardingText.enabled = _onboarding.IsActive;
         }
 
         private void Refresh()
@@ -156,7 +158,7 @@ namespace MyLittleFarm.UI
                 ? "ИНСТРУМЕНТ: ур. 2\n" : $"ИНСТРУМЕНТ  U: {_upgrades.NextPrice}\n");
             var selected = _slots?.SelectedCrop;
             var shopHint = selected != null && _catalog.TryGetItem(selected.SeedItemId, out var seed)
-                ? $"P: {_shop?.PurchaseAmount ?? 4} сем. × {seed.BuyPrice}"
+                ? selected.RareSeeds ? "Редкие семена: тайники · J — журнал" : $"P: {_shop?.PurchaseAmount ?? 4} сем. × {seed.BuyPrice}"
                 : "P: купить семена";
             lines.Append("ЯБЛОКИ ").Append(_inventory.GetAmount("apple"))
                 .Append("   ЯЙЦА ").Append(_inventory.GetAmount("egg"));

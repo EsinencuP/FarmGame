@@ -25,6 +25,9 @@ namespace MyLittleFarm.Gameplay.Building
 
         [Header("Imported Building Art")]
         [SerializeField] private BuildingVisual[] visualPrefabs = Array.Empty<BuildingVisual>();
+        [SerializeField] private GameObject[] houseLevelPrefabs=Array.Empty<GameObject>();
+        [SerializeField] private MyLittleFarm.UI.BuildCustomizationUI customizationUI;
+        public event Action<bool> ActiveChanged;
 
         [Header("Build Preview")]
         [SerializeField] private Shader ghostShader;
@@ -149,8 +152,10 @@ namespace MyLittleFarm.Gameplay.Building
         /// <summary>Создаёт пустую модель размещения без искусственных границ мира.</summary>
         private static BuildingLayout NewLayout() => new BuildingLayout(BuildingDefinition.Catalog);
 
-        private GameObject VisualFor(string definitionId)
+        private GameObject VisualFor(string definitionId,int level=0)
         {
+            if(definitionId=="house"&&level>=0&&level<houseLevelPrefabs.Length&&houseLevelPrefabs[level]!=null)
+                return houseLevelPrefabs[level];
             if (visualPrefabs == null) return null;
             foreach (var entry in visualPrefabs)
                 if (entry != null && entry.definitionId == definitionId) return entry.prefab;
@@ -174,6 +179,38 @@ namespace MyLittleFarm.Gameplay.Building
         public BuildingRuntimeState GetAt(Vector2Int cell) => _layout.Get(_layout.BuildingAt(cell.x, cell.y));
         /// <summary>Создаёт отделённый снимок всех построек для сохранения.</summary>
         public List<BuildingRuntimeState> Capture() => _layout.Capture();
+        public BuildingRuntimeState GetBuilding(string id)=>_layout==null?null:_layout.Get(id);
+        public BuildingView FindFirstView(string definitionId)
+        {
+            foreach (var view in _views.Values)
+                if (view != null && view.DefinitionId == definitionId) return view;
+            return null;
+        }
+        /// <summary>Pure bounds projection for save validation; never instantiates art into the live farm.</summary>
+        public Bounds SavedCollisionBounds(BuildingRuntimeState state, BuildingDefinition definition)
+        {
+            var center = BuildingView.Center(state.x, state.z, state.quarterTurns, definition, _grid);
+            var prefab = VisualFor(definition.Id,state.appearanceLevel);
+            if (prefab != null && (prefab.GetComponent<BuildingArtMetrics>() != null
+                || prefab.GetComponent<DecorationArtMetrics>() != null)
+                && VisualPrefab.TryGetLocalBounds(prefab,prefab.transform,out var local))
+            {
+                var matrix = Matrix4x4.TRS(center,Quaternion.Euler(0,state.quarterTurns*90f,0),Vector3.one)
+                    * Matrix4x4.TRS(prefab.transform.localPosition,prefab.transform.localRotation,prefab.transform.localScale);
+                var result = new Bounds(matrix.MultiplyPoint3x4(local.center),Vector3.zero);
+                for (var x=-1;x<=1;x+=2) for(var y=-1;y<=1;y+=2) for(var z=-1;z<=1;z+=2)
+                    result.Encapsulate(matrix.MultiplyPoint3x4(local.center + Vector3.Scale(local.extents,new Vector3(x,y,z))));
+                return result;
+            }
+            return new Bounds(center+Vector3.up*definition.Height*.5f,
+                new Vector3(definition.RotatedWidth(state.quarterTurns)*_grid.CellSize-.12f,
+                    definition.Height,definition.RotatedDepth(state.quarterTurns)*_grid.CellSize-.12f));
+        }
+        public void SelectDefinition(int index)
+        {
+            if(index<0||index>=BuildingDefinition.Catalog.Count)return;
+            _selected=index;_movingId=null;_deleteId=null;_turns=0;_nextPromptAt=0;
+        }
 
         /// <summary>Включает или выключает режим, сбрасывая незавершённый перенос и удаление.</summary>
         public void SetActive(bool active)
@@ -187,12 +224,14 @@ namespace MyLittleFarm.Gameplay.Building
             _grid.Select(null);
             _nextPromptAt = 0;
             CurrentPrompt = active ? PlacementPrompt(SelectedDefinition, _turns, false, false, "Наведите курсор на участок") : string.Empty;
+            ActiveChanged?.Invoke(active);
         }
 
         private void Update()
         {
             // Обработка организована как конечный автомат: обычное размещение, перенос или подтверждение удаления.
             if (_input == null || _layout == null) return;
+            if(_input.ModalInputActive)return;
             if (_input.BuildTogglePressed) SetActive(!IsActive);
             if (!IsActive) return;
             _input.SuppressGameplayThisFrame = true;
@@ -209,7 +248,8 @@ namespace MyLittleFarm.Gameplay.Building
             }
             // Луч из позиции курсора пересекает горизонтальную плоскость фермы и переводится в клетку.
             _hasTarget = false;
-            if (_input.HasPointer && _camera != null)
+            if (_input.HasPointer && !_input.WorldPointerBlocked && _camera != null
+                &&(customizationUI==null||!customizationUI.BlocksWorldPointer(_input.PointerPosition)))
             {
                 var ray = _camera.ScreenPointToRay(_input.PointerPosition);
                 if (_grid.TryRaycastSurface(ray, out var surfaceHit))
@@ -222,7 +262,7 @@ namespace MyLittleFarm.Gameplay.Building
                 if (_previewModel != null) _previewModel.SetActive(false);
                 var state = _layout.Get(_deleteId);
                 if (state == null) { _deleteId = null; return; }
-                CurrentPrompt = $"Удалить {_layout.Definition(state.definitionId).Name}? Возврат: {state.paidCost / 2} монет\nE / Enter — подтвердить\nEsc / ПКМ — отменить";
+                CurrentPrompt = $"Удалить {_layout.Definition(state.definitionId).Name}? Возврат: {state.Refund} монет\nE / Enter — подтвердить\nEsc / ПКМ — отменить";
                 if (_input.ConfirmPressed || (_input.InteractPressed && !_input.PointerInteractPressed))
                 {
                     TryRemove(_deleteId, out var reason);
@@ -243,6 +283,12 @@ namespace MyLittleFarm.Gameplay.Building
                 }
                 else if (hovered != null && _input.DeleteBuildingPressed)
                 { _deleteId = hovered.id; _preview.SetActive(false); if (_previewModel != null) _previewModel.SetActive(false); return; }
+            }
+            if(_hasTarget&&_movingId==null&&_input.CustomizeBuildingPressed)
+            {
+                var hovered=GetAt(_target);
+                if(hovered!=null&&customizationUI!=null)customizationUI.ShowDetails(hovered);
+                return;
             }
             if (_input.RotateBuildingPressed) _turns = (_turns + 1) % 4;
             var reasonText = "Наведите курсор на участок";
@@ -283,9 +329,9 @@ namespace MyLittleFarm.Gameplay.Building
         public static string PlacementPrompt(BuildingDefinition definition, int turns, bool moving, bool valid, string reason)
         {
             return $"СТРОИТЕЛЬСТВО · {definition.Name} · {(moving ? "бесплатный перенос" : definition.Price + " монет")} · {definition.RotatedWidth(turns)}×{definition.RotatedDepth(turns)}\n"
-                + "1 Дом · 2 Склад · 3 Стойка · 4 Клумба · 5 Курятник\n"
+                + "1–5 — постройки   Tab — каталог и декор\n"
                 + (valid ? "Размещение доступно" : reason)
-                + "\nE / ЛКМ — подтвердить   Q / R — повернуть   Esc / ПКМ — отмена\nM — перенос   Delete — удалить   B — выйти из строительства";
+                + "\nE / ЛКМ — подтвердить   Q / R — повернуть   Esc / ПКМ — отмена\nM — перенос   Delete — удалить   F — настроить объект   B — выйти";
         }
 
         private Material GhostMaterial(Shader shader, Color tint)
@@ -306,13 +352,15 @@ namespace MyLittleFarm.Gameplay.Building
 
         private void UpdateModelPreview(bool valid)
         {
-            if (_previewDefinition != SelectedDefinition.Id)
+            var level=_movingId==null?0:(_layout.Get(_movingId)?.appearanceLevel??0);
+            var previewKey=SelectedDefinition.Id+":"+level;
+            if (_previewDefinition != previewKey)
             {
                 if (_previewModel != null) { _previewModel.SetActive(false); Destroy(_previewModel); }
-                _previewDefinition = SelectedDefinition.Id;
+                _previewDefinition = previewKey;
                 _previewModel = new GameObject("Building model preview");
                 _previewModel.transform.SetParent(transform, false);
-                var prefab = VisualFor(SelectedDefinition.Id);
+                var prefab = VisualFor(SelectedDefinition.Id,level);
                 if (prefab != null)
                 {
                     var model = VisualPrefab.CreateBuilding(prefab, _previewModel.transform, new Vector3(
@@ -350,6 +398,8 @@ namespace MyLittleFarm.Gameplay.Building
                     }
                 }
                 foreach (var collider in _previewModel.GetComponentsInChildren<Collider>(true)) collider.enabled = false;
+                foreach(var behaviour in _previewModel.GetComponentsInChildren<MonoBehaviour>(true))behaviour.enabled=false;
+                foreach(var light in _previewModel.GetComponentsInChildren<Light>(true))light.enabled=false;
                 foreach (var child in _previewModel.GetComponentsInChildren<Transform>(true)) child.gameObject.layer = 2;
                 _previewValid = null;
             }
@@ -406,9 +456,12 @@ namespace MyLittleFarm.Gameplay.Building
             _grid.OccupyWithBuilding(cell,
                 new Vector2Int(definition.RotatedWidth(turns), definition.RotatedDepth(turns)), state.id);
             _wallet.TrySpend(definition.Price);
+            GameEvents.Record("build",definitionId);
             reason = "Постройка размещена";
             GameEvents.RaiseProgressAction(definitionId == "house" ? "house"
                 : definitionId == "storage" ? "chest" : "build");
+            if(Application.isPlaying&&customizationUI!=null&&FarmDecorationCatalog.SupportsText(definitionId))
+                customizationUI.ShowDetails(state);
             return true;
         }
 
@@ -435,7 +488,7 @@ namespace MyLittleFarm.Gameplay.Building
         {
             var state = _layout.Get(id);
             if (state == null) { reason = "Постройка не найдена"; return false; }
-            var refund = state.paidCost / 2;
+            var refund = state.Refund;
             if ((long)_wallet.Coins + refund > int.MaxValue) { reason = "Кошелёк заполнен"; return false; }
             _layout.TryRemove(id, out _);
             var definition = _layout.Definition(state.definitionId);
@@ -445,6 +498,7 @@ namespace MyLittleFarm.Gameplay.Building
             Destroy(_views[id].gameObject);
             _views.Remove(id);
             _wallet.AddCoins(refund);
+            GameEvents.Record("refund",value:refund);
             reason = $"Постройка удалена. Возврат: {refund} монет";
             return true;
         }
@@ -474,8 +528,34 @@ namespace MyLittleFarm.Gameplay.Building
                 _grid.OccupyWithBuilding(new Vector2Int(state.x, state.z),
                     new Vector2Int(definition.RotatedWidth(state.quarterTurns), definition.RotatedDepth(state.quarterTurns)), state.id);
                 _views.Add(state.id, BuildingView.Create(transform, candidate.Definition(state.definitionId), state,
-                    _grid, VisualFor(state.definitionId)));
+                    _grid, VisualFor(state.definitionId,state.appearanceLevel)));
             }
+        }
+
+        public bool TrySetSignText(string id,string text,out string reason)
+        {
+            var state=_layout.Get(id);
+            if(state==null||!FarmDecorationCatalog.SupportsText(state.definitionId)){reason="Это не вывеска";return false;}
+            if(!_layout.TryCustomize(id,0,FarmDecorationCatalog.CleanText(text),out reason))return false;
+            _views[id].Apply(_layout.Get(id),_layout.Definition(state.definitionId),_grid);
+            reason="Текст вывески сохранён";return true;
+        }
+
+        public bool TryUpgradeHouse(string id,out string reason)
+        {
+            var state=_layout.Get(id);
+            if(state==null||state.definitionId!="house"){reason="Дом не найден";return false;}
+            if(state.appearanceLevel>=2){reason="Усадьба уже полностью улучшена";return false;}
+            var price=FarmDecorationCatalog.HouseUpgradePrice(state.appearanceLevel);
+            if(_wallet.Coins<price){reason="Недостаточно монет";return false;}
+            if(!CanPlace("house",new Vector2Int(state.x,state.z),state.quarterTurns,id,out reason))
+            {reason="Освободите территорию дома перед улучшением";return false;}
+            if(!_layout.TryCustomize(id,state.appearanceLevel+1,null,out reason))return false;
+            var updated=_layout.Get(id);var old=_views[id];
+            _views[id]=BuildingView.Create(transform,_layout.Definition("house"),updated,_grid,VisualFor("house",updated.appearanceLevel));
+            old.gameObject.SetActive(false);Destroy(old.gameObject);_wallet.TrySpend(price);
+            GameEvents.Record("house_upgrade",amount:updated.appearanceLevel);
+            _previewDefinition=null;reason="Дом улучшен: "+FarmDecorationCatalog.HouseLevelName(updated.appearanceLevel);return true;
         }
 
         public bool IsNearMarket(Vector3 position, float distance)
@@ -498,6 +578,7 @@ namespace MyLittleFarm.Gameplay.Building
             IsActive = false;
             if (_preview != null) _preview.SetActive(false);
             if (_previewModel != null) _previewModel.SetActive(false);
+            ActiveChanged?.Invoke(false);
         }
     }
 }

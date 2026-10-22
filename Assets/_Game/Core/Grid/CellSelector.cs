@@ -95,7 +95,7 @@ namespace MyLittleFarm.Core.Grid
         /// <summary>Пересчитывает наведение по текущей позиции указателя.</summary>
         public void RefreshSelection()
         {
-            if (_grid == null || _input == null || !_input.HasPointer || mainCamera == null
+            if (_grid == null || _input == null || !_input.HasPointer || _input.WorldPointerBlocked || mainCamera == null
                 || (_buildings != null && _buildings.IsActive))
             {
                 ClearSelection();

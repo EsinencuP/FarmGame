@@ -29,14 +29,19 @@ namespace MyLittleFarm.Gameplay.Building
         public int RotatedDepth(int turns) => (turns & 1) == 0 ? Depth : Width;
 
         // Каталог прототипа хранится в коде; идентификаторы являются частью формата сохранения.
-        public static IReadOnlyList<BuildingDefinition> Catalog { get; } = Array.AsReadOnly(new[]
+        // Lazy construction prevents circular type initialization when a decoration is referenced first.
+        private static readonly Lazy<IReadOnlyList<BuildingDefinition>> CatalogCache=new Lazy<IReadOnlyList<BuildingDefinition>>(CreateCatalog);
+        public static IReadOnlyList<BuildingDefinition> Catalog=>CatalogCache.Value;
+        private static IReadOnlyList<BuildingDefinition> CreateCatalog()
         {
+            var items=new List<BuildingDefinition>{
             new BuildingDefinition("house", "Дом", 7, 6, 20, 5f),
             new BuildingDefinition("storage", "Склад", 5, 6, 12, 4f),
             new BuildingDefinition("market", "Торговая стойка", 8, 5, 10, 3.1f),
             new BuildingDefinition("flowerbed", "Клумба", 1, 1, 3, 0.45f),
-            new BuildingDefinition("coop", "Курятник", 3, 5, 18, 4f)
-        });
+            new BuildingDefinition("coop", "Курятник", 3, 5, 18, 4f)};
+            items.AddRange(FarmDecorationCatalog.Items);return items.AsReadOnly();
+        }
 
         // Version <= 6 footprints are used only to validate and migrate older saves.
         public static IReadOnlyList<BuildingDefinition> LegacyCatalog { get; } = Array.AsReadOnly(new[]

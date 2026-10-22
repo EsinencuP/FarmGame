@@ -19,6 +19,7 @@ namespace MyLittleFarm.Core
             ActionFeedback = null;
             ProgressAction = null;
             OnboardingChanged = null;
+            FarmAction = null;
         }
         public static event Action InventoryChanged;
         public static event Action<int> MoneyChanged;
@@ -28,6 +29,9 @@ namespace MyLittleFarm.Core
         // ProgressAction используется онбордингом и не зависит от визуальных эффектов.
         public static event Action<string> ProgressAction;
         public static event Action<int> OnboardingChanged;
+        public static event Action<FarmActivity> FarmAction;
+        public static void Record(string kind,string itemId="",long amount=1,long value=0,float hour=-1)
+            => FarmAction?.Invoke(new FarmActivity(kind,itemId,amount,value,hour));
 
         /// <summary>Updates the persistent onboarding hint only when its step changes.</summary>
         public static void RaiseOnboardingChanged(int step) => OnboardingChanged?.Invoke(step);

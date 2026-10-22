@@ -62,8 +62,8 @@ namespace MyLittleFarm.Gameplay.Economy
                 GameEvents.RaiseStatusChanged("Подойдите к рынку для покупки");
                 return false;
             }
-            if (amount <= 0 || _catalog == null || !_catalog.TryGetItem(itemId, out var item)
-                || !item.CanBuy) return false;
+            if (amount <= 0 || _catalog == null || !_catalog.TryGetItem(itemId, out var item)) return false;
+            if(!item.CanBuy||_catalog.IsRareSeed(itemId)){GameEvents.RaiseStatusChanged("Редкие семена кукурузы: ищите тайники у пруда, в лесу и на холме (J)");return false;}
             if (!TransactionMath.TryPurchase(item.BuyPrice, amount,
                 _inventory.GetAmount(item.ItemId), _wallet.Coins, out var cost))
             {
@@ -77,6 +77,7 @@ namespace MyLittleFarm.Gameplay.Economy
                 return false;
             }
             _inventory.Add(item.ItemId, amount);
+            GameEvents.Record("purchase",item.ItemId,amount,cost);
             GameEvents.RaiseStatusChanged($"Куплено: {amount} × {item.DisplayName} (-{cost})");
             GameEvents.RaiseProgressAction("purchase");
             return true;

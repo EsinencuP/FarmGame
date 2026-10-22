@@ -79,6 +79,7 @@ namespace MyLittleFarm.Gameplay.Economy
                 if (amount > 0) _inventory.TryRemove(eggToRemove.ItemId, amount);
             }
             _wallet.AddCoins((int)total);
+            GameEvents.Record("sale",amount:sold,value:total);
             GameEvents.RaiseStatusChanged($"Продано урожая: {sold}  +{total} монет");
             return (int)total;
         }
@@ -97,6 +98,7 @@ namespace MyLittleFarm.Gameplay.Economy
 
             var earned = (int)earnedLong;
             _wallet.AddCoins(earned);
+            GameEvents.Record("sale",amount:amount,value:earned);
             GameEvents.RaiseStatusChanged($"Продано: {amount} моркови  +{earned} монет");
             return earned;
         }

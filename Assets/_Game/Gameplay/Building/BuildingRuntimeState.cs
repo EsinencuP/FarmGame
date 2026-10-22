@@ -15,6 +15,10 @@ namespace MyLittleFarm.Gameplay.Building
         public int quarterTurns;
         // Фактически уплаченная стоимость используется для расчёта возврата при удалении.
         public int paidCost;
+        // Zero is the old-save default. House tiers retain the same reserved footprint.
+        public int appearanceLevel;
+        public string customText;
+        public int Refund=>(paidCost+FarmDecorationCatalog.HouseUpgradeInvestment(appearanceLevel))/2;
 
         /// <summary>Создаёт отделённую копию, чтобы внешний код не изменил внутреннее состояние layout.</summary>
         public BuildingRuntimeState Copy() => (BuildingRuntimeState)MemberwiseClone();

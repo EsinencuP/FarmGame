@@ -45,7 +45,8 @@ namespace MyLittleFarm.Core
         {
             if (prefab == null) return null;
             var instance = Object.Instantiate(prefab, parent, false);
-            if (instance.GetComponent<MyLittleFarm.Gameplay.Building.BuildingArtMetrics>() != null)
+            if (instance.GetComponent<MyLittleFarm.Gameplay.Building.BuildingArtMetrics>() != null
+                ||instance.GetComponent<MyLittleFarm.Gameplay.Building.DecorationArtMetrics>()!=null)
             {
                 foreach (var collider in instance.GetComponentsInChildren<Collider>(true)) collider.enabled = false;
                 // Metric art is already calibrated. Fitting it again would shrink doors or distort proportions.
