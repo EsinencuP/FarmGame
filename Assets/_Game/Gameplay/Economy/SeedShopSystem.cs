@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace MyLittleFarm.Gameplay.Economy
 {
-    /// <summary>Покупает семена выбранной культуры за монеты через временную команду P.</summary>
+    /// <summary>Market proximity and legacy single-item transaction API. Input belongs to the market UI.</summary>
     [DefaultExecutionOrder(-90)]
     public sealed class SeedShopSystem : MonoBehaviour
     {
@@ -14,6 +14,8 @@ namespace MyLittleFarm.Gameplay.Economy
         [SerializeField, Min(0.1f)] private float shoppingDistance = 2.4f;
         /// <summary>Количество семян в одной покупке, заданное в Inspector.</summary>
         public int PurchaseAmount => seedsPerPurchase;
+        public bool CanTrade => CanShop();
+        public Vector3 TradePosition => _player == null ? transform.position : _player.position;
 
         // Ссылки передаются bootstrap и не ищутся каждый кадр.
         private InputReader _input;
@@ -38,13 +40,6 @@ namespace MyLittleFarm.Gameplay.Economy
             _player = player;
             _stall = stall;
             _grid = grid;
-        }
-
-        private void Update()
-        {
-            // В режиме строительства команда покупки не должна менять игровые ресурсы.
-            if (_input != null && _input.ShopPressed && !_input.BuildModeActive
-                && !_input.SuppressGameplayThisFrame) BuySelected();
         }
 
         /// <summary>Проверяет цену и вместимость до списания денег, затем добавляет семена.</summary>

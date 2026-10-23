@@ -6,7 +6,7 @@ Shader "MyLittleFarm/Decor/Flag"
         Tags { "RenderType"="Opaque" }
         Cull Off
         CGPROGRAM
-        #pragma surface surf Standard vertex:vert addshadow
+        #pragma surface surf Standard vertex:vert addshadow fullforwardshadows
         #pragma target 3.0
         fixed4 _Color;
         struct Input { float3 worldPos; };

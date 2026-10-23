@@ -16,6 +16,11 @@ namespace MyLittleFarm.Gameplay.World
         [SerializeField] private Light moon;
         [SerializeField] private Camera worldCamera;
         [SerializeField] private FarmLantern[] authoredLanterns=System.Array.Empty<FarmLantern>();
+        [SerializeField] private Transform lanternShadowFocus;
+        private readonly FarmLantern[] _shadowLights = new FarmLantern[3];
+        private readonly float[] _shadowDistances = new float[3];
+        private float _nextShadowRefresh;
+        public void ConfigureLanternShadowFocus(Transform focus) { lanternShadowFocus = focus; _nextShadowRefresh = 0; }
         [SerializeField] private float sunAzimuth=-32f;
         [SerializeField, Range(0f,.6f)] private float moonIntensity=.34f;
         [SerializeField] private Color moonColor=new Color(.59f,.69f,1f);
@@ -82,6 +87,7 @@ namespace MyLittleFarm.Gameplay.World
 
         private void Update()
         {
+            if (Time.timeScale <= 0) return;
             _hour=(_hour+Time.unscaledDeltaTime*ClockSpeed*24.0/(dayLengthMinutes*60.0))%24.0;
             ApplyLighting();
         }
@@ -161,7 +167,35 @@ namespace MyLittleFarm.Gameplay.World
                 foreach(var lantern in authoredLanterns)if(lantern!=null&&lantern.isActiveAndEnabled)lantern.SetNightWeight(LanternWeight);
             }
             else foreach(var lantern in _lanterns)if(lantern!=null&&lantern.isActiveAndEnabled)lantern.SetNightWeight(LanternWeight);
+            RefreshLanternShadows();
         }
+
+        private void RefreshLanternShadows()
+        {
+            if (Application.isPlaying && Time.unscaledTime < _nextShadowRefresh) return;
+            _nextShadowRefresh = Time.unscaledTime + .25f;
+            var focus = lanternShadowFocus != null ? lanternShadowFocus.position : worldCamera != null ? worldCamera.transform.position : transform.position;
+            for (var i = 0; i < _shadowLights.Length; i++) { _shadowLights[i] = null; _shadowDistances[i] = float.MaxValue; }
+            // Point shadows render six faces. Budget them around the player, not all 17 lamps at once.
+            if (Application.isPlaying) foreach (var lamp in _lanterns) ConsiderShadow(lamp, focus);
+            else foreach (var lamp in authoredLanterns) ConsiderShadow(lamp, focus);
+            if (Application.isPlaying) foreach (var lamp in _lanterns) ApplyShadow(lamp);
+            else foreach (var lamp in authoredLanterns) ApplyShadow(lamp);
+        }
+        private void ConsiderShadow(FarmLantern lamp, Vector3 focus)
+        {
+            if (lamp == null || !lamp.isActiveAndEnabled || LanternWeight < .005f) return;
+            var distance = (lamp.LightPosition - focus).sqrMagnitude;
+            if (distance > (lamp.LightRange + 1) * (lamp.LightRange + 1)) return;
+            for (var i = 0; i < _shadowLights.Length; i++)
+            {
+                if (distance >= _shadowDistances[i]) continue;
+                for (var j = _shadowLights.Length - 1; j > i; j--) { _shadowLights[j] = _shadowLights[j - 1]; _shadowDistances[j] = _shadowDistances[j - 1]; }
+                _shadowLights[i] = lamp; _shadowDistances[i] = distance; break;
+            }
+        }
+        private void ApplyShadow(FarmLantern lamp)
+        { if (lamp != null) { lamp.SetShadowEnabled(System.Array.IndexOf(_shadowLights, lamp) >= 0); } }
 
         private void ApplySkybox(float hour)
         {

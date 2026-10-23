@@ -58,6 +58,8 @@ namespace MyLittleFarm.Gameplay.Animals
         public string AnimalDefinitionId => _chicken == null ? string.Empty : _chicken.AnimalId;
         /// <summary>Цена курицы, доступная для настройки в Inspector.</summary>
         public int ChickenPrice => chickenPrice;
+        public AnimalDefinition Definition => _chicken != null ? _chicken : chickenAsset;
+        public float ProductIntervalSeconds => Definition != null ? Definition.ProductIntervalSeconds : productIntervalSeconds;
         /// <summary>Нижняя граница загона в клетках для редакторского макета.</summary>
         public Vector2Int PenMinCell => new Vector2Int(Mathf.Min(penMinCell.x, penMaxCell.x),
             Mathf.Min(penMinCell.y, penMaxCell.y));
@@ -74,6 +76,22 @@ namespace MyLittleFarm.Gameplay.Animals
             _wallet.AddCoins(chickenPrice);
             GameEvents.Record("refund",value:chickenPrice);
             return false;
+        }
+
+        private List<Vector2Int> DeliveryCells(int amount)
+        {
+            var cells = new List<Vector2Int>();
+            if (amount < 1 || amount > maxAnimals - Count) return cells;
+            for (var z = PenMinCell.y; z <= PenMaxCell.y && cells.Count < amount; z++)
+                for (var x = PenMinCell.x; x <= PenMaxCell.x && cells.Count < amount; x++)
+                { var cell = new Vector2Int(x, z); if (CanAddChicken(cell)) cells.Add(cell); }
+            return cells;
+        }
+        public bool CanDeliver(int amount) => amount > 0 && DeliveryCells(amount).Count == amount;
+        internal void Deliver(int amount, long nowUnixMs)
+        {
+            foreach (var cell in DeliveryCells(amount))
+                if (AddChicken(cell, nowUnixMs)) GameEvents.Record("chicken");
         }
 
         /// <summary>Проверяет, находится ли клетка внутри прямоугольного загона.</summary>
@@ -266,6 +284,7 @@ namespace MyLittleFarm.Gameplay.Animals
         /// <summary>Обновляет готовность яйца и перемещает визуальные модели с заданным интервалом.</summary>
         private void Update()
         {
+            if (Time.timeScale <= 0) return;
             var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
             foreach (var state in _animals.Values)
                 if (state.readyProductCount == 0 && state.nextProductAtUnixMs > 0

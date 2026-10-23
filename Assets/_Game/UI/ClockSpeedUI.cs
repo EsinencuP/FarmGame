@@ -41,7 +41,7 @@ namespace MyLittleFarm.UI
 
         private void Refresh()
         {
-            if(label!=null)label.text="Скорость суток · ×"+cycle.ClockSpeed;
+            if(label!=null)label.text="×"+cycle.ClockSpeed;
         }
 
         public static ClockSpeedUI Create(Transform parent,DayNightCycle worldClock,InputReader reader,Font font)

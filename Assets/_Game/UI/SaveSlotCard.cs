@@ -11,15 +11,18 @@ namespace MyLittleFarm.UI
         [SerializeField] private Text title, details, noPreview;
         [SerializeField] private RawImage preview;
         [SerializeField] private Button primary, manual;
+        [SerializeField] private Button delete;
         [SerializeField] private Text primaryLabel;
         private Texture2D _texture;
         public Button Primary => primary;
         public Button Manual => manual;
+        public Button Delete => delete;
 
         public void Show(SaveSlotInfo slot, bool active, bool legacyBlocked)
         {
             ClearTexture();
             title.text = "СЛОТ " + (slot.Index + 1) + (active ? " · ТЕКУЩИЙ" : "");
+            if (delete != null) { delete.gameObject.SetActive(!slot.IsEmpty && !legacyBlocked); delete.interactable = !active; }
             var latest = slot.Latest;
             primary.interactable = latest != null || (slot.IsEmpty && !legacyBlocked);
             primaryLabel.text = slot.IsEmpty ? "Начать ферму" : "Продолжить";
@@ -107,6 +110,15 @@ namespace MyLittleFarm.UI
             card.primary = SaveSlotsUI.Button(go.transform, "Продолжить", font); card.primaryLabel = card.primary.GetComponentInChildren<Text>();
             card.manual = SaveSlotsUI.Button(go.transform, "Ручная точка", font);
             return card;
+        }
+        public void EnsureDeleteButton(Font font)
+        {
+            FarmUITheme.Style(primary); FarmUITheme.Style(manual, "ghost");
+            if (delete != null) { FarmUITheme.Style(delete, "danger"); return; }
+            delete = FarmUITheme.Button(transform, "", font, null, "danger"); delete.name = "Delete closed farm";
+            FarmUITheme.Place((RectTransform)delete.transform, new Vector2(1, 1), new Vector2(1, 1), new Vector2(-12, -10), new Vector2(38, 38));
+            var icon = FarmUITheme.Icon(delete.transform, "delete"); FarmUITheme.Stretch(icon.rectTransform, 7);
+            title.rectTransform.offsetMax += new Vector2(-44, 0);
         }
         private static void Top(RectTransform rect, float x, float y, float width, float height)
         {

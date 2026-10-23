@@ -34,6 +34,10 @@ namespace MyLittleFarm.Gameplay.Farming
 
         /// <summary>Стабильный ID выбранного в Inspector дерева для проверки сохранения.</summary>
         public string TreeDefinitionId => _appleTree == null ? string.Empty : _appleTree.TreeId;
+        public TreeDefinition Definition => _appleTree != null ? _appleTree : appleTreeAsset;
+        public float FirstHarvestSeconds => Definition != null ? Definition.FirstHarvestSeconds : firstHarvestSeconds;
+        public float RegrowSeconds => Definition != null ? Definition.RegrowSeconds : regrowSeconds;
+        public int YieldAmount => Definition != null ? Definition.YieldAmount : yieldAmount;
 
         /// <summary>Подключает слой мира, инвентарь и каталог предметов.</summary>
         public void Configure(IWorldGridWriter grid, InventorySystem inventory, FarmCatalog catalog)

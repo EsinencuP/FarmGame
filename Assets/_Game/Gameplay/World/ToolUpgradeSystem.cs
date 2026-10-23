@@ -36,12 +36,6 @@ namespace MyLittleFarm.Gameplay.World
             Level = 0;
         }
 
-        private void Update()
-        {
-            if (_input != null && _input.UpgradePressed && !_input.BuildModeActive
-                && !_input.SuppressGameplayThisFrame) TryUpgrade();
-        }
-
         /// <summary>Покупает только следующий уровень и сообщает о нехватке средств.</summary>
         public bool TryUpgrade()
         {
@@ -53,6 +47,7 @@ namespace MyLittleFarm.Gameplay.World
                 return false;
             }
             Level++;
+            MyLittleFarm.Audio.FarmAudio.PlayAtPlayer(MyLittleFarm.Audio.SoundId.ToolUpgrade);
             GameEvents.RaiseInventoryChanged();
             GameEvents.RaiseStatusChanged($"Инструмент улучшен до уровня {Level}");
             return true;

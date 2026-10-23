@@ -21,6 +21,9 @@ namespace MyLittleFarm.UI
         [Tooltip("Необязательная картинка инструмента вместо цветного прямоугольника.")]
         [SerializeField] private Sprite toolSprite;
         [SerializeField, Range(0.1f, 1f)] private float inactiveSlotOpacity = 0.55f;
+        [SerializeField] private bool compactPresentation;
+
+        public void UseCompactPresentation() { compactPresentation = true; Refresh(); RefreshOnboarding(); }
 
         // Источники данных и текстовые компоненты назначаются bootstrap-скриптом.
         private InventorySystem _inventory;
@@ -118,6 +121,7 @@ namespace MyLittleFarm.UI
         /// <summary>Держит текущую цель обучения на экране до завершения действия.</summary>
         private void RefreshOnboarding()
         {
+            if (compactPresentation) { if (_onboardingText != null) _onboardingText.gameObject.SetActive(false); return; }
             if (_onboardingText == null || _onboarding == null) return;
             if (_onboarding.UsesOverlay) return;
             _onboardingText.text = _onboarding.CurrentHint;
@@ -127,6 +131,11 @@ namespace MyLittleFarm.UI
         private void Refresh()
         {
             _refreshPending = false;
+            if (compactPresentation)
+            {
+                if (_statsText != null && _wallet != null) _statsText.text = _wallet.Coins.ToString("N0");
+                return; // The hotbar owns its item sprites/counts; no large inventory report is built here.
+            }
             // Показывает деньги, содержимое инвентаря и активный быстрый слот.
             if (_statsText == null || _inventory == null || _wallet == null)
             {
@@ -145,7 +154,7 @@ namespace MyLittleFarm.UI
             {
                 var crop = _catalog.Crops[i];
                 var active = _slots != null && _slots.SelectedIndex == i;
-                if (active) lines.Append("<color=#F0CF78><b>");
+                if (active) lines.Append("<color=#3E8A27><b>");
                 lines.Append(i + 1).Append("  ").Append(crop.DisplayName).Append("  ")
                     .Append(_inventory.GetAmount(crop.SeedItemId)).Append(" / ")
                     .Append(_inventory.GetAmount(crop.HarvestItemId));
@@ -179,6 +188,7 @@ namespace MyLittleFarm.UI
                 {
                     var icon = _seedIcons[index];
                     icon.sprite = _catalog.TryGetItem(crop.SeedItemId, out var seed) ? seed.Icon : null;
+                    if (icon.sprite == null) icon.sprite = FarmUITheme.Sprite("Icons/" + FarmUITheme.ItemIcon(crop.SeedItemId));
                     var color = icon.sprite == null ? crop.MatureColor : Color.white;
                     color.a = _slots != null && _slots.SelectedIndex == index ? 1f : inactiveSlotOpacity;
                     icon.color = color;
@@ -187,6 +197,7 @@ namespace MyLittleFarm.UI
                 {
                     var icon = _harvestIcons[index];
                     icon.sprite = _catalog.TryGetItem(crop.HarvestItemId, out var harvest) ? harvest.Icon : null;
+                    if (icon.sprite == null) icon.sprite = FarmUITheme.Sprite("Icons/" + FarmUITheme.ItemIcon(crop.HarvestItemId));
                     icon.color = icon.sprite == null ? crop.MatureColor : Color.white;
                 }
             }

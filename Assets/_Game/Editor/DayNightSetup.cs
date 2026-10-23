@@ -55,6 +55,7 @@ namespace MyLittleFarm.Editor
                 Undo.RegisterCreatedObjectUndo(go,"Place farm lantern");
             }
             var lanterns=lamps.GetComponentsInChildren<FarmLantern>(true);
+            cycle.ConfigureLanternShadowFocus(root.GetComponentInChildren<PlayerController>(true).transform);
             var settings=new SerializedObject(cycle);
             settings.FindProperty("sun").objectReferenceValue=sun;
             settings.FindProperty("moon").objectReferenceValue=moon;
@@ -88,10 +89,10 @@ namespace MyLittleFarm.Editor
                 Part(go.transform,"Corner Frame",PrimitiveType.Cube,new Vector3(.48f+side*.16f,1.89f,depth*.14f),new Vector3(.035f,.40f,.035f),iron);
             var bulb=new GameObject("Warm Point Light");bulb.transform.SetParent(go.transform,false);bulb.transform.localPosition=new Vector3(.48f,1.88f,0);
             var light=bulb.AddComponent<Light>();light.type=LightType.Point;light.lightmapBakeType=LightmapBakeType.Realtime;
-            light.color=new Color(1f,.68f,.32f);light.range=6.8f;light.intensity=0f;light.enabled=false;light.shadows=LightShadows.None;light.renderMode=LightRenderMode.ForcePixel;
+            light.color=new Color(1f,.68f,.32f);light.range=6.8f;light.intensity=0f;light.enabled=false;light.shadows=LightShadows.Soft;light.renderMode=LightRenderMode.ForcePixel;
             var collider=go.AddComponent<BoxCollider>();collider.center=new Vector3(0,1.08f,0);collider.size=new Vector3(.22f,2.16f,.22f);
             var lamp=go.AddComponent<FarmLantern>();var settings=new SerializedObject(lamp);
-            settings.FindProperty("pointLight").objectReferenceValue=light;settings.FindProperty("glass").objectReferenceValue=glass;settings.ApplyModifiedPropertiesWithoutUndo();
+            settings.FindProperty("pointLight").objectReferenceValue=light;settings.FindProperty("glass").objectReferenceValue=glass;settings.ApplyModifiedPropertiesWithoutUndo(); lamp.ConfigureShadowLight();
             var result=PrefabUtility.SaveAsPrefabAsset(go,Folder+"/FarmLantern.prefab");UnityEngine.Object.DestroyImmediate(go);return result;
         }
 

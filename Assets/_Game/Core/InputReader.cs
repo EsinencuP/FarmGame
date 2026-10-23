@@ -12,6 +12,8 @@ namespace MyLittleFarm.Core
     {
         [SerializeField] private RectTransform onboardingPointerBlock;
         [SerializeField] private RectTransform clockSpeedPointerBlock;
+        [SerializeField] private RectTransform navigationPointerBlock;
+        [SerializeField] private RectTransform quickSlotsPointerBlock;
         public bool WorldPointerBlocked { get; private set; }
         [Header("Movement Keys")]
         [SerializeField] private Key moveForwardKey = Key.W;
@@ -77,7 +79,7 @@ namespace MyLittleFarm.Core
         public bool RotateRightPressed { get; private set; }
         public bool SavePressed { get; private set; }
         public bool LoadPressed { get; private set; }
-        // Команда магазина покупает семена культуры, выбранной в быстром слоте.
+        // P opens the market window; it never performs a transaction.
         public bool ShopPressed { get; private set; }
         public bool SectorPressed { get; private set; }
         public bool UpgradePressed { get; private set; }
@@ -111,6 +113,9 @@ namespace MyLittleFarm.Core
         public bool ModalSubmitPressed { get; private set; }
         public bool ModalCancelPressed { get; private set; }
         public bool JournalPressed { get; private set; }
+        public bool PausePressed { get; private set; }
+        public bool InventoryPressed { get; private set; }
+        public bool MarketPressed { get; private set; }
 
         private void Update()
         {
@@ -120,7 +125,11 @@ namespace MyLittleFarm.Core
             SuppressGameplayThisFrame = false;
             HasPointer = mouse != null;
             PointerPosition = mouse == null ? Vector2.zero : mouse.position.ReadValue();
-            WorldPointerBlocked = HasPointer && (BlocksPointer(onboardingPointerBlock) || BlocksPointer(clockSpeedPointerBlock));
+            WorldPointerBlocked = HasPointer && (BlocksPointer(onboardingPointerBlock) || BlocksPointer(clockSpeedPointerBlock)
+                || BlocksPointer(navigationPointerBlock) || BlocksPointer(quickSlotsPointerBlock));
+            PausePressed = WasPressed(keyboard, Key.Escape);
+            InventoryPressed = WasPressed(keyboard, Key.I);
+            MarketPressed = WasPressed(keyboard, shopKey);
             BuildTogglePressed = WasPressed(keyboard, buildToggleKey);
             RotateBuildingPressed = WasPressed(keyboard, rotateBuildingKey) || WasPressed(keyboard, alternateRotateBuildingKey);
             MoveBuildingPressed = WasPressed(keyboard, moveBuildingKey);

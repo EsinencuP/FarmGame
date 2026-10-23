@@ -56,6 +56,7 @@ namespace MyLittleFarm.Gameplay.World
             if(!Application.isPlaying)return;
             Initialize();
             if(rainAudio!=null){rainAudio.outputAudioMixerGroup=ambienceBus;rainAudio.loop=true;rainAudio.playOnAwake=false;}
+            if (MyLittleFarm.Audio.FarmAudio.IsReady && rainAudio != null) rainAudio.Stop();
             ApplyPresentation();
         }
 
@@ -71,6 +72,7 @@ namespace MyLittleFarm.Gameplay.World
 
         private void Update()
         {
+            if (Time.timeScale <= 0) return;
             // Walk through transition/hold boundaries even on a slow frame. Integrate the
             // smoothstep exactly, so fading rain earns only its actual fractional bonus.
             var remaining=(double)Time.unscaledDeltaTime;
@@ -140,7 +142,9 @@ namespace MyLittleFarm.Gameplay.World
                     else if(_rainIntensity<=.001f&&rainParticles.isPlaying)rainParticles.Stop(true,ParticleSystemStopBehavior.StopEmitting);
                 }
             }
-            if(rainAudio!=null&&Application.isPlaying)
+            if (Application.isPlaying && MyLittleFarm.Audio.FarmAudio.IsReady)
+                MyLittleFarm.Audio.FarmAudio.SetRain(_rainIntensity, rainGainDb);
+            else if(rainAudio!=null&&Application.isPlaying)
             {
                 // The source's fade follows precipitation; the exposed gain is measured in dB.
                 rainAudio.volume=Mathf.Pow(10f,rainGainDb/20f)*_rainIntensity;

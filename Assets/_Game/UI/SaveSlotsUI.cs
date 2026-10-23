@@ -22,7 +22,12 @@ namespace MyLittleFarm.UI
         private bool _bound;
         private int _pendingSlot;
         private bool _pendingManual, _pendingNew;
+        private bool _pendingDelete;
         private GameObject _lastSelection;
+        [SerializeField] private FarmMenuUI mainMenu;
+        public event System.Action<bool> Closed;
+        private bool _selectedFarm;
+        private bool _loading;
         public bool IsOpen => shade != null && shade.activeSelf;
 
         public void Configure(SaveSystem system, InputReader reader)
@@ -36,6 +41,7 @@ namespace MyLittleFarm.UI
                 var index = i;
                 cards[i].Primary.onClick.AddListener(() => Choose(index, false));
                 cards[i].Manual.onClick.AddListener(() => Choose(index, true));
+                if (cards[i].Delete != null) cards[i].Delete.onClick.AddListener(() => ConfirmDelete(index));
             }
             save.onClick.AddListener(Save); close.onClick.AddListener(Close);
             confirm.onClick.AddListener(ApplyChoice); cancel.onClick.AddListener(CancelChoice);
@@ -45,7 +51,7 @@ namespace MyLittleFarm.UI
         {
             if (!_bound) return;
             saves.SlotsChanged -= RefreshIfOpen;
-            foreach (var card in cards) { card.Primary.onClick.RemoveAllListeners(); card.Manual.onClick.RemoveAllListeners(); }
+            foreach (var card in cards) { card.Primary.onClick.RemoveAllListeners(); card.Manual.onClick.RemoveAllListeners(); if (card.Delete != null) card.Delete.onClick.RemoveAllListeners(); }
             foreach (var button in new[] { save,close,confirm,cancel }) button.onClick.RemoveAllListeners();
             if (IsOpen && input != null) { input.ModalInputActive = false; input.SuppressGameplayThisFrame = true; }
             _bound = false;
@@ -55,6 +61,8 @@ namespace MyLittleFarm.UI
         {
             if (!Application.isPlaying || saves == null || input == null || (input.ModalInputActive && !IsOpen)) return;
             Bind(); input.ModalInputActive = true; input.SuppressGameplayThisFrame = true;
+            _selectedFarm = false;
+            _pendingDelete = false;
             _lastSelection = null; scroll.StopMovement(); content.anchoredPosition = Vector2.zero;
             shade.SetActive(true); confirmation.SetActive(false); panelGroup.interactable = true;
             RefreshIfOpen(); Resize();
@@ -68,7 +76,7 @@ namespace MyLittleFarm.UI
             _slots = saves.ReadSlots();
             for (var i = 0; i < cards.Length; i++) cards[i].Show(_slots[i], saves.HasActiveFarm && saves.ActiveSlot == i,
                 i == 0 && saves.LegacyUnavailable);
-            save.interactable = saves.HasActiveFarm; close.interactable = saves.HasActiveFarm;
+            save.interactable = saves.HasActiveFarm; close.interactable = saves.HasActiveFarm || mainMenu != null;
         }
         private void Save()
         {
@@ -78,6 +86,8 @@ namespace MyLittleFarm.UI
         private void Choose(int slot, bool manual)
         {
             _pendingSlot = slot; _pendingManual = manual; _pendingNew = _slots[slot].IsEmpty;
+            _pendingDelete = false;
+            confirm.GetComponentInChildren<Text>().text = "Продолжить"; FarmUITheme.Style(confirm, "primary");
             if (!saves.HasActiveFarm) { ApplyChoice(); return; }
             confirmation.SetActive(true);
             panelGroup.interactable = false;
@@ -89,16 +99,42 @@ namespace MyLittleFarm.UI
         }
         private void ApplyChoice()
         {
+            if (_loading) return;
+            if (_pendingDelete)
+            {
+                var removed = saves.ArchiveSlot(_pendingSlot); CancelChoice(); RefreshIfOpen();
+                message.text = removed ? "Слот освобождён. Копия файлов сохранена в папке Saves/Removed." : "Не удалось удалить слот. Файлы сохранены.";
+                return;
+            }
+            StartCoroutine(LoadChoice());
+        }
+        private void ConfirmDelete(int slot)
+        {
+            if (saves.HasActiveFarm && saves.ActiveSlot == slot) return;
+            _pendingSlot = slot; _pendingDelete = true; confirmation.SetActive(true); panelGroup.interactable = false;
+            confirmationText.text = "Удалить ферму из слота " + (slot + 1) + "?\nСлот станет свободным. Копия файлов останется в папке восстановления.";
+            confirm.GetComponentInChildren<Text>().text = "Удалить"; FarmUITheme.Style(confirm, "danger"); Focus(cancel.gameObject);
+        }
+        private System.Collections.IEnumerator LoadChoice()
+        {
+            _loading = true; panelGroup.interactable = false;
+            if (mainMenu != null) mainMenu.SetLoading(true);
+            // Present a real loading frame before synchronous validation and restore.
+            yield return null;
+            yield return null;
             var success = _pendingNew ? saves.NewFarm(_pendingSlot) : saves.LoadSlot(_pendingSlot, _pendingManual);
+            if (mainMenu != null) mainMenu.SetLoading(false);
+            _loading = false;
             confirmation.SetActive(false);
             panelGroup.interactable = true;
-            if (success) Close();
+            if (success) { _selectedFarm = true; Close(); }
             else { RefreshIfOpen(); message.text = "Не удалось открыть ферму. Проверьте доступ к файлам; данные сохранены."; FocusFirst(); }
         }
         private void CancelChoice() { confirmation.SetActive(false); panelGroup.interactable = true; FocusFirst(); }
         public void Close()
         {
-            if (Application.isPlaying && (saves == null || !saves.HasActiveFarm)) return;
+            if (Application.isPlaying && (_loading || (saves == null || (!saves.HasActiveFarm && mainMenu == null)))) return;
+            var owned = IsOpen;
             confirmation.SetActive(false); shade.SetActive(false);
             if (panelGroup != null) panelGroup.interactable = true;
             if (cards != null) for (var i = 0; i < cards.Length; i++)
@@ -107,12 +143,13 @@ namespace MyLittleFarm.UI
                 cards[i].ReleasePreview();
                 if (!Application.isPlaying) cards[i].Show(new SaveSlotInfo { Index = i, Manual = new SavePointInfo(), Autosave = new SavePointInfo() }, false, false);
             }
-            if (Application.isPlaying && input != null) { input.ModalInputActive = false; input.SuppressGameplayThisFrame = true; }
+            if (owned && Application.isPlaying && input != null) { input.ModalInputActive = false; input.SuppressGameplayThisFrame = true; }
             Focus(null);
+            if (owned && Application.isPlaying) Closed?.Invoke(_selectedFarm);
         }
         private void Update()
         {
-            if (!Application.isPlaying || !IsOpen || input == null) return;
+            if (!Application.isPlaying || !IsOpen || input == null || _loading) return;
             if (input.ModalCancelPressed) { if (confirmation.activeSelf) CancelChoice(); else Close(); }
             ScrollToSelection();
         }

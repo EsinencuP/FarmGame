@@ -51,8 +51,8 @@ namespace MyLittleFarm.Gameplay.World
                 case 2: return planted
                     ? "3 / 5   ГРЯДКА\nДождитесь зрелого растения под маркером.\nПодойдите и нажмите E / ЛКМ, чтобы собрать урожай."
                     : "3 / 5   ГРЯДКА\nВыйдите из стройки (Esc). Выберите морковь (1).\nУ маркера: E / ЛКМ обработать землю, ещё раз — посадить.";
-                case 3: return "4 / 5   МАГАЗИН\nПодойдите к торговому ящику под маркером.\nВыберите морковь (1), нажмите P — купить 4 семени.";
-                case 4: return "5 / 5   ПРОДАЖА\nНаведите курсор на торговый ящик под маркером.\nПодойдите и нажмите E / ЛКМ — продать урожай.";
+                case 3: return "4 / 5   МАГАЗИН\nПодойдите к торговому ящику под маркером.\nP / E — магазин. Добавьте семена в корзину и оплатите.";
+                case 4: return "5 / 5   ПРОДАЖА\nНаведите курсор на торговый ящик под маркером.\nP / E — магазин. Вкладка «Продать»: выберите урожай и подтвердите продажу.";
                 default: return string.Empty;
             }
         }
@@ -156,7 +156,7 @@ namespace MyLittleFarm.Gameplay.World
         }
         private void LateUpdate()
         {
-            if (!_ready || marker == null || _grid == null) return;
+            if (!Application.isPlaying || Time.timeScale <= 0 || !_ready || marker == null || _grid == null) return;
             if (!IsActive) { marker.Hide(); return; }
             if (Time.unscaledTime >= _nextTargetAt)
             {

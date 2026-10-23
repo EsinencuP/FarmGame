@@ -24,3 +24,7 @@
 *.VC.db
 sysinfo.txt
 
+# Windows folder metadata
+desktop.ini
+Thumbs.db
+

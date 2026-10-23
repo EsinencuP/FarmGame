@@ -74,9 +74,9 @@ namespace MyLittleFarm.UI
                 +"\nПосадок  "+data.plantings+"   ·   Сборов  "+data.harvests+"   ·   Урожая  "+data.harvestedUnits
                 +"\nЛюбимая культура  "+progress.FavouriteCrop+"\nДостижения  "+data.achievements.Count+" / 20"
                 +"\n\nБОНУСЫ ВРЕМЕНИ СУТОК — при сборе\n"+BonusHints()
-                +"\n\nПастух  "+(data.shepherdHired?"нанят · собирает яйца и кормит кур":"80 монет · найм рядом с торговой точкой")
+                +"\n\nПастух  "+(data.shepherdHired?"нанят · собирает яйца и кормит кур":"80 монет · найм в окне рынка")
                 +"\nРасходует обычную пшеницу из инвентаря. Работает во время игры.\nПрибыль = продажи + возвраты − покупки; стартовые монеты не учитываются.";
-            hire.gameObject.SetActive(!data.shepherdHired);hire.interactable=progress.CanHireShepherd;
+            hire.gameObject.SetActive(false);
             var text=new StringBuilder("РЕДКИЕ СЕМЕНА КУКУРУЗЫ\nТри тайника дают по 2 семени и пополняются через 15 реальных минут.\nКукуруза: обычный слот семян 5. В магазине семян кукурузы нет.\n\n");
             var names=new[]{"Западный пруд","Северный лес","Восточный холм"};
             var now=DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
@@ -105,7 +105,7 @@ namespace MyLittleFarm.UI
                 badgeLabels[i].transform.parent.gameObject.SetActive(visible);if(!visible)continue;
                 var item=FarmAchievements.All[index];var unlocked=earned.Contains(item.Id);
                 badgeLabels[i].text=(unlocked?"[ОТКРЫТО] ":"[  ] ")+item.Name+"\n"+item.Description;
-                badgeLabels[i].color=unlocked?new Color(1,.88f,.47f):new Color(.84f,.87f,.79f);
+                badgeLabels[i].color=unlocked?new Color(.24f,.49f,.15f):FarmUITheme.Muted;
             }
         }
         private void EnqueueToast(string name){if(_toasts.Count<20)_toasts.Enqueue(name);}
@@ -113,7 +113,7 @@ namespace MyLittleFarm.UI
         private void Update()
         {
             if(!Application.isPlaying)return;
-            if(clock!=null&&progress!=null&&Time.unscaledTime>=_nextClock){_nextClock=Time.unscaledTime+.5f;clock.text=progress.ClockHint;}
+            if(clock!=null&&progress!=null&&Time.unscaledTime>=_nextClock){_nextClock=Time.unscaledTime+.5f;clock.text=progress.ClockTime;}
             if(IsOpen&&input!=null&&input.ModalCancelPressed)Close();
             if(IsOpen&&Time.unscaledTime>=_nextRefresh){_nextRefresh=Time.unscaledTime+1;Refresh();}
             if(Time.unscaledTime>=_toastUntil)

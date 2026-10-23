@@ -17,6 +17,8 @@ namespace MyLittleFarm.Gameplay.World
         public const long CounterLimit=1_000_000_000_000_000;
         public static readonly string[] CacheIds={"pond","forest","hill"};
         [SerializeField] private FarmJournalUI journal;
+        [SerializeField] private FarmMenuUI gameMenus;
+        public void ConfigureGuideNavigation(FarmMenuUI menu) => gameMenus = menu;
         [SerializeField] private RareSeedCache[] seedCaches;
         [SerializeField] private GameObject shepherdVisual;
         private FarmProgressData _data=new FarmProgressData();
@@ -42,6 +44,15 @@ namespace MyLittleFarm.Gameplay.World
         public long Profit=>_data.revenue+_data.refunds-_data.expenses;
         public int Balance=>_wallet==null?0:_wallet.Coins;
         public float Hour=>_dayNight==null?8:_dayNight.Hour;
+        public string ClockTime
+        {
+            get
+            {
+                var minutes = Mathf.FloorToInt(Hour * 60);
+                return (minutes / 60).ToString("00") + ":" + (minutes % 60).ToString("00") + " · "
+                    + (Hour >= 6 && Hour < 12 ? "Утро" : Hour >= 12 && Hour < 18 ? "День" : Hour >= 18 && Hour < 22 ? "Вечер" : "Ночь");
+            }
+        }
         public string ClockHint
         {
             get
@@ -156,6 +167,7 @@ namespace MyLittleFarm.Gameplay.World
             state.discovered=true;state.nextAvailableUnixMs=now+15*60*1000;
             _inventory.Add("corn_seed",2);_data.rareSeeds=Add(_data.rareSeeds,2);
             cache.Refresh();Evaluate(true);Changed?.Invoke();
+            MyLittleFarm.Audio.FarmAudio.Play(MyLittleFarm.Audio.SoundId.RareSeedCollect, cache.transform.position);
             GameEvents.RaiseStatusChanged("Найдено: 2 редких семени кукурузы · слот семян 5");return true;
         }
         public bool NearMarket
@@ -166,13 +178,16 @@ namespace MyLittleFarm.Gameplay.World
         public bool HireShepherd()
         {
             if(!_configured||_restoring||_data.shepherdHired||!NearMarket||!_wallet.TrySpend(ShepherdPrice))return false;
-            _data.shepherdHired=true;ApplyVisuals();Evaluate(true);Changed?.Invoke();return true;
+            GrantShepherd();return true;
         }
+        internal void GrantShepherd() { _data.shepherdHired=true;ApplyVisuals();Evaluate(true);Changed?.Invoke(); }
         public bool CanHireShepherd=>!_data.shepherdHired&&NearMarket&&Balance>=ShepherdPrice;
         private void Update()
         {
+            if (Time.timeScale <= 0) return;
             if(!_configured)return;
-            if(_input!=null&&_input.JournalPressed&&journal!=null)journal.Open();
+            if(_input!=null&&_input.JournalPressed&&journal!=null)
+            { if (gameMenus != null) gameMenus.OpenGuide(); else journal.Open(); }
             if(_restoring||!_data.shepherdHired||_animals==null||Time.unscaledTime<_nextCareAt)return;
             _nextCareAt=Time.unscaledTime+5;
             _animals.AutomaticCare(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());

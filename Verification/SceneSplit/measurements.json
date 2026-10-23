@@ -1,0 +1,34 @@
+{
+  "date": "2026-10-22",
+  "baseline": {
+    "scene": "Assets/_Game/Scenes/Prototype.unity",
+    "objects": 1107,
+    "renderers": 401,
+    "behavioursIncludingUI": 745,
+    "sceneBytes": 2310782,
+    "dependencies": 449,
+    "dependencySourceBytes": 75181869
+  },
+  "standaloneMenu": {
+    "scene": "Assets/_Game/Scenes/MainMenu.unity",
+    "objects": 84,
+    "renderers": 0,
+    "behavioursIncludingUI": 98,
+    "sceneBytes": 234830,
+    "dependencies": 38,
+    "dependencySourceBytes": 3270129,
+    "farmSystemsInPlayMode": 0,
+    "saveSystemsInPlayMode": 0
+  },
+  "manualMainMenuReload": {
+    "menus": 1,
+    "cameras": 1,
+    "eventSystems": 1,
+    "remainingLoaders": 0,
+    "isLoading": false
+  },
+  "fpsMeasured": false,
+  "releaseBuildMeasured": false,
+  "automatedTestsRun": false,
+  "gameplayProfileMigrationExercised": false
+}

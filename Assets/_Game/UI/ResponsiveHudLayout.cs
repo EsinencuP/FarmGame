@@ -4,240 +4,131 @@ using MyLittleFarm.Gameplay.Building;
 
 namespace MyLittleFarm.UI
 {
-    /// <summary>Keeps the existing HUD readable when the Game view is narrow or resized.</summary>
+    /// <summary>Compact currency/time row, hotbar and contextual action prompts.</summary>
     [ExecuteAlways]
     public sealed class ResponsiveHudLayout : MonoBehaviour
     {
         public enum PreviewMode { Exploration, BuildAllowed, BuildBlocked }
-        [Header("Edit Mode only — illustrative data, no gameplay initialization")]
         [SerializeField] private PreviewMode editorPreview;
         [SerializeField] private BuildPromptUI buildPrompt;
         [SerializeField] private RectTransform statsPanel;
-        [SerializeField] private UnityEngine.UI.Text stats;
-        [SerializeField] private UnityEngine.UI.Text help;
-        [SerializeField] private UnityEngine.UI.Text status;
-        [SerializeField] private UnityEngine.UI.Text onboarding;
+        [SerializeField] private Text stats, help, status, onboarding;
         [SerializeField] private OnboardingOverlay onboardingOverlay;
-        [SerializeField] private UnityEngine.UI.Text worldClock;
+        [SerializeField] private Text worldClock;
         [SerializeField] private RectTransform clockSpeedButton;
-        [SerializeField] private UnityEngine.UI.Text prompt;
+        [SerializeField] private Text prompt;
         [SerializeField] private RectTransform quickSlots;
-
-        private int _width;
-        private int _height;
+        [SerializeField] private RectTransform coinIcon, clockPanel;
         private RectTransform _canvas;
         private Vector2 _canvasSize;
         private Rect _safeArea;
-        private bool _styled;
-        private bool _buildingVisible;
-        private bool _tutorialVisible;
-        private bool _layoutDirty;
+        private int _width, _height;
+        private bool _styled, _buildingVisible, _layoutDirty;
 
-        public void Configure(RectTransform panel, UnityEngine.UI.Text statsText,
-            UnityEngine.UI.Text helpText, UnityEngine.UI.Text statusText,
-            UnityEngine.UI.Text onboardingText, UnityEngine.UI.Text promptText,
-            RectTransform slots, BuildPromptUI constructionPrompt = null)
+        public void Configure(RectTransform panel, Text statsText, Text helpText, Text statusText,
+            Text onboardingText, Text promptText, RectTransform slots, BuildPromptUI constructionPrompt = null)
         {
-            statsPanel = panel;
-            stats = statsText;
-            help = helpText;
-            status = statusText;
-            onboarding = onboardingText;
-            prompt = promptText;
-            quickSlots = slots;
+            statsPanel = panel; stats = statsText; help = helpText; status = statusText;
+            onboarding = onboardingText; prompt = promptText; quickSlots = slots;
             if (constructionPrompt != null) buildPrompt = constructionPrompt;
-            ApplyEditorPreview();
-            ApplyLayout();
+            ApplyEditorPreview(); ApplyLayout();
         }
-
-        private void OnEnable()
-        {
-            _styled = false;
-            ApplyEditorPreview();
-            ApplyLayout();
-        }
-
+        private void OnEnable() { _styled = false; ApplyEditorPreview(); ApplyLayout(); }
         private void OnValidate() => _layoutDirty = true;
-
         public void SetEditorPreview(PreviewMode mode)
         {
             if (Application.IsPlaying(gameObject)) return;
-            editorPreview = mode;
-            ApplyEditorPreview();
-            ApplyLayout();
+            editorPreview = mode; ApplyEditorPreview(); ApplyLayout();
         }
-
         public void ApplyEditorPreview()
         {
-            if (Application.IsPlaying(gameObject) || stats == null) return;
-            stats.text = "<b>МОНЕТЫ  —</b>\nСЕМЕНА / УРОЖАЙ\n<color=#F0CF78><b>1  Морковь  — / —</b></color>\n2  Картофель  — / —\n3  Пшеница  — / —\n4  Томат  — / —\n5  Кукуруза  — / —\n6  Огурец  — / —\nСЕКТОР  L\nИНСТРУМЕНТ  U\nЯБЛОКИ —   ЯЙЦА —   КУРЫ —\nP: купить семена";
+            if (Application.IsPlaying(gameObject)) return;
+            if (stats != null) stats.text = "—";
+            if (worldClock != null) worldClock.text = "08:00 · Утро";
             if (prompt != null) prompt.text = "Наведите курсор на объект или грядку";
-            if (status != null) status.text = string.Empty;
-            if (onboarding != null) onboarding.text = MyLittleFarm.Gameplay.World.OnboardingSystem.HintFor(0);
-            if(worldClock!=null)worldClock.text="08:00 · Утро\nМорковь: 05:00–09:00, +1 к сбору";
+            if (status != null) { status.text = ""; status.enabled = true; }
+            HideGuides();
             var building = editorPreview != PreviewMode.Exploration;
             if (buildPrompt != null) buildPrompt.Show(building, BuildSystem.PlacementPrompt(
                 BuildingDefinition.Catalog[0], 0, false, editorPreview == PreviewMode.BuildAllowed, "Место занято"));
             if (prompt != null) prompt.enabled = !building;
-            if (status != null) status.enabled = true;
-            if (onboarding != null) onboarding.enabled = true;
         }
-
+        private void HideGuides()
+        {
+            if (help != null) { help.text = ""; help.gameObject.SetActive(false); }
+            if (onboarding != null) { onboarding.text = ""; onboarding.gameObject.SetActive(false); }
+            if (onboardingOverlay != null) onboardingOverlay.HidePresentation();
+        }
         private void LateUpdate()
         {
             if (_canvas == null) _canvas = GetComponent<RectTransform>();
-            if (_layoutDirty)
-            {
-                _styled = false;
-                ApplyEditorPreview();
-                _layoutDirty = false;
-            }
+            if (_layoutDirty) { _styled = false; ApplyEditorPreview(); _layoutDirty = false; }
             if (!_styled || _width != Screen.width || _height != Screen.height || _safeArea != Screen.safeArea
                 || (_canvas != null && _canvasSize != _canvas.rect.size)
-                || _buildingVisible != (buildPrompt != null && buildPrompt.gameObject.activeSelf)
-                || _tutorialVisible != (onboardingOverlay != null && onboardingOverlay.IsVisible)) ApplyLayout();
+                || _buildingVisible != (buildPrompt != null && buildPrompt.gameObject.activeSelf)) ApplyLayout();
         }
-
         private void ApplyLayout()
         {
-            _width = Screen.width;
-            _height = Screen.height;
             if (_canvas == null) _canvas = GetComponent<RectTransform>();
             if (_canvas == null || statsPanel == null || stats == null || quickSlots == null) return;
-            _canvasSize = _canvas.rect.size;
-            _safeArea = Screen.safeArea;
-            var canvasWidth = _canvas.rect.width > 0f ? _canvas.rect.width : 1920f;
-            var canvasHeight = Mathf.Max(1f, _canvas.rect.height);
-            var leftInset = _safeArea.xMin / Mathf.Max(1, Screen.width) * canvasWidth;
-            var rightInset = (Screen.width - _safeArea.xMax) / Mathf.Max(1, Screen.width) * canvasWidth;
-            var topInset = (Screen.height - _safeArea.yMax) / Mathf.Max(1, Screen.height) * canvasHeight;
-            var bottomInset = _safeArea.yMin / Mathf.Max(1, Screen.height) * canvasHeight;
-            var width = Mathf.Max(80f, canvasWidth - leftInset - rightInset);
-            var centerOffset = (leftInset - rightInset) * 0.5f;
-            var narrow = width < 1050f;
+            _width = Screen.width; _height = Screen.height; _safeArea = Screen.safeArea; _canvasSize = _canvas.rect.size;
+            var left = _safeArea.xMin / Mathf.Max(1, Screen.width) * _canvasSize.x;
+            var right = (Screen.width - _safeArea.xMax) / Mathf.Max(1, Screen.width) * _canvasSize.x;
+            var top = (Screen.height - _safeArea.yMax) / Mathf.Max(1, Screen.height) * _canvasSize.y;
+            var bottom = _safeArea.yMin / Mathf.Max(1, Screen.height) * _canvasSize.y;
+            var width = Mathf.Max(80, _canvasSize.x - left - right);
+            var center = (left - right) * .5f;
             _buildingVisible = buildPrompt != null && buildPrompt.gameObject.activeSelf;
-            _tutorialVisible = onboardingOverlay != null && onboardingOverlay.IsVisible;
-            var promptHeight = _buildingVisible ? BuildPromptUI.Height : 56f;
-            var panelWidth = narrow ? Mathf.Min(320f, width * .42f) : Mathf.Min(390f, width - 32f);
-            var reservedBottom = narrow ? 215f + promptHeight : 330f;
-            var panelHeight = Mathf.Min(380f, Mathf.Max(160f, canvasHeight - topInset - bottomInset - reservedBottom - 16f));
             if (!_styled)
             {
-                var background = statsPanel.GetComponent<Image>();
-                if (background != null)
+                var image = statsPanel.GetComponent<Image>();
+                if (image != null) { FarmUITheme.Skin(image, "panel"); image.raycastTarget = false; }
+                stats.color = FarmUITheme.Ink; stats.supportRichText = false;
+                if (worldClock != null)
                 {
-                    background.color = new Color(0.075f, 0.13f, 0.095f, 0.92f);
-                    background.raycastTarget = false;
+                    worldClock.color = FarmUITheme.Ink;
+                    var shadow = worldClock.GetComponent<Shadow>(); if (shadow != null) shadow.enabled = false;
                 }
-                stats.color = new Color(0.96f, 0.95f, 0.86f);
-                foreach (var text in new[] { help, status, onboarding, prompt })
+                foreach (var text in new[] { status, prompt })
                 {
-                    if (text == null) continue;
-                    text.raycastTarget = false;
-                    var shadow = text.GetComponent<Shadow>();
-                    if (shadow == null) shadow = text.gameObject.AddComponent<Shadow>();
-                    shadow.effectColor = new Color(0.03f, 0.06f, 0.04f, 0.85f);
-                    shadow.effectDistance = new Vector2(1f, -1f);
+                    if (text == null) continue; text.raycastTarget = false;
+                    var shadow = text.GetComponent<Shadow>() ?? text.gameObject.AddComponent<Shadow>();
+                    shadow.effectColor = new Color(.03f, .06f, .04f, .85f); shadow.effectDistance = new Vector2(1, -1);
                 }
-                _styled = true;
+                HideGuides(); _styled = true;
             }
-
-            Place(statsPanel, new Vector2(0f, 1f), new Vector2(0f, 1f),
-                new Vector2(leftInset + 16f, -topInset - 16f), new Vector2(panelWidth, panelHeight));
-            Place(stats.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f),
-                new Vector2(16f, -14f), new Vector2(panelWidth - 32f, panelHeight - 28f));
-            stats.fontSize = 24;
-            stats.resizeTextForBestFit = true;
-            stats.resizeTextMinSize = 16;
-            stats.resizeTextMaxSize = 24;
-            stats.horizontalOverflow = HorizontalWrapMode.Wrap;
-            stats.verticalOverflow = VerticalWrapMode.Truncate;
-
-            Place(quickSlots, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f),
-                new Vector2(centerOffset, bottomInset + 12f), new Vector2(Mathf.Min(380f, width - 24f), 62f));
-            if (help != null)
+            Place(statsPanel, new Vector2(0, 1), new Vector2(0, 1), new Vector2(left + 20, -top - 18), new Vector2(220, 76));
+            Place(stats.rectTransform, new Vector2(0, .5f), new Vector2(0, .5f), new Vector2(74, 1), new Vector2(132, 56));
+            stats.fontSize = 32; stats.resizeTextForBestFit = true; stats.resizeTextMinSize = 17; stats.resizeTextMaxSize = 32;
+            stats.alignment = TextAnchor.MiddleLeft; stats.raycastTarget = false;
+            if (coinIcon != null) Place(coinIcon, new Vector2(0, .5f), new Vector2(0, .5f), new Vector2(12, 1), new Vector2(54, 54));
+            if (clockPanel != null)
+                Place(clockPanel, new Vector2(0, 1), new Vector2(0, 1), new Vector2(left + (width < 510 ? 20 : 252), -top - (width < 510 ? 104 : 18)), new Vector2(254, 76));
+            if (worldClock != null)
             {
-                help.enabled = !_buildingVisible;
-                if (narrow)
-                {
-                    help.text = "WASD ходьба  ·  E/ЛКМ действие  ·  B стройка\n1–6 семена  ·  P магазин  ·  J журнал  ·  F5/F9 сохранения";
-                    Place(help.rectTransform, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f),
-                        new Vector2(centerOffset, bottomInset + 82f), new Vector2(width - 24f, 48f));
-                    help.alignment = TextAnchor.MiddleCenter;
-                    help.fontSize = 17;
-                }
-                else
-                {
-                    help.text = "WASD — движение  ·  Shift — бег  ·  Space — прыжок\nQ / Shift+E — камера  ·  B — строительство  ·  J — журнал фермы\n1–6 — семена  ·  P — магазин  ·  T — яблоня  ·  C — курица\nL — сектор  ·  U — инструмент  ·  F5 — сохранить  ·  F9 — слоты";
-                    Place(help.rectTransform, new Vector2(1f, 1f), new Vector2(1f, 1f),
-                        new Vector2(-rightInset - 20f, -topInset - (_tutorialVisible ? 250f : 145f)), new Vector2(Mathf.Min(800f, width - panelWidth - 64f), 110f));
-                    help.alignment = TextAnchor.UpperRight;
-                    help.fontSize = 19;
-                }
+                Place(worldClock.rectTransform, new Vector2(0, .5f), new Vector2(0, .5f), new Vector2(53, 1), new Vector2(143, 52));
+                worldClock.alignment = TextAnchor.MiddleLeft; worldClock.fontSize = 25; worldClock.resizeTextForBestFit = true;
+                worldClock.resizeTextMinSize = 18; worldClock.resizeTextMaxSize = 25; worldClock.raycastTarget = false;
             }
-
+            if (clockSpeedButton != null)
+                Place(clockSpeedButton, new Vector2(1, .5f), new Vector2(1, .5f), new Vector2(-8, 2), new Vector2(44, 48));
+            Place(quickSlots, new Vector2(.5f, 0), new Vector2(.5f, 0), new Vector2(center, bottom + 12), new Vector2(Mathf.Min(524, width - 24), 98));
             if (prompt != null)
             {
-                Place(prompt.rectTransform, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f),
-                    new Vector2(centerOffset, bottomInset + (narrow ? 139f : 86f)), new Vector2(Mathf.Min(1100f, width - 24f), 56f));
-                prompt.fontSize = narrow ? 20 : 24;
-                prompt.horizontalOverflow = HorizontalWrapMode.Wrap;
-                prompt.resizeTextForBestFit = true;
-                prompt.resizeTextMinSize = 14;
-                prompt.resizeTextMaxSize = prompt.fontSize;
-                prompt.verticalOverflow = VerticalWrapMode.Truncate;
+                Place(prompt.rectTransform, new Vector2(.5f, 0), new Vector2(.5f, 0), new Vector2(center, bottom + 122), new Vector2(Mathf.Min(1100, width - 24), 56));
+                prompt.fontSize = 24; prompt.resizeTextForBestFit = true; prompt.resizeTextMinSize = 14; prompt.resizeTextMaxSize = 24;
+                prompt.horizontalOverflow = HorizontalWrapMode.Wrap; prompt.verticalOverflow = VerticalWrapMode.Truncate;
                 prompt.alignment = TextAnchor.MiddleCenter;
             }
             if (buildPrompt != null)
-                Place(buildPrompt.GetComponent<RectTransform>(), new Vector2(0.5f, 0f), new Vector2(0.5f, 0f),
-                    new Vector2(centerOffset, bottomInset + (narrow ? 139f : 86f)),
-                    new Vector2(Mathf.Min(1100f, width - 24f), BuildPromptUI.Height));
+                Place(buildPrompt.GetComponent<RectTransform>(), new Vector2(.5f, 0), new Vector2(.5f, 0), new Vector2(center, bottom + 122), new Vector2(Mathf.Min(1100, width - 24), BuildPromptUI.Height));
             if (status != null)
             {
-                Place(status.rectTransform, narrow ? new Vector2(0.5f, 0f) : new Vector2(1f, 1f),
-                    narrow ? new Vector2(0.5f, 0f) : new Vector2(1f, 1f),
-                    narrow ? new Vector2(centerOffset, bottomInset + 139f + promptHeight + 10f) : new Vector2(-rightInset - 20f, -topInset - 16f),
-                    new Vector2(narrow ? width - 24f : Mathf.Min(800f, width - panelWidth - 64f), 50f));
-                status.fontSize = narrow ? 20 : 23;
-            }
-            if (onboarding != null)
-            {
-                Place(onboarding.rectTransform, narrow ? new Vector2(0.5f, 0f) : new Vector2(1f, 1f),
-                    narrow ? new Vector2(0.5f, 0f) : new Vector2(1f, 1f),
-                    narrow ? new Vector2(centerOffset, bottomInset + 202f + promptHeight + 10f) : new Vector2(-rightInset - 20f, -topInset - 78f),
-                    new Vector2(narrow ? width - 24f : Mathf.Min(800f, width - panelWidth - 64f), 56f));
-                onboarding.fontSize = narrow ? 20 : 23;
-            }
-            if (onboardingOverlay != null && onboardingOverlay.Card != null)
-            {
-                Place(onboardingOverlay.Card, new Vector2(1f, 1f), new Vector2(1f, 1f),
-                    new Vector2(-rightInset - 20f, -topInset - (narrow ? 16f : 78f)),
-                    new Vector2(narrow ? width - panelWidth - 48f : Mathf.Min(760f, width - panelWidth - 64f), narrow ? 220f : 160f));
-            }
-            if(worldClock!=null)
-            {
-                Place(worldClock.rectTransform,new Vector2(1,1),new Vector2(1,1),
-                    new Vector2(-rightInset-20,-topInset-(narrow?246:_tutorialVisible?370:265)),
-                    new Vector2(narrow?width-panelWidth-48:Mathf.Min(800,width-panelWidth-64),64));
-                worldClock.fontSize=21;worldClock.resizeTextForBestFit=true;worldClock.resizeTextMinSize=14;worldClock.resizeTextMaxSize=21;
-                worldClock.alignment=TextAnchor.UpperRight;worldClock.raycastTarget=false;
-            }
-            if(clockSpeedButton!=null)
-            {
-                Place(clockSpeedButton,new Vector2(1,1),new Vector2(1,1),
-                    new Vector2(-rightInset-20,-topInset-(narrow?316:_tutorialVisible?440:335)),
-                    new Vector2(Mathf.Min(250,narrow?width-panelWidth-48:width-panelWidth-64),44));
+                Place(status.rectTransform, new Vector2(.5f, 0), new Vector2(.5f, 0), new Vector2(center, bottom + 132 + (_buildingVisible ? BuildPromptUI.Height : 56)), new Vector2(Mathf.Min(850, width - 24), 48));
+                status.alignment = TextAnchor.MiddleCenter; status.fontSize = 23;
             }
         }
-
-        private static void Place(RectTransform rect, Vector2 anchor, Vector2 pivot,
-            Vector2 position, Vector2 size)
-        {
-            rect.anchorMin = anchor;
-            rect.anchorMax = anchor;
-            rect.pivot = pivot;
-            rect.anchoredPosition = position;
-            rect.sizeDelta = size;
-        }
+        private static void Place(RectTransform rect, Vector2 anchor, Vector2 pivot, Vector2 position, Vector2 size)
+        { FarmUITheme.Place(rect, anchor, pivot, position, size); }
     }
 }

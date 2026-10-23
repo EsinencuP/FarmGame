@@ -21,6 +21,22 @@ namespace MyLittleFarm.Gameplay.Economy
         /// <summary>Цена одной моркови, установленная в Inspector.</summary>
         public int CarrotSellPrice => carrotSellPrice;
 
+        /// <summary>Quantity sale for the inventory UI; caller supplies the existing market reach check.</summary>
+        public bool TrySellItem(string itemId, int amount, SeedShopSystem market)
+        {
+            if (market == null || !market.CanTrade || amount <= 0 || _inventory == null || _wallet == null
+                || _catalog == null || !_catalog.TryGetItem(itemId, out var item) || item.SellPrice <= 0
+                || _catalog.IsRareSeed(itemId) || itemId.EndsWith("_seed")
+                || _inventory.GetAmount(itemId) < amount
+                || !TransactionMath.TryAddSale(item.SellPrice, amount, _wallet.Coins, 0, out var earned)) return false;
+            if (!_inventory.TryRemove(itemId, amount)) return false;
+            _wallet.AddCoins((int)earned);
+            GameEvents.Record("sale", itemId, amount, earned);
+            GameEvents.RaiseStatusChanged("Продано: " + amount + " × " + item.DisplayName + " (+" + earned + ")");
+            GameEvents.RaiseProgressAction("sale");
+            return true;
+        }
+
         public void Configure(InventorySystem inventory, WalletSystem wallet, FarmCatalog catalog = null)
         {
             // Зависимости передаются bootstrap-скриптом после создания экономики.

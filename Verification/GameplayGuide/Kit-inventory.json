@@ -1,0 +1,160 @@
+{
+  "screens": [
+    "00_UI_Kit.svg",
+    "01_Главное_меню.svg",
+    "02_Настройки_Звук.svg",
+    "03_Настройки_Графика.svg",
+    "04_Настройки_Управление.svg",
+    "05_Загрузка_сохранений.svg",
+    "06_Диалог_удаления.svg",
+    "07_Экран_загрузки.svg",
+    "08_HUD_игровой_экран.svg",
+    "09_Инвентарь.svg",
+    "10_Магазин_Каталог.svg",
+    "11_Пауза.svg"
+  ],
+  "icons": [
+    {
+      "folder": "01_menu",
+      "icons": [
+        "arrow_left.svg",
+        "arrow_right.svg",
+        "back.svg",
+        "close.svg",
+        "confirm.svg",
+        "continue.svg",
+        "delete.svg",
+        "exit.svg",
+        "help.svg",
+        "home.svg",
+        "info.svg",
+        "load.svg",
+        "lock.svg",
+        "new_game.svg",
+        "pause.svg",
+        "play.svg",
+        "save.svg",
+        "settings.svg",
+        "unlock.svg"
+      ]
+    },
+    {
+      "folder": "02_settings",
+      "icons": [
+        "brightness.svg",
+        "camera.svg",
+        "checkbox_off.svg",
+        "checkbox_on.svg",
+        "controls.svg",
+        "display.svg",
+        "fullscreen.svg",
+        "graphics.svg",
+        "language.svg",
+        "mouse.svg",
+        "music.svg",
+        "sfx.svg",
+        "volume.svg",
+        "volume_mute.svg"
+      ]
+    },
+    {
+      "folder": "03_hud",
+      "icons": [
+        "achievements.svg",
+        "build.svg",
+        "buy.svg",
+        "calendar.svg",
+        "catalog.svg",
+        "clock.svg",
+        "coin.svg",
+        "coins_stack.svg",
+        "day.svg",
+        "interact.svg",
+        "inventory.svg",
+        "journal.svg",
+        "level.svg",
+        "map.svg",
+        "night.svg",
+        "notification.svg",
+        "quest.svg",
+        "rotate.svg",
+        "sell.svg",
+        "speed.svg",
+        "upgrade.svg",
+        "warning.svg",
+        "weather_cloudy.svg",
+        "weather_rain.svg",
+        "weather_sunny.svg"
+      ]
+    },
+    {
+      "folder": "04_tools",
+      "icons": [
+        "tool_axe.svg",
+        "tool_hammer.svg",
+        "tool_hand.svg",
+        "tool_hoe.svg",
+        "tool_pickaxe.svg",
+        "tool_shovel.svg",
+        "tool_sickle.svg",
+        "tool_upgrade_area.svg",
+        "tool_watering_can.svg"
+      ]
+    },
+    {
+      "folder": "05_crops",
+      "icons": [
+        "crop_apple.svg",
+        "crop_carrot.svg",
+        "crop_corn.svg",
+        "crop_cucumber.svg",
+        "crop_potato.svg",
+        "crop_pumpkin.svg",
+        "crop_tomato.svg",
+        "crop_wheat.svg",
+        "growth.svg",
+        "sapling.svg",
+        "seeds_carrot.svg",
+        "seeds_corn.svg",
+        "seeds_rare.svg",
+        "seeds_tomato.svg",
+        "seeds_wheat.svg",
+        "soil.svg",
+        "water_drop.svg"
+      ]
+    },
+    {
+      "folder": "06_animals",
+      "icons": [
+        "chicken.svg",
+        "cow.svg",
+        "egg.svg",
+        "eggs_basket.svg",
+        "feed.svg",
+        "hay.svg",
+        "milk.svg"
+      ]
+    },
+    {
+      "folder": "07_build",
+      "icons": [
+        "b_bench.svg",
+        "b_chest.svg",
+        "b_coop.svg",
+        "b_demolish.svg",
+        "b_fence.svg",
+        "b_flowerbed.svg",
+        "b_house.svg",
+        "b_lantern.svg",
+        "b_market.svg",
+        "b_path.svg",
+        "b_rock.svg",
+        "b_sector.svg",
+        "b_sign.svg",
+        "b_storage.svg",
+        "b_tree.svg",
+        "b_well.svg"
+      ]
+    }
+  ]
+}

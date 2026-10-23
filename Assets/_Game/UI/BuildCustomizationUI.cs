@@ -63,6 +63,11 @@ namespace MyLittleFarm.UI
             Close();shade.SetActive(true);cataloguePanel.gameObject.SetActive(true);input.ModalInputActive=true;
             ShowPage(_page);Focus(itemButtons[0].gameObject);
         }
+        public void OpenCatalogue()
+        {
+            if (!Application.isPlaying || input == null || input.ModalInputActive || buildings == null || !buildings.IsActive) return;
+            if (!shade.activeSelf) ToggleCatalogue();
+        }
         private void ShowPage(int page)
         {
             var count=BuildingDefinition.Catalog.Count;var pages=(count+itemButtons.Length-1)/itemButtons.Length;
@@ -73,6 +78,13 @@ namespace MyLittleFarm.UI
                 var index=_page*itemButtons.Length+i;itemButtons[i].gameObject.SetActive(index<count);
                 if(index>=count)continue;var definition=BuildingDefinition.Catalog[index];
                 itemLabels[i].text=definition.Name+"\n"+definition.Price+" монет · "+definition.Width+"×"+definition.Depth;
+                var icon = itemButtons[i].transform.Find("Catalogue icon");
+                if (icon != null)
+                {
+                    var sprite = FarmUITheme.Sprite("Icons/b_" + definition.Id);
+                    if (sprite == null) sprite = FarmUITheme.Sprite("Icons/catalog");
+                    icon.GetComponent<Image>().sprite = sprite;
+                }
             }
         }
         private void Choose(int slot){buildings.SelectDefinition(_page*itemButtons.Length+slot);Close();}
@@ -93,7 +105,8 @@ namespace MyLittleFarm.UI
                 houseDescription.text="ДОМ · УРОВЕНЬ "+(level+1)+" / 3\n"+FarmDecorationCatalog.HouseLevelName(level)
                     +(level<2?"\nСледующий: "+FarmDecorationCatalog.HouseLevelName(level+1):"\nУсадьба полностью улучшена");
                 upgradeHouse.gameObject.SetActive(level<2);
-                upgradeLabel.text="Улучшить · "+FarmDecorationCatalog.HouseUpgradePrice(level)+" монет";
+                upgradeLabel.text="На рынке · "+FarmDecorationCatalog.HouseUpgradePrice(level)+" монет";
+                upgradeHouse.interactable=false;
                 feedback.text=string.Empty;Focus(level<2?upgradeHouse.gameObject:closeHouse.gameObject);
             }
         }

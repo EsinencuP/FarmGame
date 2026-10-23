@@ -102,7 +102,8 @@ namespace MyLittleFarm.Core
                 _playTimeSeconds += Time.unscaledDeltaTime;
             if (_input.LoadPressed)
             {
-                if (slotMenu != null) slotMenu.Open(); else LoadFromDisk();
+                if (mainMenu != null) mainMenu.OpenSaveBrowser();
+                else if (slotMenu != null) slotMenu.Open(); else LoadFromDisk();
                 return;
             }
             if (_input.SavePressed) { SaveToDisk(); return; }

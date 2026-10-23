@@ -1,0 +1,457 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6daa343c69fdd564a844029883c51ce0, type: 3}
+  m_Name: FarmAudioCatalog
+  m_EditorClassIdentifier: MyLittleFarm.Runtime::MyLittleFarm.Audio.FarmAudioCatalog
+  mixer: {fileID: 24100000, guid: 7ba18073ff48ccb45b22d8ed12b6ba4a, type: 2}
+  music: {fileID: 2662717751366793105, guid: 7ba18073ff48ccb45b22d8ed12b6ba4a, type: 2}
+  sfx: {fileID: 7396440373872016550, guid: 7ba18073ff48ccb45b22d8ed12b6ba4a, type: 2}
+  ambience: {fileID: -5730567964412368676, guid: 7ba18073ff48ccb45b22d8ed12b6ba4a, type: 2}
+  ui: {fileID: 9212245127588903090, guid: 7ba18073ff48ccb45b22d8ed12b6ba4a, type: 2}
+  oneShotVoices: 20
+  crossfadeSeconds: 2
+  pausedMusicDb: -6
+  cues:
+  - id: 0
+    bus: 3
+    clips: []
+    gainDb: -10
+    pitchRange: {x: 0.96, y: 1.04}
+    spatialBlend: 0
+    minDistance: 8
+    maxDistance: 45
+    priority: 48
+    maxInstances: 3
+    cooldown: 0.08
+    playWhilePaused: 1
+  - id: 1
+    bus: 3
+    clips: []
+    gainDb: -10
+    pitchRange: {x: 0.96, y: 1.04}
+    spatialBlend: 0
+    minDistance: 8
+    maxDistance: 45
+    priority: 48
+    maxInstances: 3
+    cooldown: 0.06
+    playWhilePaused: 1
+  - id: 2
+    bus: 3
+    clips: []
+    gainDb: -10
+    pitchRange: {x: 0.96, y: 1.04}
+    spatialBlend: 0
+    minDistance: 8
+    maxDistance: 45
+    priority: 48
+    maxInstances: 3
+    cooldown: 0.06
+    playWhilePaused: 1
+  - id: 3
+    bus: 3
+    clips: []
+    gainDb: -10
+    pitchRange: {x: 0.96, y: 1.04}
+    spatialBlend: 0
+    minDistance: 8
+    maxDistance: 45
+    priority: 48
+    maxInstances: 3
+    cooldown: 0.06
+    playWhilePaused: 1
+  - id: 4
+    bus: 3
+    clips: []
+    gainDb: -10
+    pitchRange: {x: 0.96, y: 1.04}
+    spatialBlend: 0
+    minDistance: 8
+    maxDistance: 45
+    priority: 48
+    maxInstances: 3
+    cooldown: 0.06
+    playWhilePaused: 1
+  - id: 5
+    bus: 3
+    clips: []
+    gainDb: -10
+    pitchRange: {x: 0.96, y: 1.04}
+    spatialBlend: 0
+    minDistance: 8
+    maxDistance: 45
+    priority: 48
+    maxInstances: 3
+    cooldown: 0.06
+    playWhilePaused: 1
+  - id: 6
+    bus: 1
+    clips: []
+    gainDb: -6
+    pitchRange: {x: 0.96, y: 1.04}
+    spatialBlend: 0.7
+    minDistance: 8
+    maxDistance: 45
+    priority: 128
+    maxInstances: 3
+    cooldown: 0.06
+    playWhilePaused: 0
+  - id: 7
+    bus: 1
+    clips: []
+    gainDb: -6
+    pitchRange: {x: 0.96, y: 1.04}
+    spatialBlend: 0.7
+    minDistance: 8
+    maxDistance: 45
+    priority: 128
+    maxInstances: 3
+    cooldown: 0.06
+    playWhilePaused: 0
+  - id: 8
+    bus: 1
+    clips: []
+    gainDb: -6
+    pitchRange: {x: 0.96, y: 1.04}
+    spatialBlend: 0.7
+    minDistance: 8
+    maxDistance: 45
+    priority: 128
+    maxInstances: 3
+    cooldown: 0.06
+    playWhilePaused: 0
+  - id: 9
+    bus: 1
+    clips: []
+    gainDb: -6
+    pitchRange: {x: 0.96, y: 1.04}
+    spatialBlend: 0.7
+    minDistance: 8
+    maxDistance: 45
+    priority: 128
+    maxInstances: 3
+    cooldown: 0.06
+    playWhilePaused: 1
+  - id: 10
+    bus: 1
+    clips: []
+    gainDb: -6
+    pitchRange: {x: 0.96, y: 1.04}
+    spatialBlend: 0.7
+    minDistance: 8
+    maxDistance: 45
+    priority: 128
+    maxInstances: 3
+    cooldown: 0.06
+    playWhilePaused: 1
+  - id: 11
+    bus: 1
+    clips: []
+    gainDb: -6
+    pitchRange: {x: 0.96, y: 1.04}
+    spatialBlend: 0.7
+    minDistance: 8
+    maxDistance: 45
+    priority: 128
+    maxInstances: 3
+    cooldown: 0.06
+    playWhilePaused: 0
+  - id: 12
+    bus: 1
+    clips: []
+    gainDb: -6
+    pitchRange: {x: 0.96, y: 1.04}
+    spatialBlend: 0.7
+    minDistance: 8
+    maxDistance: 45
+    priority: 128
+    maxInstances: 3
+    cooldown: 0.06
+    playWhilePaused: 0
+  - id: 13
+    bus: 1
+    clips: []
+    gainDb: -6
+    pitchRange: {x: 0.96, y: 1.04}
+    spatialBlend: 0.7
+    minDistance: 8
+    maxDistance: 45
+    priority: 128
+    maxInstances: 3
+    cooldown: 0.06
+    playWhilePaused: 0
+  - id: 14
+    bus: 1
+    clips: []
+    gainDb: -6
+    pitchRange: {x: 0.96, y: 1.04}
+    spatialBlend: 0.7
+    minDistance: 8
+    maxDistance: 45
+    priority: 128
+    maxInstances: 3
+    cooldown: 0.06
+    playWhilePaused: 0
+  - id: 15
+    bus: 1
+    clips: []
+    gainDb: -6
+    pitchRange: {x: 0.96, y: 1.04}
+    spatialBlend: 0.7
+    minDistance: 8
+    maxDistance: 45
+    priority: 128
+    maxInstances: 3
+    cooldown: 0.06
+    playWhilePaused: 0
+  - id: 16
+    bus: 1
+    clips: []
+    gainDb: -6
+    pitchRange: {x: 0.96, y: 1.04}
+    spatialBlend: 0.7
+    minDistance: 8
+    maxDistance: 45
+    priority: 128
+    maxInstances: 3
+    cooldown: 0.06
+    playWhilePaused: 0
+  - id: 17
+    bus: 1
+    clips: []
+    gainDb: -6
+    pitchRange: {x: 0.96, y: 1.04}
+    spatialBlend: 0.7
+    minDistance: 8
+    maxDistance: 45
+    priority: 128
+    maxInstances: 3
+    cooldown: 0.06
+    playWhilePaused: 0
+  - id: 18
+    bus: 1
+    clips: []
+    gainDb: -6
+    pitchRange: {x: 0.96, y: 1.04}
+    spatialBlend: 0.7
+    minDistance: 8
+    maxDistance: 45
+    priority: 128
+    maxInstances: 3
+    cooldown: 0.06
+    playWhilePaused: 0
+  - id: 19
+    bus: 1
+    clips: []
+    gainDb: -6
+    pitchRange: {x: 0.96, y: 1.04}
+    spatialBlend: 0.7
+    minDistance: 8
+    maxDistance: 45
+    priority: 128
+    maxInstances: 3
+    cooldown: 0.06
+    playWhilePaused: 0
+  - id: 20
+    bus: 1
+    clips: []
+    gainDb: -6
+    pitchRange: {x: 0.96, y: 1.04}
+    spatialBlend: 0.7
+    minDistance: 8
+    maxDistance: 45
+    priority: 128
+    maxInstances: 3
+    cooldown: 0.06
+    playWhilePaused: 0
+  - id: 21
+    bus: 1
+    clips: []
+    gainDb: -6
+    pitchRange: {x: 0.96, y: 1.04}
+    spatialBlend: 0.7
+    minDistance: 8
+    maxDistance: 45
+    priority: 128
+    maxInstances: 3
+    cooldown: 0.06
+    playWhilePaused: 0
+  - id: 22
+    bus: 1
+    clips: []
+    gainDb: -6
+    pitchRange: {x: 0.96, y: 1.04}
+    spatialBlend: 0.7
+    minDistance: 8
+    maxDistance: 45
+    priority: 128
+    maxInstances: 3
+    cooldown: 0.06
+    playWhilePaused: 0
+  - id: 23
+    bus: 1
+    clips: []
+    gainDb: -6
+    pitchRange: {x: 0.96, y: 1.04}
+    spatialBlend: 0.7
+    minDistance: 8
+    maxDistance: 45
+    priority: 128
+    maxInstances: 3
+    cooldown: 0.06
+    playWhilePaused: 0
+  - id: 24
+    bus: 3
+    clips: []
+    gainDb: -10
+    pitchRange: {x: 0.96, y: 1.04}
+    spatialBlend: 0
+    minDistance: 8
+    maxDistance: 45
+    priority: 48
+    maxInstances: 3
+    cooldown: 0.06
+    playWhilePaused: 1
+  - id: 25
+    bus: 3
+    clips: []
+    gainDb: -10
+    pitchRange: {x: 0.96, y: 1.04}
+    spatialBlend: 0
+    minDistance: 8
+    maxDistance: 45
+    priority: 48
+    maxInstances: 3
+    cooldown: 0.06
+    playWhilePaused: 1
+  - id: 26
+    bus: 3
+    clips: []
+    gainDb: -10
+    pitchRange: {x: 0.96, y: 1.04}
+    spatialBlend: 0
+    minDistance: 8
+    maxDistance: 45
+    priority: 48
+    maxInstances: 3
+    cooldown: 0.06
+    playWhilePaused: 1
+  - id: 27
+    bus: 1
+    clips: []
+    gainDb: -6
+    pitchRange: {x: 0.96, y: 1.04}
+    spatialBlend: 0.7
+    minDistance: 8
+    maxDistance: 45
+    priority: 190
+    maxInstances: 3
+    cooldown: 0.06
+    playWhilePaused: 0
+  - id: 28
+    bus: 1
+    clips: []
+    gainDb: -6
+    pitchRange: {x: 0.96, y: 1.04}
+    spatialBlend: 0.7
+    minDistance: 8
+    maxDistance: 45
+    priority: 128
+    maxInstances: 3
+    cooldown: 0.06
+    playWhilePaused: 0
+  - id: 29
+    bus: 1
+    clips: []
+    gainDb: -6
+    pitchRange: {x: 0.96, y: 1.04}
+    spatialBlend: 0.7
+    minDistance: 8
+    maxDistance: 45
+    priority: 128
+    maxInstances: 3
+    cooldown: 0.06
+    playWhilePaused: 0
+  - id: 30
+    bus: 0
+    clips: []
+    gainDb: -8
+    pitchRange: {x: 1, y: 1}
+    spatialBlend: 0
+    minDistance: 8
+    maxDistance: 45
+    priority: 128
+    maxInstances: 3
+    cooldown: 0.06
+    playWhilePaused: 1
+  - id: 31
+    bus: 0
+    clips: []
+    gainDb: -8
+    pitchRange: {x: 1, y: 1}
+    spatialBlend: 0
+    minDistance: 8
+    maxDistance: 45
+    priority: 128
+    maxInstances: 3
+    cooldown: 0.06
+    playWhilePaused: 1
+  - id: 32
+    bus: 0
+    clips: []
+    gainDb: -8
+    pitchRange: {x: 1, y: 1}
+    spatialBlend: 0
+    minDistance: 8
+    maxDistance: 45
+    priority: 128
+    maxInstances: 3
+    cooldown: 0.06
+    playWhilePaused: 1
+  - id: 33
+    bus: 2
+    clips: []
+    gainDb: -6
+    pitchRange: {x: 1, y: 1}
+    spatialBlend: 0
+    minDistance: 8
+    maxDistance: 45
+    priority: 128
+    maxInstances: 3
+    cooldown: 0.06
+    playWhilePaused: 0
+  - id: 34
+    bus: 2
+    clips: []
+    gainDb: -6
+    pitchRange: {x: 1, y: 1}
+    spatialBlend: 0
+    minDistance: 8
+    maxDistance: 45
+    priority: 128
+    maxInstances: 3
+    cooldown: 0.06
+    playWhilePaused: 0
+  - id: 35
+    bus: 2
+    clips:
+    - {fileID: 8300000, guid: 59cc6d78d4d7d09469f2cdd95dcc3a50, type: 3}
+    gainDb: 0
+    pitchRange: {x: 1, y: 1}
+    spatialBlend: 0
+    minDistance: 8
+    maxDistance: 45
+    priority: 128
+    maxInstances: 3
+    cooldown: 0.06
+    playWhilePaused: 0
+  schemaVersion: 1

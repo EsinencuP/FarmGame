@@ -41,11 +41,14 @@ namespace MyLittleFarm.Gameplay.World
             RefreshAppearance();
         }
 
-        private void Update()
+        public bool CanPurchase
         {
-            // L покупает соседний сектор при достаточном балансе вне режима строительства.
-            if (_input != null && _input.SectorPressed && !_input.BuildModeActive
-                && !_input.SuppressGameplayThisFrame) TryPurchase();
+            get
+            {
+                if (IsUnlocked || _grid == null || _sectorChunk == null) return false;
+                var origin = _grid.WorldToGrid(_sectorChunk.transform.position);
+                return _grid.IsChunkLoaded(_grid.GridToChunk(origin)) && _grid.GetCellType(origin) == CellType.Locked;
+            }
         }
 
         /// <summary>Списывает стоимость и открывает клетки только при загруженном закрытом секторе.</summary>

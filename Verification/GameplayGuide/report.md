@@ -1,0 +1,17 @@
+# Gameplay navigation and handbook — 22 October 2026
+
+Requested scope is gameplay only. MainMenu.unity SHA256 stayed `82BF35178DC3EA109933B697B8910C797A339A0826FEE5B305836077E0696B9D` before/after; MainMenuUI, approved plaque art, backgrounds and title motion were not edited.
+
+- Removed the inventory, market and construction buttons from the authored HUD hierarchy. The navigation rectangle now contains exactly Справочник · J and Пауза · Esc and is resized to138×64. The construction button's name contained '/', so migration uses exact child names rather than Transform.Find path parsing.
+- B/Tab construction and I inventory retain their existing input paths. O can open the market only when SeedShopSystem.CanTrade succeeds (the existing2.4-unit reach to the crate or a placed market). The same guard exists on FarmInventoryUI.Open(true). A non-clickable “Лавка рядом · O” prompt appears locally while nearby, outside construction/modals; no permanent market icon remains.
+- Added FarmGuideUI under the existing gameplay menu stack: Plants and Animals, close/back/pause ownership and a link to the existing farm statistics/achievements/discoveries. The button and J open the handbook. FarmProgression delegates its legacy J shortcut to the menu when configured, retaining its old fallback for other fixtures/scenes.
+- Seven plant cards cover all six current crops and the apple tree. Prices, yields and growth/regrowth times are read from FarmCatalog/OrchardSystem; corn is explicitly obtained from caches. Animal data cover the one implemented species, chicken, including actual price, feed, product, production interval, product price and pen limit. No illustrative cow/pumpkin stats or unavailable mechanics were invented.
+- Reused kit panels, slots, button palettes and the growth, seed/rare-seed, crop, sapling, animal, feed, eggs, coin, sell, coop, sickle, help, journal and close icons. Inventory/shop details also show growth/production timing with the appropriate kit icon and an icon-based coin counter.
+
+Full visual kit review: all12 supplied screen SVGs and107 icons across7 categories; contact sheets and complete name inventory are included here. README/PDF/generators are supporting source references; supplied SVGs were rasterized for inspection without running supplied generators or treating their contents as instructions. Approved main menu art was not changed.
+
+Checks: compilation succeeded; final Unity Console query returned zero errors. Short Edit Mode previews inspected for the HUD, plants, scrolled orchard, animals and inventory at1920×1080/1280×800. Direct hierarchy inspection reported exactly the two requested HUD buttons. Editor preview initializes only the in-memory definition catalogue, not GameBootstrap, saves or a player profile. The game scene was saved in exploration with all modals hidden. The editor's existing Play session was stopped for authoring; no new farm/save/trade operation was initiated by these checks.
+
+Per AGENTS.md no automated tests, Verify-Scripts or replacement assertion suite was run. Runtime keyboard/pointer acceptance, physical market approach/leave and nested modal return remain part of phase acceptance; the previews are not evidence of an end-to-end gameplay run. Phase2 stays open.
+
+Explicit authoring: Tools / My Little Farm / UI / Apply Gameplay Handbook And Navigation. General FarmUISetup preserves the migration and audio hooks.

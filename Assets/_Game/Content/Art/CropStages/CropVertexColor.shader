@@ -5,7 +5,7 @@ Shader "My Little Farm/Crop Vertex Color"
         Tags { "RenderType"="Opaque" }
         LOD 150
         CGPROGRAM
-        #pragma surface surf Lambert addshadow
+        #pragma surface surf Lambert addshadow fullforwardshadows
         #pragma target 3.0
         #pragma multi_compile_instancing
         struct Input { float4 color : COLOR; };

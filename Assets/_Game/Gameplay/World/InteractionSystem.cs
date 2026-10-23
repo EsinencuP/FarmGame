@@ -100,14 +100,7 @@ namespace MyLittleFarm.Gameplay.World
                     && _orchard.PlantApple(_selector.SelectedPosition, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
                 GameEvents.RaiseStatusChanged(planted ? "Яблоня посажена" : "Нельзя посадить яблоню здесь");
             }
-            if (_input != null && _input.BuyChickenPressed && _animals != null && _selector.HasSelection)
-            {
-                var bought = IsWithinReach(_selector.SelectedPosition)
-                    && _animals.TryBuyChicken(_selector.SelectedPosition,
-                        DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
-                GameEvents.RaiseStatusChanged(bought ? "Курица поселилась в загоне"
-                    : "Курица: нужен свободный загон и монеты");
-            }
+
         }
 
         public bool Interact(long nowUnixMs)
@@ -133,13 +126,10 @@ namespace MyLittleFarm.Gameplay.World
             if ((target != null && target.Kind == InteractionTargetKind.Market && IsNearTarget(target))
                 || (!_selector.HasSelection && IsNearSaleCrate()))
             {
-                var earned = _selling.SellAllCrops();
-                if (earned > 0)
-                {
-                    GameEvents.RaiseActionFeedback("sale", _player.position);
-                    GameEvents.RaiseProgressAction("sale");
-                }
-                return earned > 0;
+                var menus = GetComponentInParent<GameBootstrap>()?.GetComponentInChildren<MyLittleFarm.UI.FarmMenuUI>(true);
+                if (menus == null) return false;
+                menus.OpenMarket();
+                return menus.IsOpen;
             }
 
             // Животное получает приоритет перед клеткой, когда игрок подошёл к курице.
@@ -205,6 +195,7 @@ namespace MyLittleFarm.Gameplay.World
                 var tilled = _soil.Till(position);
                 if (tilled)
                 {
+                    MyLittleFarm.Audio.FarmAudio.Play(MyLittleFarm.Audio.SoundId.Till, _grid.CellToWorld(position));
                     GameEvents.RaiseStatusChanged("Земля обработана");
                 }
 
@@ -259,20 +250,7 @@ namespace MyLittleFarm.Gameplay.World
             if ((target != null && target.Kind == InteractionTargetKind.Market && IsNearTarget(target))
                 || (!_selector.HasSelection && IsNearSaleCrate()))
             {
-                long amount = 0;
-                if (_catalog == null) amount = _inventory.GetAmount(InventorySystem.CarrotId);
-                else foreach (var definition in _catalog.Crops)
-                    amount += _inventory.GetAmount(definition.HarvestItemId);
-                if (_catalog != null)
-                    amount += (long)_inventory.GetAmount("apple") + _inventory.GetAmount("egg");
-                var selected = _slots?.SelectedCrop;
-                var shopHint = selected == null ? "P — купить семена"
-                    : selected.RareSeeds ? "Редкие семена: тайники · J — журнал"
-                    : $"P — купить семена: {selected.DisplayName}";
-                var actionKey = target == null ? "E" : "E / ЛКМ";
-                return amount > 0
-                    ? $"{actionKey} — продать урожай ({amount})   {shopHint}"
-                    : $"Рынок — {shopHint}";
+                return "Рынок · P / E — открыть магазин";
             }
 
             if (!_selector.HasSelection && _animals != null && _animals.HasNearby(_player.position))
@@ -282,7 +260,7 @@ namespace MyLittleFarm.Gameplay.World
             {
                 return "Подойдите к грядке";
             }
-            if (!IsWithinReach(_selector.SelectedPosition)) return "Клетка слишком далеко — улучшите инструмент (U)";
+            if (!IsWithinReach(_selector.SelectedPosition)) return "Клетка слишком далеко — улучшения доступны на рынке";
 
             if (_crops.TryGet(_selector.SelectedPosition, out var crop))
             {
@@ -296,7 +274,7 @@ namespace MyLittleFarm.Gameplay.World
 
             if (_orchard != null && _grid.CanPlantTree(_selector.SelectedPosition))
                 return _animals != null && _animals.IsInPen(_selector.SelectedPosition)
-                    ? $"C — купить курицу ({_animals.ChickenPrice})   T — яблоня"
+                    ? "Курицу можно купить на рынке · T — яблоня"
                     : "T — посадить яблоню   E — обработать землю";
 
             if (cell.occupantId != null || cell.type == CellType.Locked || cell.type == CellType.Water

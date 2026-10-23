@@ -29,6 +29,7 @@ namespace MyLittleFarm.Core
         public const int SlotCount = 3;
         private const string ActiveSlotKey = "MyLittleFarm.Save.ActiveSlot";
         [SerializeField] private SaveSlotsUI slotMenu;
+        [SerializeField] private FarmMenuUI mainMenu;
         [SerializeField] private Camera previewCamera;
         private SaveData _newFarm;
         private double _playTimeSeconds;
@@ -84,7 +85,8 @@ namespace MyLittleFarm.Core
         private void Start()
         {
             // All existing modal components have finished OnEnable before opening the startup menu.
-            if (_showStartupMenu && slotMenu != null) slotMenu.Open();
+            if (_showStartupMenu && mainMenu != null) mainMenu.OpenStartupBrowser();
+            else if (_showStartupMenu && slotMenu != null) slotMenu.Open();
         }
 
         private bool _legacyUnavailable;
@@ -128,6 +130,7 @@ namespace MyLittleFarm.Core
                 SlotsChanged?.Invoke();
                 GameEvents.RaiseStatusChanged((autosave ? "Автосохранение" : "Игра сохранена")
                     + " · слот " + (ActiveSlot + 1));
+                if (!autosave) MyLittleFarm.Audio.FarmAudio.Play(MyLittleFarm.Audio.SoundId.Save);
             }
             else GameEvents.RaiseStatusChanged("Не удалось сохранить слот " + (ActiveSlot + 1));
             return success;
@@ -155,6 +158,7 @@ namespace MyLittleFarm.Core
             SlotsChanged?.Invoke();
             GameEvents.RaiseStatusChanged(LastLoadUsedBackup ? "Ферма восстановлена из резервной копии"
                 : "Загружен слот " + (slot + 1));
+            MyLittleFarm.Audio.FarmAudio.Play(MyLittleFarm.Audio.SoundId.Load);
             return true;
         }
 
@@ -193,6 +197,22 @@ namespace MyLittleFarm.Core
         {
             try { PlayerPrefs.SetInt(ActiveSlotKey, ActiveSlot); PlayerPrefs.Save(); }
             catch (Exception error) { Debug.LogWarning("Cannot remember the selected slot: " + error.Message); }
+        }
+
+        /// <summary>Remove a closed farm from the browser, retaining its files in a recovery folder.</summary>
+        public bool ArchiveSlot(int slot)
+        {
+            if (!SlotIsValid(slot) || (_persistenceEnabled && slot == ActiveSlot) || (slot == 0 && _legacyUnavailable)) return false;
+            var source = Path.GetFullPath(Path.GetDirectoryName(SlotPath(slot, false)));
+            var root = Path.GetFullPath(Path.Combine(Application.persistentDataPath, "Saves"));
+            if (!source.StartsWith(root + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase) || !Directory.Exists(source)) return false;
+            try
+            {
+                var recovery = Path.Combine(root, "Removed"); Directory.CreateDirectory(recovery);
+                Directory.Move(source, Path.Combine(recovery, "slot-" + (slot + 1) + "-" + Guid.NewGuid().ToString("N")));
+                SlotsChanged?.Invoke(); return true;
+            }
+            catch (Exception error) { Debug.LogWarning("Cannot remove farm slot: " + error.Message); return false; }
         }
 
         private string CapturePreview()

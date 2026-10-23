@@ -290,7 +290,8 @@ namespace MyLittleFarm.Gameplay.Building
                 if(hovered!=null&&customizationUI!=null)customizationUI.ShowDetails(hovered);
                 return;
             }
-            if (_input.RotateBuildingPressed) _turns = (_turns + 1) % 4;
+            if (_input.RotateBuildingPressed)
+            { _turns = (_turns + 1) % 4; MyLittleFarm.Audio.FarmAudio.PlayAtPlayer(MyLittleFarm.Audio.SoundId.BuildRotate); }
             var reasonText = "Наведите курсор на участок";
             // Валидность влияет одновременно на цвет предпросмотра и возможность подтвердить действие.
             var valid = _hasTarget && CanPlace(SelectedDefinition.Id, _target, _turns, _movingId, out reasonText);
@@ -417,6 +418,7 @@ namespace MyLittleFarm.Gameplay.Building
 
         public bool CanPlace(string definitionId, Vector2Int cell, int turns, string ignoreId, out string reason)
         {
+            if (_layout == null || _grid == null) { reason = "Строительная система ещё не готова"; return false; }
             // Сначала выполняется дешёвая клеточная проверка, затем физическая проверка объёмом.
             if (!_layout.CanPlace(definitionId, cell.x, cell.y, turns,
                     (x, z) => IsTerrainBlocked(x, z, ignoreId), ignoreId, out reason)) return false;
@@ -480,6 +482,7 @@ namespace MyLittleFarm.Gameplay.Building
                 new Vector2Int(definition.RotatedWidth(turns), definition.RotatedDepth(turns)), id);
             _views[id].Apply(_layout.Get(id), _layout.Definition(state.definitionId), _grid);
             reason = "Постройка перенесена";
+            MyLittleFarm.Audio.FarmAudio.Play(MyLittleFarm.Audio.SoundId.BuildMove, _grid.CellToWorld(cell));
             return true;
         }
 
@@ -500,6 +503,7 @@ namespace MyLittleFarm.Gameplay.Building
             _wallet.AddCoins(refund);
             GameEvents.Record("refund",value:refund);
             reason = $"Постройка удалена. Возврат: {refund} монет";
+            MyLittleFarm.Audio.FarmAudio.Play(MyLittleFarm.Audio.SoundId.BuildRemove, _grid.CellToWorld(new Vector2Int(state.x, state.z)));
             return true;
         }
 
@@ -541,21 +545,32 @@ namespace MyLittleFarm.Gameplay.Building
             reason="Текст вывески сохранён";return true;
         }
 
-        public bool TryUpgradeHouse(string id,out string reason)
+        public bool CanUpgradeHouse(string id,out string reason)
         {
-            var state=_layout.Get(id);
+            var state=_layout == null ? null : _layout.Get(id);
             if(state==null||state.definitionId!="house"){reason="Дом не найден";return false;}
             if(state.appearanceLevel>=2){reason="Усадьба уже полностью улучшена";return false;}
-            var price=FarmDecorationCatalog.HouseUpgradePrice(state.appearanceLevel);
-            if(_wallet.Coins<price){reason="Недостаточно монет";return false;}
             if(!CanPlace("house",new Vector2Int(state.x,state.z),state.quarterTurns,id,out reason))
             {reason="Освободите территорию дома перед улучшением";return false;}
-            if(!_layout.TryCustomize(id,state.appearanceLevel+1,null,out reason))return false;
+            reason=""; return true;
+        }
+        public bool TryUpgradeHouse(string id,out string reason)
+        {
+            if (!CanUpgradeHouse(id,out reason)) return false;
+            var market = GetComponentInParent<MyLittleFarm.Core.GameBootstrap>()?.GetComponentInChildren<MyLittleFarm.Gameplay.Economy.SeedShopSystem>(true);
+            if (market == null || !market.CanTrade) { reason="Улучшения доступны на рынке"; return false; }
+            if (!_wallet.TrySpend(FarmDecorationCatalog.HouseUpgradePrice(_layout.Get(id).appearanceLevel))) { reason="Недостаточно монет"; return false; }
+            CompleteHouseUpgrade(id); reason="Дом улучшен"; return true;
+        }
+        internal void CompleteHouseUpgrade(string id)
+        {
+            var state = _layout.Get(id);
+            if(!_layout.TryCustomize(id,state.appearanceLevel+1,null,out _)) return;
             var updated=_layout.Get(id);var old=_views[id];
             _views[id]=BuildingView.Create(transform,_layout.Definition("house"),updated,_grid,VisualFor("house",updated.appearanceLevel));
-            old.gameObject.SetActive(false);Destroy(old.gameObject);_wallet.TrySpend(price);
+            old.gameObject.SetActive(false);Destroy(old.gameObject);
             GameEvents.Record("house_upgrade",amount:updated.appearanceLevel);
-            _previewDefinition=null;reason="Дом улучшен: "+FarmDecorationCatalog.HouseLevelName(updated.appearanceLevel);return true;
+            _previewDefinition=null;
         }
 
         public bool IsNearMarket(Vector3 position, float distance)
