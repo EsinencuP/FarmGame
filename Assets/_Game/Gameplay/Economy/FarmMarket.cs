@@ -48,7 +48,7 @@ namespace MyLittleFarm.Gameplay.Economy
             {
                 foreach (var crop in catalog.Crops)
                     AddItem(result, category == Category.Seeds ? crop.SeedItemId : crop.HarvestItemId, category, crop);
-                if (category == Category.Sell) foreach (var id in new[] { "apple", "egg" }) AddItem(result, id, category, null);
+                if (category == Category.Sell) foreach (var id in FarmCatalog.FarmProductIds) AddItem(result, id, category, null);
             }
             else if (category == Category.Upgrades)
             {
@@ -117,8 +117,10 @@ namespace MyLittleFarm.Gameplay.Economy
             {
                 if (category == Category.Sell)
                 {
+                    var containsJuice = order.Exists(line => line.Key == ApplePresses.JuiceId);
                     foreach (var line in order) inventory.TryRemove(line.Key, line.Value);
-                    wallet.AddCoins(total); GameEvents.Record("sale", value: total);
+                    wallet.AddCoins(total);
+                    GameEvents.Record("sale", containsJuice ? ApplePresses.JuiceId : string.Empty, value: total);
                     GameEvents.RaiseProgressAction("sale");
                 }
                 else

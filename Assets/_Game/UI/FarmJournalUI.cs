@@ -114,7 +114,8 @@ namespace MyLittleFarm.UI
             var learning = _onboarding != null && _onboarding.IsActive;
             if (_skip != null) _skip.gameObject.SetActive(learning && _onboarding.CanSkip);
             var objective = learning ? FarmText.Get("journal.objective", _onboarding.CurrentHint) : FarmText.Get("journal.freePlay");
-            stats.text = objective + "\n\n" + FarmText.Get("journal.farmStats",
+            stats.text = objective + "\n\n" + FarmText.Get("press.goal.title", progress.JuiceGoal())
+                + "\n\n" + FarmText.Get("journal.farmStats",
                 FarmText.Coins(progress.Profit), FarmText.Coins(progress.Balance), FarmText.Coins(data.revenue),
                 FarmText.Coins(data.expenses), FarmText.Coins(data.refunds), data.plantings, data.harvests,
                 data.harvestedUnits, progress.FavouriteCrop, data.achievements.Count)

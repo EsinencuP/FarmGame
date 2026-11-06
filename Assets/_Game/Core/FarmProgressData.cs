@@ -9,6 +9,7 @@ namespace MyLittleFarm.Core
         public long revenue, expenses, refunds, plantings, harvests, harvestedUnits, apples, eggs, bonusHarvests, rareSeeds;
         public int highestBalance;
         public bool shepherdHired;
+        public bool firstJuiceSold;
         public List<CropHistory> crops=new List<CropHistory>();
         public List<string> achievements=new List<string>();
         public List<string> decorations=new List<string>();

@@ -36,6 +36,7 @@ namespace MyLittleFarm.Core
         // Животные сохраняются отдельным списком, потому что они двигаются и не занимают terrain-клетку.
         public List<AnimalRuntimeState> animals = new List<AnimalRuntimeState>();
         public List<BuildingRuntimeState> buildings = new List<BuildingRuntimeState>();
+        public List<ApplePressBatchData> applePressBatches = new List<ApplePressBatchData>();
         // Версия 4 сохраняет прогресс; версия 5 сравнивает клетки с базовой картой сцены.
         public int selectedQuickSlot;
         public bool sectorUnlocked;
@@ -54,6 +55,13 @@ namespace MyLittleFarm.Core
         public float worldHour;
         // Optional in older saves. The weather clock pauses while the game is closed.
         public WeatherSaveData weather;
+    }
+
+    [Serializable]
+    public sealed class ApplePressBatchData
+    {
+        public string buildingId;
+        public long readyAtUnixMs;
     }
 
     /// <summary>Положение игрока в мировых координатах Unity.</summary>

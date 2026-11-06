@@ -99,7 +99,9 @@ namespace MyLittleFarm.UI
                 if ((_filter == 0 || _filter == 1) && inventory.GetAmount(crop.SeedItemId) > 0) _items.Add(crop.SeedItemId);
                 if ((_filter == 0 || _filter == 2) && inventory.GetAmount(crop.HarvestItemId) > 0) _items.Add(crop.HarvestItemId);
             }
-            if (!_market && (_filter == 0 || _filter == 3)) foreach (var id in new[] { "apple", "egg" }) if (inventory.GetAmount(id) > 0) _items.Add(id);
+            if (!_market && (_filter == 0 || _filter == 3))
+                foreach (var id in FarmCatalog.FarmProductIds)
+                    if (inventory.GetAmount(id) > 0) _items.Add(id);
             heading.text = _market ? FarmText.Get("inventory.legacyMarket") : FarmText.Get("inventory.title");
             for (var i = 0; i < tabs.Length; i++) { tabs[i].gameObject.SetActive(!_market); FarmUITheme.Style(tabs[i], i == _filter ? "secondary" : "ghost"); }
             for (var i = 0; i < cells.Length; i++)

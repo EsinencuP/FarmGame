@@ -82,6 +82,22 @@ namespace MyLittleFarm.Gameplay.World
             }
         }
         public bool HasBuilding(string id)=>_buildings!=null&&_buildings.FindFirstView(id)!=null;
+
+        public string JuiceGoal()
+        {
+            if (_data.firstJuiceSold) return FarmText.Get("press.goal.done");
+            if (_inventory.GetAmount(ApplePresses.JuiceId) > 0)
+                return FarmText.Get("press.goal.sell", InputReader.MarketHint, FarmText.Coins(ApplePresses.JuicePrice));
+            if (_buildings.Presses?.HasBatches == true)
+                return FarmText.Get("press.goal.collect", InputReader.ActionHint);
+            if (_inventory.GetAmount(ApplePresses.FruitId) < ApplePresses.AppleCost)
+                return FarmText.Get("press.goal.apples", ApplePresses.AppleCost,
+                    InputReader.KeyLabel(InputReader.Command.Apple), InputReader.ActionHint);
+            if (!HasBuilding(ApplePresses.BuildingId))
+                return FarmText.Get("press.goal.build", FarmText.Coins(ApplePresses.BuildingPrice),
+                    InputReader.KeyLabel(InputReader.Command.Build), InputReader.KeyLabel(InputReader.Command.Catalogue));
+            return FarmText.Get("press.goal.start", InputReader.ActionHint, FarmText.Duration(ApplePresses.BatchSeconds));
+        }
         public bool HasManor
         {
             get{if(_buildings!=null)foreach(var b in _buildings.Capture())if(b.definitionId=="house"&&b.appearanceLevel==2)return true;return false;}
@@ -118,7 +134,10 @@ namespace MyLittleFarm.Gameplay.World
                     crop.planted=Add(crop.planted,action.Amount);break;
                 case "harvest":_data.harvests=Add(_data.harvests,1);_data.harvestedUnits=Add(_data.harvestedUnits,action.Amount);
                     if(action.Value>0)_data.bonusHarvests=Add(_data.bonusHarvests,1);break;
-                case "sale":_data.revenue=Add(_data.revenue,action.Value);break;
+                case "sale":
+                    _data.revenue=Add(_data.revenue,action.Value);
+                    if (action.ItemId == ApplePresses.JuiceId) _data.firstJuiceSold = true;
+                    break;
                 case "spent":_data.expenses=Add(_data.expenses,action.Value);break;
                 case "refund":_data.refunds=Add(_data.refunds,action.Value);break;
                 case "apples":_data.apples=Add(_data.apples,action.Amount);break;

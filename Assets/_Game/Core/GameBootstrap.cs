@@ -148,7 +148,7 @@ namespace MyLittleFarm.Core
             player.SetCamera(cameraController.transform);
 
             var buildings = CreateSystem<BuildSystem>("Building System");
-            buildings.Configure(input, grid, crops, wallet, cameraController.GetComponent<Camera>(), true);
+            buildings.Configure(input, grid, crops, wallet, cameraController.GetComponent<Camera>(), true, inventory);
 
             var selector = CreateSystem<CellSelector>("Cell Selector");
             selector.Configure(grid, player.transform, input, cameraController.GetComponent<Camera>());
@@ -549,7 +549,7 @@ namespace MyLittleFarm.Core
             player.SetCamera(cameraController.transform);
 
             var buildings = RequireChild<BuildSystem>();
-            buildings.Configure(input, grid, crops, wallet, cameraController.GetComponent<Camera>());
+            buildings.Configure(input, grid, crops, wallet, cameraController.GetComponent<Camera>(), inventory: inventory);
             var selector = RequireChild<CellSelector>();
             selector.Configure(grid, player.transform, input, cameraController.GetComponent<Camera>());
             var saleCrate = FindNamedTransform("Sale Crate");

@@ -89,6 +89,7 @@ namespace MyLittleFarm.Gameplay.Building
         public bool IsActive { get; private set; }
         public string CurrentPrompt { get; private set; } = string.Empty;
         public int Count => _layout?.Count ?? 0;
+        internal ApplePresses Presses { get; private set; }
         public BuildingDefinition SelectedDefinition => BuildingDefinition.Catalog[_selected];
 
         /// <summary>Подключает зависимости, создаёт пустой layout и объект предпросмотра.</summary>
@@ -98,9 +99,11 @@ namespace MyLittleFarm.Gameplay.Building
             CropSystem crops,
             WalletSystem wallet,
             Camera camera,
-            bool allowSceneCreation = false)
+            bool allowSceneCreation = false,
+            InventorySystem inventory = null)
         {
             _input = input; _grid = grid; _crops = crops; _wallet = wallet; _camera = camera;
+            Presses = inventory == null ? null : new ApplePresses(inventory);
             if (_previewModel != null)
             {
                 _previewModel.SetActive(false);
@@ -181,6 +184,7 @@ namespace MyLittleFarm.Gameplay.Building
         /// <summary>Создаёт отделённый снимок всех построек для сохранения.</summary>
         public List<BuildingRuntimeState> Capture() => _layout.Capture();
         public BuildingRuntimeState GetBuilding(string id)=>_layout==null?null:_layout.Get(id);
+        internal bool IsApplePress(string id) => Presses != null && _layout?.Get(id)?.definitionId == ApplePresses.BuildingId;
         public BuildingView FindFirstView(string definitionId)
         {
             foreach (var view in _views.Values)
@@ -284,7 +288,17 @@ namespace MyLittleFarm.Gameplay.Building
                         if (BuildingDefinition.Catalog[i].Id == hovered.definitionId) _selected = i;
                 }
                 else if (hovered != null && _input.DeleteBuildingPressed)
-                { _deleteId = hovered.id; _preview.SetActive(false); if (_previewModel != null) _previewModel.SetActive(false); return; }
+                {
+                    if (Presses?.IsOccupied(hovered.id) == true)
+                        GameEvents.RaiseStatusChanged(FarmText.Get("press.cannotRemove"));
+                    else
+                    {
+                        _deleteId = hovered.id;
+                        _preview.SetActive(false);
+                        if (_previewModel != null) _previewModel.SetActive(false);
+                        return;
+                    }
+                }
             }
             if(_hasTarget&&_movingId==null&&_input.CustomizeBuildingPressed)
             {
@@ -496,6 +510,7 @@ namespace MyLittleFarm.Gameplay.Building
         {
             var state = _layout.Get(id);
             if (state == null) { reason = "Постройка не найдена"; return false; }
+            if (Presses?.IsOccupied(id) == true) { reason = FarmText.Get("press.cannotRemove"); return false; }
             var refund = state.Refund;
             if ((long)_wallet.Coins + refund > int.MaxValue) { reason = "Кошелёк заполнен"; return false; }
             _layout.TryRemove(id, out _);

@@ -44,6 +44,7 @@ namespace MyLittleFarm.Editor
 
         public static GameObject GetOrCreate(string id, bool rebuild = false)
         {
+            if (id == "apple_press") return null; // BuildingView creates the press model.
             EnsureFolder(Folder);
             var path = Folder + "/" + id + ".prefab";
             var existing = AssetDatabase.LoadAssetAtPath<GameObject>(path);

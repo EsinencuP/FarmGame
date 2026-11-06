@@ -28,6 +28,10 @@ namespace MyLittleFarm.Gameplay.Building
             {
                 VisualPrefab.CreateBuilding(visualPrefab, root.transform, new Vector3(width, height, depth));
             }
+            else if (definition.Id == ApplePresses.BuildingId)
+            {
+                BuildApplePress(root.transform, width, height, depth);
+            }
             else
             {
                 // Keep the recognizable prototype shape until this definition has art assigned.
@@ -72,6 +76,24 @@ namespace MyLittleFarm.Gameplay.Building
             return grid.CellToWorld(new Vector2Int(x, z)) + new Vector3(
                 (definition.RotatedWidth(turns) - 1) * grid.CellSize * 0.5f, 0,
                 (definition.RotatedDepth(turns) - 1) * grid.CellSize * 0.5f);
+        }
+
+        private static void BuildApplePress(Transform parent, float width, float height, float depth)
+        {
+            var wood = new Color(.47f, .29f, .16f);
+            var oak = new Color(.68f, .46f, .27f);
+            var iron = new Color(.25f, .28f, .26f);
+            Part(parent, "Base", new Vector3(0, .13f, 0), new Vector3(width, .26f, depth), wood);
+            Part(parent, "Press bed", new Vector3(0, .36f, 0), new Vector3(width * .72f, .19f, depth * .58f), oak);
+            for (var side = -1; side <= 1; side += 2)
+                Part(parent, "Upright", new Vector3(side * width * .38f, height * .49f, 0),
+                    new Vector3(width * .15f, height * .88f, depth * .28f), wood);
+            Part(parent, "Crossbeam", new Vector3(0, height * .89f, 0), new Vector3(width * .92f, height * .22f, depth * .30f), oak);
+            Part(parent, "Basket", new Vector3(0, .67f, 0), new Vector3(width * .52f, .45f, depth * .52f), oak);
+            Part(parent, "Basket band", new Vector3(0, .76f, 0), new Vector3(width * .55f, .08f, depth * .55f), iron);
+            Part(parent, "Screw", new Vector3(0, height * .75f, 0), new Vector3(.14f, height * .39f, .14f), iron);
+            Part(parent, "Lever", new Vector3(0, height * .99f, 0), new Vector3(width * .76f, .08f, .12f), iron);
+            Part(parent, "Juice spout", new Vector3(0, .44f, -depth * .35f), new Vector3(.17f, .11f, depth * .30f), iron);
         }
 
         private static void Part(Transform parent, string name, Vector3 position, Vector3 scale, Color color)

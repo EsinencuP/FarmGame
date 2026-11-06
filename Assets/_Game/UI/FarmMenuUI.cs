@@ -82,7 +82,7 @@ namespace MyLittleFarm.UI
                 if (input.ModalInputActive || input.BuildModeActive || input.SuppressGameplayThisFrame) return;
                 if (input.PausePressed) OpenPause();
                 else if (input.InventoryPressed) OpenInventory();
-                else if (input.MarketPressed || (input.InteractPressed && !input.PointerInteractPressed && shop != null && shop.CanTrade)) OpenMarket();
+                else if (input.MarketPressed) OpenMarket();
                 else if (input.JournalPressed) OpenJournal();
             }
             else if ((_page == Page.Inventory || _page == Page.Shop) && input.InventoryPressed

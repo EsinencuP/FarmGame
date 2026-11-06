@@ -4,6 +4,7 @@ using MyLittleFarm.Core.Grid;
 using MyLittleFarm.Gameplay.Economy;
 using MyLittleFarm.Gameplay.Farming;
 using MyLittleFarm.Gameplay.Animals;
+using MyLittleFarm.Gameplay.Building;
 using UnityEngine;
 using MyLittleFarm.UI;
 
@@ -139,11 +140,24 @@ namespace MyLittleFarm.Gameplay.World
                 var position = _grid.WorldToGrid(target.transform.position);
                 return _orchard != null && _orchard.Contains(position) && InteractWithCell(position, nowUnixMs);
             }
+            if (target != null && target.Kind == InteractionTargetKind.Building && _grid.Buildings?.IsApplePress(target.TargetId) == true)
+            {
+                if (!IsNearTarget(target))
+                {
+                    GameEvents.RaiseStatusChanged(FarmText.Get("press.approach"));
+                    return false;
+                }
+                var acted = _grid.Buildings.Presses.TryUse(target.TargetId, nowUnixMs, out var message, out var collected);
+                GameEvents.RaiseStatusChanged(message);
+                if (collected)
+                    GameEvents.RaiseActionFeedback("harvest", target.transform.position, ApplePresses.JuiceId, 1);
+                return acted;
+            }
             if (target != null && (target.Kind == InteractionTargetKind.Obstacle || target.Kind == InteractionTargetKind.Building))
                 return false;
             if (target != null && target.Kind == InteractionTargetKind.Market && !IsNearTarget(target)) return false;
             if ((target != null && target.Kind == InteractionTargetKind.Market && IsNearTarget(target))
-                || (!_selector.HasSelection && IsNearSaleCrate()))
+                || (target == null && (_input?.PointerInteractPressed != true || !_selector.HasSelection) && IsNearSaleCrate()))
             {
                 var menus = GetComponentInParent<GameBootstrap>()?.GetComponentInChildren<MyLittleFarm.UI.FarmMenuUI>(true);
                 if (menus == null) return false;
@@ -265,11 +279,17 @@ namespace MyLittleFarm.Gameplay.World
             }
             if (target != null && target.Kind == InteractionTargetKind.Obstacle) return FarmText.Get("world.obstacle");
             if (target != null && target.Kind == InteractionTargetKind.Building)
+            {
+                if (_grid.Buildings?.IsApplePress(target.TargetId) == true)
+                    return IsNearTarget(target)
+                        ? _grid.Buildings.Presses.Prompt(target.TargetId, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), InputReader.ActionHint)
+                        : FarmText.Get("press.approach");
                 return FarmText.Get("world.buildingHint", InputReader.KeyLabel(InputReader.Command.Build), InputReader.KeyLabel(InputReader.Command.Customize));
+            }
             if (target != null && target.Kind == InteractionTargetKind.Market && !IsNearTarget(target))
                 return FarmText.Get("world.approachMarket");
             if ((target != null && target.Kind == InteractionTargetKind.Market && IsNearTarget(target))
-                || (!_selector.HasSelection && IsNearSaleCrate()))
+                || (target == null && IsNearSaleCrate()))
             {
                 return FarmText.Get("market.openHint", InputReader.MarketHint);
             }

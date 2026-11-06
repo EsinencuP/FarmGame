@@ -1,4 +1,5 @@
 using MyLittleFarm.Core;
+using MyLittleFarm.Gameplay.Building;
 using MyLittleFarm.Gameplay.Farming;
 using UnityEngine;
 
@@ -61,18 +62,11 @@ namespace MyLittleFarm.Gameplay.Economy
                 total = nextTotal;
                 sold += amount;
             }
-            if (_catalog.TryGetItem("apple", out var apple))
+            foreach (var id in FarmCatalog.FarmProductIds)
             {
-                var amount = _inventory.GetAmount(apple.ItemId);
-                if (!TransactionMath.TryAddSale(apple.SellPrice, amount, _wallet.Coins, total,
-                    out var nextTotal)) return 0;
-                total = nextTotal;
-                sold += amount;
-            }
-            if (_catalog.TryGetItem("egg", out var egg))
-            {
-                var amount = _inventory.GetAmount(egg.ItemId);
-                if (!TransactionMath.TryAddSale(egg.SellPrice, amount, _wallet.Coins, total,
+                if (!_catalog.TryGetItem(id, out var product)) continue;
+                var amount = _inventory.GetAmount(id);
+                if (!TransactionMath.TryAddSale(product.SellPrice, amount, _wallet.Coins, total,
                     out var nextTotal)) return 0;
                 total = nextTotal;
                 sold += amount;
@@ -84,18 +78,14 @@ namespace MyLittleFarm.Gameplay.Economy
                     var amount = _inventory.GetAmount(item.ItemId);
                     if (amount > 0) _inventory.TryRemove(item.ItemId, amount);
                 }
-            if (_catalog.TryGetItem("apple", out var appleToRemove))
+            var containsJuice = _inventory.GetAmount(ApplePresses.JuiceId) > 0;
+            foreach (var id in FarmCatalog.FarmProductIds)
             {
-                var amount = _inventory.GetAmount(appleToRemove.ItemId);
-                if (amount > 0) _inventory.TryRemove(appleToRemove.ItemId, amount);
-            }
-            if (_catalog.TryGetItem("egg", out var eggToRemove))
-            {
-                var amount = _inventory.GetAmount(eggToRemove.ItemId);
-                if (amount > 0) _inventory.TryRemove(eggToRemove.ItemId, amount);
+                var amount = _inventory.GetAmount(id);
+                if (amount > 0 && _catalog.TryGetItem(id, out _)) _inventory.TryRemove(id, amount);
             }
             _wallet.AddCoins((int)total);
-            GameEvents.Record("sale",amount:sold,value:total);
+            GameEvents.Record("sale", containsJuice ? ApplePresses.JuiceId : string.Empty, amount: sold, value: total);
             GameEvents.RaiseStatusChanged($"Продано урожая: {sold}  +{total} монет");
             return (int)total;
         }

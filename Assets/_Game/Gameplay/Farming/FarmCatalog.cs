@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using MyLittleFarm.Gameplay.Building;
 using MyLittleFarm.Gameplay.Economy;
+using MyLittleFarm.UI;
 using UnityEngine;
 
 namespace MyLittleFarm.Gameplay.Farming
@@ -56,6 +58,7 @@ namespace MyLittleFarm.Gameplay.Farming
         private readonly List<CropDefinition> _orderedCrops = new List<CropDefinition>();
 
         public IReadOnlyList<CropDefinition> Crops => _orderedCrops;
+        internal static readonly string[] FarmProductIds = { ApplePresses.FruitId, "egg", ApplePresses.JuiceId };
 
         /// <summary>Собирает шесть игровых культур и заменяет их назначенными ассетами.</summary>
         public void Configure()
@@ -72,6 +75,7 @@ namespace MyLittleFarm.Gameplay.Farming
             AddPlaceholder("cucumber", cucumber);
             AddItemPlaceholder("apple", "Яблоко", 0, 18, false);
             AddItemPlaceholder("egg", "Яйцо", 0, 14, false);
+            AddItemPlaceholder(ApplePresses.JuiceId, FarmText.Get("press.juice"), 0, ApplePresses.JuicePrice, false);
             if (cropAssets != null)
                 foreach (var crop in cropAssets)
                     if (crop != null && !string.IsNullOrWhiteSpace(crop.CropId)) _crops[crop.CropId] = crop;

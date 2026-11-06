@@ -19,7 +19,7 @@ namespace MyLittleFarm.Core
     public sealed partial class SaveSystem : MonoBehaviour
     {
         // Версия 5 сохраняет только отличия от базовой карты и поверхность под игровыми слоями.
-        public const int CurrentSaveVersion = 11;
+        public const int CurrentSaveVersion = 12;
         private const int MaxCollectionEntries = 100_000;
 
         [Header("Persistence")]
@@ -135,6 +135,7 @@ namespace MyLittleFarm.Core
                 trees = _orchard == null ? new List<TreeRuntimeState>() : _orchard.Capture(),
                 animals = _animals == null ? new List<AnimalRuntimeState>() : _animals.Capture(),
                 buildings = _buildings == null ? new List<BuildingRuntimeState>() : _buildings.Capture(),
+                applePressBatches = _buildings?.Presses?.Capture() ?? new List<ApplePressBatchData>(),
                 selectedQuickSlot = _slots == null ? 0 : _slots.SelectedIndex,
                 sectorUnlocked = _sector != null && _sector.IsUnlocked,
                 toolUpgradeLevel = _upgrades == null ? 0 : _upgrades.Level,
@@ -183,6 +184,7 @@ namespace MyLittleFarm.Core
             _wallet.SetCoins(data.coins);
             _crops.Restore(data.crops);
             _buildings?.Restore(data.buildings);
+            _buildings?.Presses?.Restore(data.applePressBatches);
             _orchard?.Restore(data.trees);
             _animals?.Restore(data.animals);
             _onboarding?.Restore(data.onboardingStep, data.onboardingSuppliesGranted,
@@ -317,6 +319,14 @@ namespace MyLittleFarm.Core
             if (data == null) throw new InvalidDataException("Save data is empty.");
             if (data.saveVersion < 1 || data.saveVersion > CurrentSaveVersion)
                 throw new InvalidDataException($"Unsupported save version {data.saveVersion}.");
+            if (data.saveVersion < 12)
+            {
+                data.applePressBatches = new List<ApplePressBatchData>();
+                if (data.progression != null) data.progression.firstJuiceSold = false;
+            }
+            if (data.applePressBatches == null || data.applePressBatches.Count > MaxCollectionEntries
+                || (data.applePressBatches.Count > 0 && _buildings?.Presses == null))
+                throw new InvalidDataException("Apple press batches cannot be restored.");
             if(!FarmProgression.IsValid(data.progression)||(data.progression!=null&&_progression==null))
                 throw new InvalidDataException("Farm progression state is invalid or its system is missing.");
             if (double.IsNaN(data.playTimeSeconds) || double.IsInfinity(data.playTimeSeconds)
@@ -402,6 +412,7 @@ namespace MyLittleFarm.Core
             }
             ValidateBuildings(data.buildings, savedCells, data.player);
             ValidateOccupantLinks(data.crops, data.trees, data.buildings, savedCells);
+            ApplePresses.Validate(data.applePressBatches, data.buildings);
 
             var playerCell = _grid.WorldToGrid(new Vector3(data.player.x, 0f, data.player.z));
             if (!_grid.IsChunkLoaded(_grid.GridToChunk(playerCell)))

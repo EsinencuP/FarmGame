@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using MyLittleFarm.UI;
 
 namespace MyLittleFarm.Gameplay.Building
 {
@@ -39,7 +40,8 @@ namespace MyLittleFarm.Gameplay.Building
             new BuildingDefinition("storage", "Склад", 5, 6, 12, 4f),
             new BuildingDefinition("market", "Торговая стойка", 8, 5, 10, 3.1f),
             new BuildingDefinition("flowerbed", "Клумба", 1, 1, 3, 0.45f),
-            new BuildingDefinition("coop", "Курятник", 3, 5, 18, 4f)};
+            new BuildingDefinition("coop", "Курятник", 3, 5, 18, 4f),
+            new BuildingDefinition(ApplePresses.BuildingId, FarmText.Get("press.name"), 2, 2, ApplePresses.BuildingPrice, 1.8f)};
             items.AddRange(FarmDecorationCatalog.Items);return items.AsReadOnly();
         }
 

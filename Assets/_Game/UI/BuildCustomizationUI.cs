@@ -86,7 +86,7 @@ namespace MyLittleFarm.UI
                 var icon = itemButtons[i].transform.Find("Catalogue icon");
                 if (icon != null)
                 {
-                    var sprite = FarmUITheme.Sprite("Icons/b_" + definition.Id);
+                    var sprite = FarmUITheme.Sprite(definition.Id == ApplePresses.BuildingId ? "Icons/crop_apple" : "Icons/b_" + definition.Id);
                     if (sprite == null) sprite = FarmUITheme.Sprite("Icons/catalog");
                     icon.GetComponent<Image>().sprite = sprite;
                 }
