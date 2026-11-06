@@ -6,6 +6,7 @@ using MyLittleFarm.Gameplay.Building;
 using MyLittleFarm.Gameplay.Farming;
 using MyLittleFarm.Gameplay.World;
 using UnityEngine;
+using MyLittleFarm.UI;
 
 namespace MyLittleFarm.Gameplay.Economy
 {
@@ -52,22 +53,22 @@ namespace MyLittleFarm.Gameplay.Economy
             else if (category == Category.Upgrades)
             {
                 if (tool != null) result.Add(new Offer { Id = "tool:" + tool.Level, Name = "Улучшение инструмента", Icon = "tool_hoe", Price = tool.NextPrice, Maximum = 1,
-                    Description = "Уровень " + (tool.Level + 1) + " / 3\nУвеличивает радиус работы с грядками.\nТекущий радиус: " + tool.Reach.ToString("0.#") + " м.", Unavailable = tool.Level >= 2 ? "Максимальный уровень" : null });
+                    Description = "Уровень " + (tool.Level + 1) + " / 3\nУвеличивает радиус работы с грядками.\nТекущий радиус: " + tool.Reach.ToString("0.#") + " м.", Unavailable = tool.Level >= 2 ? FarmText.Get("market.maxLevel") : null });
                 if (sector != null) result.Add(new Offer { Id = "sector", Name = "Новый сектор фермы", Icon = "b_sector", Price = sector.PurchasePrice, Maximum = 1,
                     Description = "Открывает дополнительную территорию фермы.", Unavailable = sector.IsUnlocked ? "Уже приобретён" : Application.isPlaying && !sector.CanPurchase ? "Сектор недоступен" : null });
                 if (progress != null) result.Add(new Offer { Id = "shepherd", Name = "Нанять пастуха", Icon = "quest", Price = FarmProgression.ShepherdPrice, Maximum = 1,
-                    Description = "Кормит кур пшеницей из инвентаря и собирает яйца.", Unavailable = progress.Data.shepherdHired ? "Уже нанят" : null });
+                    Description = "Кормит кур пшеницей из инвентаря и собирает яйца.", Unavailable = progress.Data.shepherdHired ? FarmText.Get("market.alreadyHired") : null });
                 if (buildings != null && Application.isPlaying)
                     foreach (var house in buildings.Capture())
                         if (house.definitionId == "house") result.Add(new Offer { Id = "house:" + house.id + ":" + house.appearanceLevel, ItemId = house.id,
                             Name = "Дом " + house.x + ":" + house.z + " · " + (house.appearanceLevel + 1) + " / 3", Icon = "b_house", Price = FarmDecorationCatalog.HouseUpgradePrice(house.appearanceLevel), Maximum = 1,
                             Description = house.appearanceLevel < 2 ? "Следующий вид: " + FarmDecorationCatalog.HouseLevelName(house.appearanceLevel + 1) + "\nОсвободите территорию дома перед улучшением." : "Усадьба полностью улучшена.",
-                            Unavailable = house.appearanceLevel >= 2 ? "Максимальный уровень" : null });
+                            Unavailable = house.appearanceLevel >= 2 ? FarmText.Get("market.maxLevel") : null });
                 if (!Application.isPlaying) result.Add(new Offer { Id = "house:preview:0", Name = "Улучшение дома", Icon = "b_house", Price = FarmDecorationCatalog.HouseUpgradePrice(0), Maximum = 1, Description = "Выберите построенный дом в списке рынка." });
             }
             else if (animals != null) result.Add(new Offer { Id = "chicken", Name = "Курица", Icon = "chicken", Price = animals.ChickenPrice,
                 Maximum = Mathf.Max(0, animals.MaxAnimals - animals.Count), Description = "После оплаты поселяется в свободном месте загона.\nКорм: пшеница. Продукция: яйца.",
-                Unavailable = animals.Count >= animals.MaxAnimals ? "Загон заполнен" : null });
+                Unavailable = animals.Count >= animals.MaxAnimals ? FarmText.Get("market.penFull") : null });
             return result;
         }
         private void AddItem(List<Offer> result, string id, Category category, CropDefinition crop)
@@ -79,34 +80,34 @@ namespace MyLittleFarm.Gameplay.Economy
                 Maximum = sale ? Owned(id) : Mathf.Min(999, int.MaxValue - Owned(id)),
                 Description = (crop == null ? "Продукция фермы" : "Рост · " + MyLittleFarm.UI.FarmGuideUI.Duration(crop.GrowDurationSeconds) + "\nУрожай: " + crop.YieldAmount + " шт.")
                     + (rare ? "\nРедкие семена можно найти в тайниках." : "") + "\nВ инвентаре: " + Owned(id),
-                Unavailable = sale ? (item.SellPrice <= 0 ? "Не продаётся" : Owned(id) == 0 ? "Нет в инвентаре" : null)
-                    : rare || !item.CanBuy ? "Только в тайниках" : null });
+                Unavailable = sale ? (item.SellPrice <= 0 ? FarmText.Get("market.notForSale") : Owned(id) == 0 ? FarmText.Get("market.noStock") : null)
+                    : rare || !item.CanBuy ? FarmText.Get("market.cacheOnly") : null });
         }
 
         public bool Quote(Category category, IReadOnlyDictionary<string, int> cart, out int total, out string reason)
         {
-            total = 0; reason = "Добавьте товары в корзину";
+            total = 0; reason = FarmText.Get(category == Category.Sell ? "market.chooseSale" : "market.choosePurchase");
             if (cart == null || cart.Count == 0) return false;
             var offers = Offers(category); long sum = 0;
             foreach (var line in cart)
             {
                 var offer = offers.Find(o => o.Id == line.Key);
                 if (offer == null || !offer.Available || line.Value <= 0 || line.Value > offer.Maximum)
-                { reason = "Состав заказа изменился. Удалите недоступные позиции."; return false; }
+                { reason = FarmText.Get("market.staleOrder"); return false; }
                 sum += (long)offer.Price * line.Value;
-                if (sum > int.MaxValue) { reason = "Сумма заказа слишком велика"; return false; }
+                if (sum > int.MaxValue) { reason = FarmText.Get("market.tooLarge"); return false; }
                 if (Application.isPlaying && offer.Id == "chicken" && !animals.CanDeliver(line.Value))
-                { reason = "В загоне недостаточно свободных мест"; return false; }
+                { reason = FarmText.Get("market.noSpace"); return false; }
                 if (Application.isPlaying && offer.Id.StartsWith("house:") && !buildings.CanUpgradeHouse(offer.ItemId, out reason)) return false;
             }
             total = (int)sum;
-            if (category == Category.Sell && sum > int.MaxValue - Balance) { reason = "Кошелёк заполнен"; return false; }
-            if (category != Category.Sell && sum > Balance) { reason = "Недостаточно монет"; return false; }
+            if (category == Category.Sell && sum > int.MaxValue - Balance) { reason = FarmText.Get("market.walletFull"); return false; }
+            if (category != Category.Sell && sum > Balance) { reason = FarmText.MissingCoins(sum - Balance); return false; }
             reason = ""; return true;
         }
         public bool Checkout(Category category, IReadOnlyDictionary<string, int> cart, out string reason)
         {
-            reason = "Подойдите к рынку";
+            reason = FarmText.Get("market.approach");
             if (_committing || !Application.isPlaying || !CanTrade) return false;
             if (!Quote(category, cart, out var total, out reason)) return false;
             // Snapshot before events fire: HUD observers may refresh their own collections.
@@ -118,11 +119,11 @@ namespace MyLittleFarm.Gameplay.Economy
                 {
                     foreach (var line in order) inventory.TryRemove(line.Key, line.Value);
                     wallet.AddCoins(total); GameEvents.Record("sale", value: total);
-                    GameEvents.RaiseProgressAction("sale"); GameEvents.RaiseActionFeedback("sale", proximity.TradePosition);
+                    GameEvents.RaiseProgressAction("sale");
                 }
                 else
                 {
-                    if (!wallet.TrySpend(total)) { reason = "Недостаточно монет"; return false; }
+                    if (!wallet.TrySpend(total)) { reason = FarmText.MissingCoins(total - Balance); return false; }
                     foreach (var line in order)
                     {
                         var offer = offers.Find(o => o.Id == line.Key);
@@ -136,7 +137,9 @@ namespace MyLittleFarm.Gameplay.Economy
                     GameEvents.RaiseProgressAction("purchase");
                     MyLittleFarm.Audio.FarmAudio.PlayAtPlayer(MyLittleFarm.Audio.SoundId.Purchase);
                 }
-                reason = category == Category.Sell ? "Продано · +" + total + " монет" : "Заказ оплачен · −" + total + " монет";
+                GameEvents.RaiseActionFeedback(category == Category.Sell ? "sale" : "purchase", proximity.TradePosition,
+                    "coin", category == Category.Sell ? total : -total);
+                reason = FarmText.Get(category == Category.Sell ? "market.saleDone" : "market.purchaseDone", FarmText.Coins(total));
                 GameEvents.RaiseStatusChanged(reason); Changed?.Invoke(); return true;
             }
             finally { _committing = false; }

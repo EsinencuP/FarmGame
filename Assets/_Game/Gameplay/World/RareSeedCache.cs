@@ -1,4 +1,5 @@
 using System;
+using MyLittleFarm.Core;
 using UnityEngine;
 
 namespace MyLittleFarm.Gameplay.World
@@ -23,7 +24,7 @@ namespace MyLittleFarm.Gameplay.World
                 if(_player==null||!WithinReach(_player.position))return locationName+" — подойдите ближе";
                 var remaining=_progress==null?0:_progress.Cache(cacheId).nextAvailableUnixMs-DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
                 return remaining>0?locationName+" — новые семена через "+Mathf.CeilToInt(remaining/60000f)+" мин"
-                    :"E / ЛКМ — найти 2 редких семени кукурузы";
+                    :$"{InputReader.ActionHint} — найти 2 редких семени кукурузы";
             }
         }
         public void Refresh()

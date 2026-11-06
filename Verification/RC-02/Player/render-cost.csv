@@ -1,0 +1,9 @@
+view,mode,frames,p50_ms,p95_ms,cpu_p50_ms,gpu_p50_ms,batches,setpass,triangles,shadow_casters
+forest_day,full,1044,4.252,6.647,0.904,2.288,n/a,64,394714,191
+forest_day,shadows_off,1691,1.895,4.053,0.757,1.234,n/a,22,88353,0
+forest_day,new_vegetation_off,1214,3.097,5.775,0.787,1.919,n/a,42,83282,119
+forest_day,full_repeat,1036,4.295,6.452,0.892,2.292,n/a,62,394714,191
+pond_night,full,801,5.149,7.681,0.940,3.123,n/a,172,79425,78
+pond_night,shadows_off,869,4.791,7.418,0.721,2.813,n/a,131,49623,0
+pond_night,new_vegetation_off,806,5.115,7.657,0.900,3.102,n/a,158,75405,76
+pond_night,full_repeat,802,5.136,7.606,0.922,3.117,n/a,172,79425,78

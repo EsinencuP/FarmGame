@@ -46,6 +46,7 @@ namespace MyLittleFarm.UI
         {
             if (!Application.isPlaying || !isActiveAndEnabled || artwork == null) return;
             if (_motion != null) StopCoroutine(_motion);
+            if (FarmSettingsUI.ReduceMotion) { ResetVisual(); return; }
             var available = _button != null && _button.IsInteractable();
             var scale = !available || !_hovered ? 1 : _pressed ? .99f : hoverScale;
             _motion = StartCoroutine(Tween(scale));

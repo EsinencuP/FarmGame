@@ -1,6 +1,5 @@
 using MyLittleFarm.Core;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace MyLittleFarm.UI
@@ -23,7 +22,7 @@ namespace MyLittleFarm.UI
         private int _pendingSlot;
         private bool _pendingManual, _pendingNew;
         private bool _pendingDelete;
-        private GameObject _lastSelection;
+        private GameObject _choiceFocus;
         [SerializeField] private FarmMenuUI mainMenu;
         public event System.Action<bool> Closed;
         private bool _selectedFarm;
@@ -63,11 +62,15 @@ namespace MyLittleFarm.UI
             Bind(); input.ModalInputActive = true; input.SuppressGameplayThisFrame = true;
             _selectedFarm = false;
             _pendingDelete = false;
-            _lastSelection = null; scroll.StopMovement(); content.anchoredPosition = Vector2.zero;
+            _choiceFocus = null; scroll.StopMovement(); content.anchoredPosition = Vector2.zero;
             shade.SetActive(true); confirmation.SetActive(false); panelGroup.interactable = true;
+            save.GetComponentInChildren<Text>().text = FarmText.Get("saves.save");
+            close.GetComponentInChildren<Text>().text = FarmText.Get("saves.close");
+            var subtitle = panel.Find("ТРИ СЛОТА · ТРИ ИСТОРИИ ФЕРМЫ");
+            if (subtitle != null) subtitle.GetComponent<Text>().text = FarmText.Get("saves.subtitle");
             RefreshIfOpen(); Resize();
-            message.text = saves.LegacyUnavailable ? "Старое сохранение не удалось перенести; слот 1 защищён. Исходные файлы сохранены."
-                : "Автосохранение каждые 5 минут и при выходе. F5 — ручная точка активной фермы.";
+            message.text = saves.LegacyUnavailable ? FarmText.Get("saves.legacyUnavailable")
+                : saves.HasActiveFarm ? FarmText.Get("saves.autosave", InputReader.KeyLabel(InputReader.Command.Save)) : FarmText.Get("saves.chooseFarm");
             FocusFirst();
         }
         private void RefreshIfOpen()
@@ -80,22 +83,22 @@ namespace MyLittleFarm.UI
         }
         private void Save()
         {
-            message.text = saves.SaveActivePoint(false) ? "Ручная точка сохранена · слот " + (saves.ActiveSlot + 1)
-                : "Запись не удалась. Предыдущие файлы сохранены.";
+            message.text = saves.SaveActivePoint(false) ? FarmText.Get("saves.saved", saves.ActiveSlot + 1)
+                : FarmText.Get("saves.saveFailed");
         }
         private void Choose(int slot, bool manual)
         {
+            _choiceFocus = FarmUIFocus.Selected;
             _pendingSlot = slot; _pendingManual = manual; _pendingNew = _slots[slot].IsEmpty;
             _pendingDelete = false;
-            confirm.GetComponentInChildren<Text>().text = "Продолжить"; FarmUITheme.Style(confirm, "primary");
+            confirm.GetComponentInChildren<Text>().text = FarmText.Get(_pendingNew ? "saves.new" : "saves.continue"); FarmUITheme.Style(confirm, "primary");
             if (!saves.HasActiveFarm) { ApplyChoice(); return; }
             confirmation.SetActive(true);
             panelGroup.interactable = false;
-            confirmationText.text = _pendingNew ? "Начать новую ферму в слоте " + (slot + 1) + "?\nТекущая ферма будет автоматически сохранена в своём слоте."
-                : slot != saves.ActiveSlot ? "Загрузить слот " + (slot + 1) + "?\nТекущая ферма будет автоматически сохранена в своём слоте."
-                : "Загрузить " + (manual ? "ручную точку" : "последнюю точку") + " слота " + (slot + 1)
-                    + "?\nПрогресс после выбранного сохранения будет заменён.";
-            Focus(cancel.gameObject);
+            confirmationText.text = _pendingNew ? FarmText.Get("saves.confirmNew", slot + 1)
+                : slot != saves.ActiveSlot ? FarmText.Get("saves.confirmSwitch", slot + 1)
+                : FarmText.Get("saves.confirmReload", FarmText.Get(manual ? "saves.manualAdjective" : "saves.latestAdjective"), slot + 1);
+            FarmUIFocus.Show(confirmation.transform, cancel, CancelChoice);
         }
         private void ApplyChoice()
         {
@@ -103,7 +106,7 @@ namespace MyLittleFarm.UI
             if (_pendingDelete)
             {
                 var removed = saves.ArchiveSlot(_pendingSlot); CancelChoice(); RefreshIfOpen();
-                message.text = removed ? "Слот освобождён. Копия файлов сохранена в папке Saves/Removed." : "Не удалось удалить слот. Файлы сохранены.";
+                message.text = removed ? FarmText.Get("saves.archiveDone") : FarmText.Get("saves.archiveFailed");
                 return;
             }
             StartCoroutine(LoadChoice());
@@ -111,13 +114,16 @@ namespace MyLittleFarm.UI
         private void ConfirmDelete(int slot)
         {
             if (saves.HasActiveFarm && saves.ActiveSlot == slot) return;
+            _choiceFocus = FarmUIFocus.Selected;
             _pendingSlot = slot; _pendingDelete = true; confirmation.SetActive(true); panelGroup.interactable = false;
-            confirmationText.text = "Удалить ферму из слота " + (slot + 1) + "?\nСлот станет свободным. Копия файлов останется в папке восстановления.";
-            confirm.GetComponentInChildren<Text>().text = "Удалить"; FarmUITheme.Style(confirm, "danger"); Focus(cancel.gameObject);
+            confirmationText.text = FarmText.Get("saves.confirmDelete", slot + 1);
+            confirm.GetComponentInChildren<Text>().text = FarmText.Get("saves.delete"); FarmUITheme.Style(confirm, "danger"); FarmUIFocus.Show(confirmation.transform, cancel, CancelChoice);
         }
         private System.Collections.IEnumerator LoadChoice()
         {
             _loading = true; panelGroup.interactable = false;
+            confirmation.SetActive(false);
+            FarmUIFocus.Show(null, null, null);
             if (mainMenu != null) mainMenu.SetLoading(true);
             // Present a real loading frame before synchronous validation and restore.
             yield return null;
@@ -128,9 +134,14 @@ namespace MyLittleFarm.UI
             confirmation.SetActive(false);
             panelGroup.interactable = true;
             if (success) { _selectedFarm = true; Close(); }
-            else { RefreshIfOpen(); message.text = "Не удалось открыть ферму. Проверьте доступ к файлам; данные сохранены."; FocusFirst(); }
+            else { RefreshIfOpen(); message.text = FarmText.Get("saves.loadFailed"); FocusFirst(); }
         }
-        private void CancelChoice() { confirmation.SetActive(false); panelGroup.interactable = true; FocusFirst(); }
+        private void CancelChoice()
+        {
+            confirmation.SetActive(false); panelGroup.interactable = true; FocusFirst();
+            FarmUIFocus.Restore(_choiceFocus, FarmUIFocus.Selected == null ? null : FarmUIFocus.Selected.GetComponent<Selectable>());
+            _choiceFocus = null;
+        }
         public void Close()
         {
             if (Application.isPlaying && (_loading || (saves == null || (!saves.HasActiveFarm && mainMenu == null)))) return;
@@ -144,36 +155,17 @@ namespace MyLittleFarm.UI
                 if (!Application.isPlaying) cards[i].Show(new SaveSlotInfo { Index = i, Manual = new SavePointInfo(), Autosave = new SavePointInfo() }, false, false);
             }
             if (owned && Application.isPlaying && input != null) { input.ModalInputActive = false; input.SuppressGameplayThisFrame = true; }
-            Focus(null);
+            if (owned && Application.isPlaying) FarmUIFocus.Show(null, null, null);
             if (owned && Application.isPlaying) Closed?.Invoke(_selectedFarm);
-        }
-        private void Update()
-        {
-            if (!Application.isPlaying || !IsOpen || input == null || _loading) return;
-            if (input.ModalCancelPressed) { if (confirmation.activeSelf) CancelChoice(); else Close(); }
-            ScrollToSelection();
         }
         private void FocusFirst()
         {
-            if (saves != null && cards[saves.ActiveSlot].Primary.interactable)
-            { Focus(cards[saves.ActiveSlot].Primary.gameObject); return; }
-            for (var i = 0; i < cards.Length; i++) if (cards[i].Primary.interactable) { Focus(cards[i].Primary.gameObject); return; }
-            Focus(close.interactable ? close.gameObject : null);
-        }
-        private static void Focus(GameObject target)
-        { if (Application.isPlaying && EventSystem.current != null) EventSystem.current.SetSelectedGameObject(target); }
-        private void ScrollToSelection()
-        {
-            var selected = EventSystem.current == null ? null : EventSystem.current.currentSelectedGameObject;
-            if (selected == null || selected == _lastSelection || !selected.transform.IsChildOf(content)) return;
-            _lastSelection = selected;
-            Canvas.ForceUpdateCanvases();
-            var bounds = RectTransformUtility.CalculateRelativeRectTransformBounds(viewport, selected.transform);
-            var offset = bounds.min.y < viewport.rect.yMin ? viewport.rect.yMin - bounds.min.y
-                : bounds.max.y > viewport.rect.yMax ? viewport.rect.yMax - bounds.max.y : 0f;
-            var position = content.anchoredPosition;
-            position.y = Mathf.Clamp(position.y + offset, 0, Mathf.Max(0, content.rect.height - viewport.rect.height));
-            content.anchoredPosition = position;
+            var first = close;
+            foreach (var card in cards)
+                if (card.Primary.interactable) { first = card.Primary; break; }
+            if (saves.HasActiveFarm && cards[saves.ActiveSlot].Primary.interactable)
+                first = cards[saves.ActiveSlot].Primary;
+            FarmUIFocus.Show(panel, first, Close);
         }
 
         private void OnRectTransformDimensionsChange() => Resize();
@@ -235,8 +227,8 @@ namespace MyLittleFarm.UI
             Stretch((RectTransform)ui.shade.transform);ui.shade.GetComponent<Image>().color = new Color(.015f,.035f,.02f,.94f);
             ui.panel = Panel(ui.shade.transform,"Farm slots",new Vector2(1320,760));
             ui.panelGroup = ui.panel.gameObject.AddComponent<CanvasGroup>();
-            var title = Label(ui.panel,"СОХРАНЕНИЯ",font,30); Top(title.rectTransform,24,20,42);
-            var subtitle = Label(ui.panel,"ТРИ СЛОТА · ТРИ ИСТОРИИ ФЕРМЫ",font,18); Top(subtitle.rectTransform,24,66,30);
+            var title = Label(ui.panel,FarmText.Get("saves.title"),font,30); Top(title.rectTransform,24,20,42);
+            var subtitle = Label(ui.panel,FarmText.Get("saves.subtitle"),font,18); Top(subtitle.rectTransform,24,66,30);
             var viewport = new GameObject("Slot list",typeof(RectTransform),typeof(Image),typeof(Mask),typeof(ScrollRect));viewport.transform.SetParent(ui.panel,false);
             ui.viewport = (RectTransform)viewport.transform; Stretch(ui.viewport);ui.viewport.offsetMin = new Vector2(20,135);ui.viewport.offsetMax = new Vector2(-20,-112);
             viewport.GetComponent<Image>().color = Color.white;viewport.GetComponent<Mask>().showMaskGraphic = false;
@@ -251,13 +243,13 @@ namespace MyLittleFarm.UI
             ui.cards = new SaveSlotCard[SaveSystem.SlotCount];for(var i = 0;i < ui.cards.Length;i++) {ui.cards[i] = SaveSlotCard.Create(ui.content,font);ui.cards[i].name = "Slot " + (i+1);}
             ui.message = Label(ui.panel,"",font,18);ui.message.alignment = TextAnchor.MiddleLeft;
             var messageRect = ui.message.rectTransform;messageRect.anchorMin = Vector2.zero;messageRect.anchorMax = new Vector2(1,0);messageRect.pivot = new Vector2(.5f,0);messageRect.offsetMin = new Vector2(24,74);messageRect.offsetMax = new Vector2(-24,125);
-            ui.save = Button(ui.panel,"Сохранить текущую",font);Bottom(ui.save,24,false);
-            ui.close = Button(ui.panel,"Вернуться · Esc",font);Bottom(ui.close,-24,true);
+            ui.save = Button(ui.panel,FarmText.Get("saves.save"),font);Bottom(ui.save,24,false);
+            ui.close = Button(ui.panel,FarmText.Get("saves.close"),font);Bottom(ui.close,-24,true);
             ui.confirmation = new GameObject("Confirm load",typeof(RectTransform),typeof(Image));ui.confirmation.transform.SetParent(ui.shade.transform,false);Stretch((RectTransform)ui.confirmation.transform);ui.confirmation.GetComponent<Image>().color = new Color(0,0,0,.75f);
             var dialog = Panel(ui.confirmation.transform,"Load confirmation",new Vector2(620,290));
             ui.confirmationText = Label(dialog,"",font,23);Top(ui.confirmationText.rectTransform,24,24,175);
             ui.confirm = Button(dialog,"Продолжить",font);Bottom(ui.confirm,24,false);
-            ui.cancel = Button(dialog,"Отмена",font);Bottom(ui.cancel,-24,true);
+            ui.cancel = Button(dialog,FarmText.Get("saves.cancel"),font);Bottom(ui.cancel,-24,true);
             ui.Resize(); ui.Close(); return ui;
         }
         public static Text Label(Transform parent,string text,Font font,int size)

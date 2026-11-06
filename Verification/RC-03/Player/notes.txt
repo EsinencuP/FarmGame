@@ -1,0 +1,77 @@
+profile C:/Users/esinencuP/AppData/LocalLow/USM-RC03-Preview/My Little Farm
+MainMenu E=E action=E / ЛКМ rotate=Q / R camera=(0.000, 0.000, 0.000) yaw=0,0 commands=0 hover= type= stable=
+profile C:/Users/esinencuP/AppData/LocalLow/USM-RC03-Preview/My Little Farm
+MainMenu E=E action=E / ЛКМ rotate=Q / R camera=(0.000, 0.000, 0.000) yaw=0,0 commands=0 hover= type= stable=
+MainMenu E=E action=E / ЛКМ rotate=Q / R camera=(0.000, 0.000, 0.000) yaw=0,0 commands=0 hover= type= stable=
+MainMenu E=H action=H / ЛКМ rotate=Q / R camera=(0.000, 0.000, 0.000) yaw=0,0 commands=0 hover= type= stable=
+status Прототип готов: наведите курсор на клетку
+Prototype E=H action=H / ЛКМ rotate=Q / R camera=(-3.744, 9.548, -6.744) yaw=45,0 commands=1 hover=(0, 0) type=OutOfBounds stable=True
+status Новая ферма · слот 1
+pointer 4 0 down frame=3533
+status Земля обработана
+pointer 4 0 up frame=3544
+Prototype E=H action=H / ЛКМ rotate=Q / R camera=(-3.744, 9.548, -6.744) yaw=45,0 commands=1 hover=(4, 0) type=Tilled stable=True
+feedback plant  0 frame=3566
+status Посажено: Морковь
+Prototype E=H action=H / ЛКМ rotate=Q / R camera=(-3.744, 9.548, -6.744) yaw=45,0 commands=1 hover=(4, 0) type=Planted stable=True
+pointer 4 0 down frame=4262
+feedback harvest carrot 3 frame=4263
+status Собрано: 3 × Морковь
+pointer 4 0 up frame=4284
+pointer 0 4 down frame=4294
+pointer 0 4 up frame=4305
+Prototype E=H action=H / ЛКМ rotate=Q / R camera=(9.305, 9.548, -7.940) yaw=325,5 commands=1 hover=(-1, -2) type=Grass stable=False
+status Автосохранение · слот 1
+profile C:/Users/esinencuP/AppData/LocalLow/USM-RC03-Preview/My Little Farm
+MainMenu interact=H action=H / ЛКМ rotate=Q / R player= camera=(0.000, 0.000, 0.000) yaw=0,0 silhouetteCommands=0 hover= type= stable=
+keys P queued frame=1336
+keys  queued frame=1347
+keys H queued frame=1380
+keys  queued frame=1390
+status Прототип готов: наведите курсор на клетку
+status Загружен слот 1
+Prototype interact=H action=H / ЛКМ rotate=Q / R player=(3.500, 0.744, 0.500) camera=(-3.744, 9.548, -6.744) yaw=45,0 silhouetteCommands=96 hover=(5, 2) type=Grass stable=True
+Prototype interact=H action=H / ЛКМ rotate=Q / R player=(-4.500, 1.716, 31.500) camera=(-11.744, 10.519, 24.256) yaw=45,0 silhouetteCommands=96 hover=(-3, 33) type=Grass stable=True
+keys P queued frame=2072
+keys  queued frame=2083
+feedback purchase coin -2 frame=3724
+status Заказ оплачен · −2 монет
+keys Escape queued frame=3757
+keys  queued frame=3768
+pointer 4 0 down frame=3790
+feedback plant  0 frame=3791
+status Посажено: Морковь
+pointer 4 0 up frame=3811
+Prototype interact=H action=H / ЛКМ rotate=Q / R player=(3.500, 0.744, 0.500) camera=(-3.744, 9.548, -6.744) yaw=45,0 silhouetteCommands=96 hover=(4, 0) type=Planted stable=True
+pointer 4 0 down frame=4586
+feedback harvest carrot 2 frame=4587
+status Собрано: 2 × Морковь
+pointer 4 0 up frame=4608
+keys F5 queued frame=4618
+status Игра сохранена · слот 1
+keys  queued frame=4629
+keys Q queued frame=4640
+keys  queued frame=4651
+Prototype interact=H action=H / ЛКМ rotate=Q / R player=(3.500, 0.744, 0.500) camera=(8.048, 6.723, -4.323) yaw=316,7 silhouetteCommands=96 hover=(2, -5) type=Grass stable=False
+status Загружен слот 1
+load manual True
+Prototype interact=H action=H / ЛКМ rotate=Q / R player=(3.500, 0.744, 0.500) camera=(7.400, 5.854, -3.400) yaw=315,0 silhouetteCommands=96 hover=(2, -4) type=Grass stable=True
+keys B queued frame=7833
+keys  queued frame=7844
+keys Q queued frame=7855
+keys  queued frame=7866
+Prototype interact=H action=H / ЛКМ rotate=Q / R player=(3.500, 0.744, 0.500) camera=(7.400, 5.854, -3.400) yaw=315,0 silhouetteCommands=96 hover=(2, -4) type=OutOfBounds stable=True
+keys Escape queued frame=7899
+keys  queued frame=7910
+Prototype interact=H action=H / ЛКМ rotate=Q / R player=(3.500, 0.744, 0.500) camera=(7.400, 5.854, -3.400) yaw=315,0 silhouetteCommands=96 hover=(2, -4) type=Grass stable=True
+pointer 4 0 down frame=8601
+feedback plant  0 frame=8602
+status Посажено: Морковь
+pointer 4 0 up frame=8604
+pointer 4 0 down frame=8605
+pointer 4 0 up frame=8607
+Prototype interact=H action=H / ЛКМ rotate=Q / R player=(3.500, 0.744, 0.500) camera=(7.400, 5.854, -3.400) yaw=315,0 silhouetteCommands=96 hover=(4, 0) type=Planted stable=False
+status Автосохранение · слот 1
+profile C:/Users/esinencuP/AppData/LocalLow/USM-RC03-Preview/My Little Farm
+MainMenu interact=H action=H / ЛКМ rotate=Q / R player= camera=(0.000, 0.000, 0.000) yaw=0,0 silhouetteCommands=0 hover= type= stable=
+MainMenu interact=E action=E / ЛКМ rotate=Q / R player= camera=(0.000, 0.000, 0.000) yaw=0,0 silhouetteCommands=0 hover= type= stable=

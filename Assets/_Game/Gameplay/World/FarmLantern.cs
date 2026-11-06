@@ -21,7 +21,9 @@ namespace MyLittleFarm.Gameplay.World
         {
             if (pointLight != null)
             {
+#if UNITY_EDITOR
                 pointLight.lightmapBakeType = LightmapBakeType.Realtime;
+#endif
                 pointLight.renderMode = LightRenderMode.ForcePixel;
                 pointLight.shadowBias = .025f; pointLight.shadowNormalBias = .12f;
                 pointLight.shadowNearPlane = .08f; pointLight.shadowStrength = 1;

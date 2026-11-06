@@ -46,13 +46,13 @@ namespace MyLittleFarm.Gameplay.World
         {
             switch (step)
             {
-                case 0: return "1 / 5   ДОМ\nB — стройка, 1 — дом. Поставьте дом на свободной земле.\nE / ЛКМ — поставить, Esc — выйти из стройки.";
-                case 1: return "2 / 5   СУНДУК\nВ стройке выберите 2 — склад-сундук и разместите его.\nB — открыть / закрыть стройку. Маркер предлагает место.";
-                case 2: return planted
-                    ? "3 / 5   ГРЯДКА\nДождитесь зрелого растения под маркером.\nПодойдите и нажмите E / ЛКМ, чтобы собрать урожай."
-                    : "3 / 5   ГРЯДКА\nВыйдите из стройки (Esc). Выберите морковь (1).\nУ маркера: E / ЛКМ обработать землю, ещё раз — посадить.";
-                case 3: return "4 / 5   МАГАЗИН\nПодойдите к торговому ящику под маркером.\nP / E — магазин. Добавьте семена в корзину и оплатите.";
-                case 4: return "5 / 5   ПРОДАЖА\nНаведите курсор на торговый ящик под маркером.\nP / E — магазин. Вкладка «Продать»: выберите урожай и подтвердите продажу.";
+                case 0: return FarmText.Get("onboarding.house", InputReader.KeyLabel(InputReader.Command.Build),
+                    InputReader.KeyLabel(InputReader.Command.Building1), InputReader.ActionHint);
+                case 1: return FarmText.Get("onboarding.storage", InputReader.KeyLabel(InputReader.Command.Building2));
+                case 2: return planted ? FarmText.Get("onboarding.harvest", InputReader.ActionHint)
+                    : FarmText.Get("onboarding.plant", InputReader.KeyLabel(InputReader.Command.Seed1), InputReader.ActionHint);
+                case 3: return FarmText.Get("onboarding.buy", InputReader.MarketHint);
+                case 4: return FarmText.Get("onboarding.sell", InputReader.MarketHint);
                 default: return string.Empty;
             }
         }

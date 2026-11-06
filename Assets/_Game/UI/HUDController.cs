@@ -23,7 +23,7 @@ namespace MyLittleFarm.UI
         [SerializeField, Range(0.1f, 1f)] private float inactiveSlotOpacity = 0.55f;
         [SerializeField] private bool compactPresentation;
 
-        public void UseCompactPresentation() { compactPresentation = true; Refresh(); RefreshOnboarding(); }
+        public void UseCompactPresentation() { compactPresentation = true; Refresh(); }
 
         // Источники данных и текстовые компоненты назначаются bootstrap-скриптом.
         private InventorySystem _inventory;
@@ -34,14 +34,12 @@ namespace MyLittleFarm.UI
         private ToolUpgradeSystem _upgrades;
         private SeedShopSystem _shop;
         private AnimalSystem _animals;
-        private OnboardingSystem _onboarding;
         private Image[] _seedIcons;
         private Image[] _harvestIcons;
         private Image _coinIcon;
         private Image _toolIcon;
         private Text _statsText;
         private Text _statusText;
-        private Text _onboardingText;
         // Момент скрытия временного сообщения по независимой от паузы шкале времени.
         private float _hideStatusAt;
         private bool _refreshPending;
@@ -64,8 +62,7 @@ namespace MyLittleFarm.UI
             _upgrades = upgrades;
             _shop = shop;
             _animals = animals;
-            _onboarding = onboarding;
-            _onboardingText = onboardingText;
+            if (onboardingText != null) onboardingText.gameObject.SetActive(false);
             _seedIcons = seedIcons;
             _harvestIcons = harvestIcons;
             _coinIcon = coinIcon;
@@ -84,7 +81,6 @@ namespace MyLittleFarm.UI
             _statusText = statusText;
             if (isActiveAndEnabled) Subscribe();
             Refresh();
-            RefreshOnboarding();
         }
 
         private void LateUpdate()
@@ -101,7 +97,6 @@ namespace MyLittleFarm.UI
         {
             Subscribe();
             Refresh();
-            RefreshOnboarding();
         }
 
         private void OnDisable() => Unsubscribe();
@@ -112,22 +107,9 @@ namespace MyLittleFarm.UI
             GameEvents.InventoryChanged += RequestRefresh;
             GameEvents.MoneyChanged += HandleMoneyChanged;
             GameEvents.StatusChanged += ShowStatus;
-            GameEvents.OnboardingChanged += HandleOnboardingChanged;
         }
 
         private void RequestRefresh() => _refreshPending = true;
-        private void HandleOnboardingChanged(int ignored) => RefreshOnboarding();
-
-        /// <summary>Держит текущую цель обучения на экране до завершения действия.</summary>
-        private void RefreshOnboarding()
-        {
-            if (compactPresentation) { if (_onboardingText != null) _onboardingText.gameObject.SetActive(false); return; }
-            if (_onboardingText == null || _onboarding == null) return;
-            if (_onboarding.UsesOverlay) return;
-            _onboardingText.text = _onboarding.CurrentHint;
-            _onboardingText.enabled = _onboarding.IsActive;
-        }
-
         private void Refresh()
         {
             _refreshPending = false;
@@ -234,7 +216,6 @@ namespace MyLittleFarm.UI
             GameEvents.InventoryChanged -= RequestRefresh;
             GameEvents.MoneyChanged -= HandleMoneyChanged;
             GameEvents.StatusChanged -= ShowStatus;
-            GameEvents.OnboardingChanged -= HandleOnboardingChanged;
         }
     }
 }

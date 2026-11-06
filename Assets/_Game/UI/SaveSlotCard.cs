@@ -21,37 +21,37 @@ namespace MyLittleFarm.UI
         public void Show(SaveSlotInfo slot, bool active, bool legacyBlocked)
         {
             ClearTexture();
-            title.text = "СЛОТ " + (slot.Index + 1) + (active ? " · ТЕКУЩИЙ" : "");
+            title.text = FarmText.Get(active ? "saves.slotCurrent" : "saves.slotTitle", slot.Index + 1);
             if (delete != null) { delete.gameObject.SetActive(!slot.IsEmpty && !legacyBlocked); delete.interactable = !active; }
             var latest = slot.Latest;
             primary.interactable = latest != null || (slot.IsEmpty && !legacyBlocked);
-            primaryLabel.text = slot.IsEmpty ? "Начать ферму" : "Продолжить";
+            primaryLabel.text = slot.IsEmpty ? FarmText.Get("saves.new") : FarmText.Get("saves.continue");
+            manual.GetComponentInChildren<Text>().text = FarmText.Get("saves.manual");
             manual.gameObject.SetActive(latest != null && latest.IsAutosave && slot.Manual.CanLoad);
             if (latest == null)
-                details.text = legacyBlocked ? "Старый файл не удалось перенести.\nИсходные данные сохранены.\nВыберите другой пустой слот."
-                    : slot.IsEmpty ? "Новая история фермы\n\nСвободный слот" : "Файл повреждён или несовместим.\nДоступной резервной копии нет.\nФайлы сохранены для восстановления.";
+                details.text = legacyBlocked ? FarmText.Get("saves.legacySlot")
+                    : slot.IsEmpty ? FarmText.Get("saves.emptySlot") : FarmText.Get("saves.brokenSlot");
             else
-                details.text = FormatDate(latest.SavedAtUnixMs) + "\nВ игре: " + FormatPlayTime(latest.PlayTimeSeconds)
-                    + " · " + latest.Coins + " монет\nКультуры " + latest.Crops + " · Деревья " + latest.Trees
-                    + "\nЖивотные " + latest.Animals + " · Постройки " + latest.Buildings
-                    + "\n" + (latest.IsAutosave ? "Автосохранение" : "Ручная точка")
-                    + (latest.FromBackup ? " · резервная копия" : "")
-                    + (manual.gameObject.activeSelf ? "\nРучная: " + FormatDate(slot.Manual.SavedAtUnixMs) : "");
+                details.text = FarmText.Get("saves.slotStats", FormatDate(latest.SavedAtUnixMs), FormatPlayTime(latest.PlayTimeSeconds),
+                    FarmText.Coins(latest.Coins), latest.Crops, latest.Trees, latest.Animals, latest.Buildings,
+                    latest.IsAutosave ? FarmText.Get("saves.auto") : FarmText.Get("saves.manual"),
+                    latest.FromBackup ? FarmText.Get("saves.backup") : string.Empty,
+                    manual.gameObject.activeSelf ? FarmText.Get("saves.slotManualDate", FormatDate(slot.Manual.SavedAtUnixMs)) : string.Empty);
             _texture = Decode(latest?.PreviewPng);
             preview.texture = _texture; preview.enabled = _texture != null;
             noPreview.gameObject.SetActive(_texture == null);
-            noPreview.text = slot.IsEmpty ? "ПУСТОЙ СЛОТ" : "Превью недоступно";
+            noPreview.text = slot.IsEmpty ? FarmText.Get("saves.emptyPreview") : FarmText.Get("saves.noPreview");
         }
 
         public static string FormatPlayTime(double seconds)
         {
             var minutes = (long)Math.Floor(Math.Max(0, seconds) / 60);
-            return (minutes / 60) + " ч " + (minutes % 60).ToString("00") + " мин";
+            return FarmText.Get("saves.playTime", minutes / 60, minutes % 60);
         }
         private static string FormatDate(long timestamp)
         {
             try { return DateTimeOffset.FromUnixTimeMilliseconds(timestamp).ToLocalTime().ToString("dd.MM.yyyy  HH:mm"); }
-            catch (ArgumentOutOfRangeException) { return "Дата недоступна"; }
+            catch (ArgumentOutOfRangeException) { return FarmText.Get("saves.noDate"); }
         }
         private static Texture2D Decode(string png)
         {
@@ -107,8 +107,8 @@ namespace MyLittleFarm.UI
             var image = new GameObject("Farm Preview", typeof(RectTransform), typeof(RawImage));
             image.transform.SetParent(go.transform, false); card.preview = image.GetComponent<RawImage>();
             card.preview.raycastTarget = false;
-            card.primary = SaveSlotsUI.Button(go.transform, "Продолжить", font); card.primaryLabel = card.primary.GetComponentInChildren<Text>();
-            card.manual = SaveSlotsUI.Button(go.transform, "Ручная точка", font);
+            card.primary = SaveSlotsUI.Button(go.transform, FarmText.Get("saves.continue"), font); card.primaryLabel = card.primary.GetComponentInChildren<Text>();
+            card.manual = SaveSlotsUI.Button(go.transform, FarmText.Get("saves.manual"), font);
             return card;
         }
         public void EnsureDeleteButton(Font font)

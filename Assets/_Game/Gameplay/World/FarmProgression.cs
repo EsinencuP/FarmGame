@@ -58,8 +58,9 @@ namespace MyLittleFarm.Gameplay.World
             get
             {
                 var minutes=Mathf.FloorToInt(Hour*60);var crop=_slots?.SelectedCrop;
-                var hint=crop==null?"J — журнал фермы":crop.RareSeeds?"Кукуруза: редкие семена · J"
-                    :crop.BonusHarvestYield>0?crop.BonusDescription:"J — статистика и достижения";
+                var guide=InputReader.KeyLabel(InputReader.Command.Guide);
+                var hint=crop==null?$"{guide} — справочник":crop.RareSeeds?$"Кукуруза: редкие семена · {guide}"
+                    :crop.BonusHarvestYield>0?crop.BonusDescription:$"{guide} — справочник";
                 return (minutes/60).ToString("00")+":"+(minutes%60).ToString("00")+"   ·   "+(Hour>=6&&Hour<12?"Утро":Hour>=12&&Hour<18?"День":Hour>=18&&Hour<22?"Вечер":"Ночь")+"\n"+hint;
             }
         }
@@ -187,7 +188,7 @@ namespace MyLittleFarm.Gameplay.World
             if (Time.timeScale <= 0) return;
             if(!_configured)return;
             if(_input!=null&&_input.JournalPressed&&journal!=null)
-            { if (gameMenus != null) gameMenus.OpenGuide(); else journal.Open(); }
+            { if (gameMenus != null) gameMenus.OpenJournal(); else journal.Open(); }
             if(_restoring||!_data.shepherdHired||_animals==null||Time.unscaledTime<_nextCareAt)return;
             _nextCareAt=Time.unscaledTime+5;
             _animals.AutomaticCare(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());

@@ -1,0 +1,834 @@
+VBCSCompilerPreWarmer: watching VBCSCompiler (PID 44384)
+VBCSCompilerPreWarmer: pre-warm launched (dotnet PID 35608)
+VBCSCompiler prewarm took 5.37 ms
+[Licensing::Module] Trying to connect to existing licensing client channel...
+Built from '6000.6/staging' branch; Version is '6000.6.4f1 (12bfff696524) revision 1228799'; Using compiler version '194234433'; Build Type 'Release'
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-esinencuP" at "2026-11-05T21:26:32.8077292Z"
+OS: 'Windows 10  (10.0.19044) 64bit IoTEnterpriseS' Language: 'ru' Physical Memory: 15742 MB
+BatchMode: 1, IsHumanControllingUs: 0, StartBugReporterOnCrash: 0, Is64bit: 1
+System  architecture: x64
+Process architecture: x64
+Date: 2026-11-05T21:26:32Z
+
+COMMAND LINE ARGUMENTS:
+C:\Program Files\Unity\Hub\Editor\6000.6.4f1\Editor\Unity.exe
+-batchmode
+-nographics
+-quit
+-projectPath
+C:\Users\esinencuP\AppData\Local\Temp\FarmGame-RC00-d8b8a510
+-buildWindows64Player
+D:\Evo Web Design\FarmGame\Builds\RC-03-Preview\My Little Farm.exe
+-logFile
+D:\Evo Web Design\FarmGame\Verification\RC-03\build.log
+Successfully changed project path to: C:\Users\esinencuP\AppData\Local\Temp\FarmGame-RC00-d8b8a510
+C:/Users/esinencuP/AppData/Local/Temp/FarmGame-RC00-d8b8a510
+[UnityMemory] Configuration Parameters - Can be set up in boot.config
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-nav-mesh-worker=65536"
+    "memorysetup-temp-allocator-size-audio-worker=65536"
+    "memorysetup-temp-allocator-size-cloud-worker=32768"
+    "memorysetup-temp-allocator-size-gfx=262144"
+    "memorysetup-remapper-allocator-initial-capacity=32768"
+    "memorysetup-temp-allocator-size-preload-manager=33554432"
+    "memorysetup-allocator-temp-initial-block-size-main=262144"
+    "memorysetup-allocator-temp-initial-block-size-worker=262144"
+    "memorysetup-temp-allocator-size-job-worker=262144"
+    "memorysetup-temp-allocator-size-background-worker=32768"
+    "memorysetup-bucket-allocator-granularity=16"
+    "memorysetup-bucket-allocator-bucket-count=8"
+    "memorysetup-bucket-allocator-block-size=33554432"
+    "memorysetup-bucket-allocator-block-count=8"
+    "memorysetup-main-allocator-block-size=16777216"
+    "memorysetup-thread-allocator-block-size=16777216"
+    "memorysetup-main-allocator-mimalloc-enabled=1"
+    "memorysetup-gfx-main-allocator-block-size=16777216"
+    "memorysetup-gfx-thread-allocator-block-size=16777216"
+    "memorysetup-cache-allocator-block-size=4194304"
+    "memorysetup-typetree-allocator-block-size=2097152"
+    "memorysetup-profiler-bucket-allocator-granularity=16"
+    "memorysetup-profiler-bucket-allocator-bucket-count=8"
+    "memorysetup-profiler-bucket-allocator-block-size=33554432"
+    "memorysetup-profiler-bucket-allocator-block-count=8"
+    "memorysetup-profiler-allocator-block-size=16777216"
+    "memorysetup-profiler-editor-allocator-block-size=1048576"
+    "memorysetup-temp-allocator-size-main=16777216"
+    "memorysetup-job-temp-allocator-block-size=2097152"
+    "memorysetup-job-temp-allocator-block-size-background=1048576"
+    "memorysetup-job-temp-allocator-reduction-small-platforms=262144"
+Logging is directed to a specific file, skipping project log.
+Player connection [44556]  Target information:
+
+Player connection [44556]  * "[IP] 192.168.0.104 [Port] 55505 [Flags] 2 [Guid] 3507490842 [EditorId] 3507490842 [Version] 1048832 [Id] WindowsEditor(7,DESKTOP-E4AB9QJ) [Debug] 1 [PackageName] WindowsEditor [ProjectName] Editor" 
+
+Player connection [44556] Host joined multi-casting on [225.0.0.222:54997]...
+Player connection [44556] Host joined alternative multi-casting on [225.0.0.222:34997]...
+Input System module state changed to: Initialized.
+[Physics::Module] Initialized fallback backend.
+[Physics::Module] Id: 0xdecafbad
+[Licensing::Client] Code 10 while verifying Licensing Client signature (process Id: 23392, path: "D:/Soft/Unity/Unity Hub/UnityLicensingClient_V1/Unity.Licensing.Client.exe")
+[Licensing::Module] LicensingClient has failed validation; ignoring
+[Licensing::Client] Handshaking with LicensingClient:
+  Version:                 1.18.3+d7ffd15
+  Session Id:              dc5648f3ac794342ac9469c5cb0c1b4e
+  Correlation Id:          1a10600d7653eb548fc01d555d84704f
+  External correlation Id: 5742843823774172165
+  Machine Id:              o7q0VzjgxtV32rt60U1oaUAvw70=
+[Licensing::Module] Successfully connected to LicensingClient on channel: "LicenseClient-esinencuP" (connect: 0.00s, validation: 0.00s, handshake: 0.03s)
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-esinencuP-notifications" at "2026-11-05T21:26:32.8394601Z"
+[Licensing::Module] Error: Access token is unavailable; failed to update
+[Licensing::Client] Successfully resolved entitlement details
+[Licensing::Module] License group:
+  Id: 7972499343790-UnityPersXXXX
+  Product: Unity Personal
+  Type: Assigned
+  Expiration: Unlimited
+[Licensing::Client] Successfully updated license, isAsync: True, time: 0.00
+[Licensing::Client] Successfully resolved entitlement details
+[Licensing::Module] Licensing Background thread has ended after 0.03s
+[Package Manager] Connected to IPC stream "Upm-38028" after 0.3 seconds.
+[Licensing::Client] Successfully resolved entitlement details
+Library Redirect Path: Library/
+Launching Unity Data Store - C:/Program Files/Unity/Hub/Editor/6000.6.4f1/Editor/Data/Tools/Unity.DataStore.exe 
+Unity Data Store artifact dir = Library/DataStore, working dir = C:/Users/esinencuP/AppData/Local/Temp/FarmGame-RC00-d8b8a510Unity Data Store running and initialised
+[Physics::Module] Selected backend (deferred post-plugins).
+[Physics::Module] Name: PhysX
+[Physics::Module] Id: 0xf2b8ea05
+[Physics::Module] SDK Version: 4.1.2
+[Physics::Module] Integration Version: 1.0.0
+[Physics::Module] Threading Mode: Multi-Threaded
+Initialize engine version: 6000.6.4f1 (12bfff696524)
+[EntityIdStore] init: VM path (explicit commit), pageSize=4096, blockCount=1048576, entitiesPerBlock=256, slots reserved=4294967296 bytes
+[Subsystems] Discovering subsystems at path C:/Program Files/Unity/Hub/Editor/6000.6.4f1/Editor/Data/Resources/UnitySubsystems
+[Subsystems] Discovering subsystems at path C:/Users/esinencuP/AppData/Local/Temp/FarmGame-RC00-d8b8a510/Assets
+Forcing GfxDevice: Null
+GfxDevice: creating device client; kGfxThreadingModeNonThreaded
+NullGfxDevice:
+    Version:  NULL 1.0 [1.0]
+    Renderer: Null Device
+    Vendor:   Unity Technologies
+Initialize mono
+Mono path[0] = 'C:/Program Files/Unity/Hub/Editor/6000.6.4f1/Editor/Data/Managed'
+Mono path[1] = 'C:/Program Files/Unity/Hub/Editor/6000.6.4f1/Editor/Data/BCLExtensions/runtime/netstandard2.1'
+Mono path[2] = 'C:/Program Files/Unity/Hub/Editor/6000.6.4f1/Editor/Data/MonoBleedingEdge/lib/mono/unityjit-win32'
+Mono config path = 'C:/Program Files/Unity/Hub/Editor/6000.6.4f1/Editor/Data/MonoBleedingEdge/etc'
+Using monoOptions --debugger-agent=transport=dt_socket,embedding=1,server=y,suspend=n,address=127.0.0.1:56028
+CodeReloadManager initialized
+ImportWorker Server TCP listen port: 0
+AcceleratorClientConnectionCallback - disconnected - :0
+Begin MonoManager ReloadAssembly
+Registering precompiled unity dll's ...
+Register platform support module: C:/Program Files/Unity/Hub/Editor/6000.6.4f1/Editor/Data/PlaybackEngines/WebGLSupport/UnityEditor.WebGL.Extensions.dll
+Register platform support module: C:/Program Files/Unity/Hub/Editor/6000.6.4f1/Editor/Data/PlaybackEngines/WindowsStandaloneSupport/UnityEditor.WindowsStandalone.Extensions.dll
+Registered in 0.002551 seconds.
+Native extension for WindowsStandalone target not found
+Native extension for WebGL target not found
+Package Manager log level set to [2]
+ScheduleIndexationOnStartup MainProcess:False IndexOnStartup:False
+Scripting: successfully reloaded assembly
+- Finished resetting the current domain, in  0.731 seconds
+Domain Reload Profiling: 1333ms
+	BeginReloadAssembly (137ms)
+		CreateAndSetChildDomain (3ms)
+	RebuildCommonClasses (6ms)
+	RebuildNativeTypeToScriptingClass (18ms)
+	initialDomainReloadingComplete (72ms)
+	LoadAllAssembliesAndSetupDomain (368ms)
+		LoadAssemblies (130ms)
+		TypeCache.Refresh (251ms)
+			TypeCache.ScanAssembly (232ms)
+		AnalyzeDomain (1ms)
+	FinalizeReload (732ms)
+		SetupLoadedEditorAssemblies (0ms)
+			InitializePlatformSupportModulesInManaged (4ms)
+			BeforeProcessingInitializeOnLoad (124ms)
+			ProcessInitializeOnLoadAttributes (144ms)
+			ProcessInitializeOnLoadMethodAttributes (215ms)
+[Licensing::Client] Successfully resolved entitlement details
+Application.AssetDatabase Initial Refresh Start
+[Package Manager] Restoring resolved packages state from cache
+[Licensing::Client] Successfully resolved entitlement details
+[Package Manager] Registered 24 packages:
+  Packages from [https://packages.unity.com]:
+    com.unity.inputsystem@1.20.0 (location: C:\Users\esinencuP\AppData\Local\Temp\FarmGame-RC00-d8b8a510\Library\PackageCache\com.unity.inputsystem@7a4e1a2a8194)
+    com.unity.postprocessing@3.5.4 (location: C:\Users\esinencuP\AppData\Local\Temp\FarmGame-RC00-d8b8a510\Library\PackageCache\com.unity.postprocessing@141166b789e3)
+    com.unity.nuget.newtonsoft-json@3.2.2 (location: C:\Users\esinencuP\AppData\Local\Temp\FarmGame-RC00-d8b8a510\Library\PackageCache\com.unity.nuget.newtonsoft-json@4dfd81071c64)
+  Built-in packages:
+    com.unity.test-framework@1.8.0 (location: C:\Users\esinencuP\AppData\Local\Temp\FarmGame-RC00-d8b8a510\Library\PackageCache\com.unity.test-framework@80f691d4262b)
+    com.unity.ugui@2.6.0 (location: C:\Users\esinencuP\AppData\Local\Temp\FarmGame-RC00-d8b8a510\Library\PackageCache\com.unity.ugui@0727b404f3a0)
+    com.unity.modules.ai@1.0.0 (location: C:\Users\esinencuP\AppData\Local\Temp\FarmGame-RC00-d8b8a510\Library\PackageCache\com.unity.modules.ai)
+    com.unity.modules.audio@1.0.0 (location: C:\Users\esinencuP\AppData\Local\Temp\FarmGame-RC00-d8b8a510\Library\PackageCache\com.unity.modules.audio)
+    com.unity.modules.jsonserialize@1.0.0 (location: C:\Users\esinencuP\AppData\Local\Temp\FarmGame-RC00-d8b8a510\Library\PackageCache\com.unity.modules.jsonserialize)
+    com.unity.modules.particlesystem@1.0.0 (location: C:\Users\esinencuP\AppData\Local\Temp\FarmGame-RC00-d8b8a510\Library\PackageCache\com.unity.modules.particlesystem)
+    com.unity.modules.physics@1.0.0 (location: C:\Users\esinencuP\AppData\Local\Temp\FarmGame-RC00-d8b8a510\Library\PackageCache\com.unity.modules.physics)
+    com.unity.modules.physicscore2d@1.0.0 (location: C:\Users\esinencuP\AppData\Local\Temp\FarmGame-RC00-d8b8a510\Library\PackageCache\com.unity.modules.physicscore2d)
+    com.unity.modules.tetgen@1.0.0 (location: C:\Users\esinencuP\AppData\Local\Temp\FarmGame-RC00-d8b8a510\Library\PackageCache\com.unity.modules.tetgen)
+    com.unity.modules.timelinefoundation@1.0.0 (location: C:\Users\esinencuP\AppData\Local\Temp\FarmGame-RC00-d8b8a510\Library\PackageCache\com.unity.modules.timelinefoundation)
+    com.unity.modules.ui@1.0.0 (location: C:\Users\esinencuP\AppData\Local\Temp\FarmGame-RC00-d8b8a510\Library\PackageCache\com.unity.modules.ui)
+    com.unity.modules.imgui@1.0.0 (location: C:\Users\esinencuP\AppData\Local\Temp\FarmGame-RC00-d8b8a510\Library\PackageCache\com.unity.modules.imgui)
+    com.unity.modules.physics2d@1.0.0 (location: C:\Users\esinencuP\AppData\Local\Temp\FarmGame-RC00-d8b8a510\Library\PackageCache\com.unity.modules.physics2d)
+    com.unity.ext.nunit@2.1.0 (location: C:\Users\esinencuP\AppData\Local\Temp\FarmGame-RC00-d8b8a510\Library\PackageCache\com.unity.ext.nunit@0198eae3b53e)
+    com.unity.modules.uielements@1.0.0 (location: C:\Users\esinencuP\AppData\Local\Temp\FarmGame-RC00-d8b8a510\Library\PackageCache\com.unity.modules.uielements)
+    com.unity.modules.animation@1.0.0 (location: C:\Users\esinencuP\AppData\Local\Temp\FarmGame-RC00-d8b8a510\Library\PackageCache\com.unity.modules.animation)
+    com.unity.modules.imageconversion@1.0.0 (location: C:\Users\esinencuP\AppData\Local\Temp\FarmGame-RC00-d8b8a510\Library\PackageCache\com.unity.modules.imageconversion)
+    com.unity.modules.screencapture@1.0.0 (location: C:\Users\esinencuP\AppData\Local\Temp\FarmGame-RC00-d8b8a510\Library\PackageCache\com.unity.modules.screencapture)
+    com.unity.modules.unitywebrequest@1.0.0 (location: C:\Users\esinencuP\AppData\Local\Temp\FarmGame-RC00-d8b8a510\Library\PackageCache\com.unity.modules.unitywebrequest)
+    com.unity.modules.hierarchycore@1.0.0 (location: C:\Users\esinencuP\AppData\Local\Temp\FarmGame-RC00-d8b8a510\Library\PackageCache\com.unity.modules.hierarchycore)
+  Git packages:
+    com.coplaydev.unity-mcp@https://github.com/CoplayDev/unity-mcp.git?path=/MCPForUnity#main (location: C:\Users\esinencuP\AppData\Local\Temp\FarmGame-RC00-d8b8a510\Library\PackageCache\com.coplaydev.unity-mcp@da7b9ae4aeeb)
+[Subsystems] No new subsystems found in resolved package list.
+[Package Manager] Done registering packages in 0.01 seconds
+[ScriptCompilation] Requested script compilation because: AssetDatabase observed changes in script compilation related files
+Starting: C:\Program Files\Unity\Hub\Editor\6000.6.4f1\Editor\Data\Tools\BuildPipeline\bee_backend.exe --ipc --defer-dag-verification --dagfile="Library/Bee/1900b0aE.dag" --continue-on-failure --profile="Library/Bee/backend1.traceevents" ScriptAssemblies
+WorkingDir: C:/Users/esinencuP/AppData/Local/Temp/FarmGame-RC00-d8b8a510
+DisplayProgressbar: Compiling Scripts
+ExitCode: 0 Duration: 0s572ms
+[329/405    0s] ILPP-Configuration Library/ilpp-configuration.nevergeneratedoutput
+[381/405    0s] Csc Library/Bee/artifacts/1900b0aE.dag/MyLittleFarm.Runtime.dll (+2 others)
+Assets\_Game\Core\GameBootstrap.cs(356,17): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
+[387/405    0s] ILPostProcess Library/Bee/artifacts/1900b0aE.dag/post-processed/Assembly-CSharp.dll (+pdb)
+Processing assembly Library/Bee/artifacts/1900b0aE.dag/Assembly-CSharp.dll, with 149 defines and 282 references
+
+processors: zzzUnity.Burst.CodeGen.BurstILPostProcessor
+
+1 processor(s) skipped this assembly
+[388/405    0s] ILPostProcess Library/Bee/artifacts/1900b0aE.dag/post-processed/MyLittleFarm.EditModeTests.dll (+pdb)
+Processing assembly Library/Bee/artifacts/1900b0aE.dag/MyLittleFarm.EditModeTests.dll, with 147 defines and 302 references
+
+processors: zzzUnity.Burst.CodeGen.BurstILPostProcessor
+
+1 processor(s) skipped this assembly
+[389/405    0s] ILPostProcess Library/Bee/artifacts/1900b0aE.dag/post-processed/MyLittleFarm.PlayModeTests.dll (+pdb)
+Processing assembly Library/Bee/artifacts/1900b0aE.dag/MyLittleFarm.PlayModeTests.dll, with 149 defines and 271 references
+
+processors: zzzUnity.Burst.CodeGen.BurstILPostProcessor
+
+1 processor(s) skipped this assembly
+[390/405    0s] ILPostProcess Library/Bee/artifacts/1900b0aE.dag/post-processed/Assembly-CSharp-Editor.dll (+pdb)
+Processing assembly Library/Bee/artifacts/1900b0aE.dag/Assembly-CSharp-Editor.dll, with 147 defines and 316 references
+
+processors: zzzUnity.Burst.CodeGen.BurstILPostProcessor
+
+1 processor(s) skipped this assembly
+[391/405    0s] ILPostProcess Library/Bee/artifacts/1900b0aE.dag/post-processed/MyLittleFarm.Runtime.dll (+pdb)
+Processing assembly Library/Bee/artifacts/1900b0aE.dag/MyLittleFarm.Runtime.dll, with 149 defines and 273 references
+
+processors: zzzUnity.Burst.CodeGen.BurstILPostProcessor
+
+1 processor(s) skipped this assembly
+[392/405    0s] ILPostProcess Library/Bee/artifacts/1900b0aE.dag/post-processed/MyLittleFarm.Editor.dll (+pdb)
+Processing assembly Library/Bee/artifacts/1900b0aE.dag/MyLittleFarm.Editor.dll, with 147 defines and 304 references
+
+processors: zzzUnity.Burst.CodeGen.BurstILPostProcessor
+
+1 processor(s) skipped this assembly
+[403/405    0s] CopyFiles Library/ScriptAssemblies/MyLittleFarm.Runtime.pdb
+[404/405    0s] CopyFiles Library/ScriptAssemblies/MyLittleFarm.Runtime.dll
+*** Tundra build success (0.54 seconds), 10 items updated, 405 evaluated
+Assets\_Game\Core\GameBootstrap.cs(356,17): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
+AssetDatabase: script compilation time: 1.001111s
+Total cache size 61968632
+Total cache size after purge 61968632, took 00:00:00.0605057
+Begin MonoManager ReloadAssembly
+Native extension for WindowsStandalone target not found
+Native extension for WebGL target not found
+ScheduleIndexationOnStartup MainProcess:True IndexOnStartup:True
+Scripting: successfully reloaded assembly
+- Finished resetting the current domain, in  0.772 seconds
+Domain Reload Profiling: 1548ms
+	BeginReloadAssembly (331ms)
+		DisableScriptedObjects (49ms)
+		CreateAndSetChildDomain (85ms)
+	RebuildCommonClasses (12ms)
+	RebuildNativeTypeToScriptingClass (19ms)
+	initialDomainReloadingComplete (54ms)
+	LoadAllAssembliesAndSetupDomain (358ms)
+		LoadAssemblies (284ms)
+		TypeCache.Refresh (53ms)
+			TypeCache.ScanAssembly (43ms)
+		AnalyzeDomain (21ms)
+			BuildScriptInfoCaches (17ms)
+	FinalizeReload (773ms)
+		SetupLoadedEditorAssemblies (0ms)
+			InitializePlatformSupportModulesInManaged (3ms)
+			BeforeProcessingInitializeOnLoad (126ms)
+			ProcessInitializeOnLoadAttributes (284ms)
+			ProcessInitializeOnLoadMethodAttributes (58ms)
+			AfterProcessingInitializeOnLoad (7ms)
+		AwakeInstancesAfterBackupRestoration (33ms)
+Starting new worker id: 0 with log in C:/Users/esinencuP/AppData/Local/Temp/FarmGame-RC00-d8b8a510/Logs/AssetImportWorkerHW0.log
+
+Asset Pipeline Refresh (id=e22f0469893c99b468679d9ba6914c09): Total: 3.165 seconds - Initiated by InitialRefreshV2(ForceSynchronousImport)
+	(Values over 0.05ms)
+	Summary:
+		Imports: total=0 (actual=0, local cache=0, cache server=0)
+		Asset DB Process Time: managed=0 ms, native=1047 ms
+		Asset DB Callback time: managed=255 ms, native=11 ms
+		Scripting: domain reloads=1, domain reload time=821 ms, compile time=1003 ms, other=25 ms
+		Project Asset Count: scripts=633, non-scripts=4352
+		Asset File Changes: new=0, changed=2, moved=0, deleted=0
+		Scan Filter Count: 0
+	InvokePackagesCallback: 9.524ms
+	ApplyChangesToAssetFolders: 0.449ms
+	Scan: 53.559ms
+	Collect global state as custom dependencies: 11.057ms
+	OnSourceAssetsModified: 0.635ms
+	CategorizeScriptCompilationAssets: 9.962ms
+	ProcessAssetsWithTransientArtifactChanges: 31.082ms
+	CategorizeAssets: 51.036ms
+	CompileScripts: 1003.432ms
+	ImportOutOfDateAssets: 781.335ms (774.972ms without children)
+		UnloadImportedAssets: 1.505ms
+		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 0.997ms
+		ImportSchedulerStart: 3.854ms
+	PostProcessAllAssets: 257.127ms
+		VCAutoAddAssetPostprocess 1.120ms
+		XRBuildSystem.XRAssetImported 0.115ms
+		PostProcessCallbackCreateDeferredMaterials 0.055ms
+		MonoPostProcessAllAssets: 255.247ms
+			AssetPostprocessor.OnPostprocessAllAssets 203.899ms
+			StyleCatalogPostProcessor.OnPostprocessAllAssets 15.697ms
+			BuilderAssetPostprocessor.OnPostprocessAllAssets 6.494ms
+			WindowAssetPostprocessingWatcher.OnPostprocessAllAssets 2.966ms
+			AssetChangedListener.OnPostprocessAllAssets 2.558ms
+			RetainedModeAssetPostprocessor.OnPostprocessAllAssets 1.889ms
+			SyncVS.PostprocessSyncProject 1.664ms
+			EditModeScopePostprocessor.OnPostprocessAllAssets 1.248ms
+			SpeedTree9Postprocessor.OnPostprocessAllAssets 1.175ms
+			TextAssetPostProcessor.OnPostprocessAllAssets 0.734ms
+			CubeLutAssetImporter.OnPostprocessAllAssets 0.702ms
+			ArtifactBrowserPostProcessor.OnPostprocessAllAssets 0.695ms
+			InputActionAssetPostprocessor.OnPostprocessAllAssets 0.396ms
+			ReferencedClipsPostProcessor.OnPostprocessAllAssets 0.378ms
+			AudioMixerPostprocessor.OnPostprocessAllAssets 0.342ms
+			AssetEvents.OnPostprocessAllAssets 0.342ms
+			InputActionJsonNameModifierAssetProcessor.OnPostprocessAllAssets 0.322ms
+			TMPro_TexturePostProcessor.OnPostprocessAllAssets 0.318ms
+			TerrainToolbarOverlayPostProcessor.OnPostprocessAllAssets 0.278ms
+			SpeedTreePostProcessor.OnPostprocessAllAssets 0.231ms
+			ProjectSettingsPostprocessor.OnPostprocessAllAssets 0.228ms
+			AssetDatabaseCallbacks.OnPostprocessAllAssets 0.191ms
+			ConfigAssetsTracker.OnPostprocessAllAssets 0.164ms
+			ThemePostprocessor.OnPostprocessAllAssets 0.156ms
+			RenderPipelineGlobalSettingsPostprocessor.OnPostprocessAllAssets 0.137ms
+			ScenarioDriftAssetsTracker.OnPostprocessAllAssets 0.136ms
+			AudioContainerPostProcessor.OnPostprocessAllAssets 0.094ms
+	PostAssetChangesProfiler: 1.465ms
+	UnloadStreamsBegin: 1.507ms
+	PersistCurrentRevisions: 0.143ms
+	GenerateScriptTypeHashes: 2.048ms
+	GenerateScriptTypeSerializationHashes: 3.950ms
+	Untracked: 948.670ms
+
+Application.AssetDatabase Initial Refresh End
+Scanning for USB devices : 11.233ms
+Initializing Unity extensions:
+[MODES] ModeService[none].Initialize
+[MODES] ModeService[none].LoadModes
+[MODES] Loading mode Default (0) for mode-current-id-My Little Farm
+GetVirtualKey: Could not map char: n (110) to any virtual key
+GetVirtualKey: Could not map char: o (111) to any virtual key
+GetVirtualKey: Could not map char: s (115) to any virtual key
+GetVirtualKey: Could not map char: s (115) to any virtual key
+GetVirtualKey: Could not map char: b (98) to any virtual key
+GetVirtualKey: Could not map char: b (98) to any virtual key
+GetVirtualKey: Could not map char: z (122) to any virtual key
+GetVirtualKey: Could not map char: y (121) to any virtual key
+GetVirtualKey: Could not map char: [ (91) to any virtual key
+GetVirtualKey: Could not map char: ] (93) to any virtual key
+GetVirtualKey: Could not map char: x (120) to any virtual key
+GetVirtualKey: Could not map char: c (99) to any virtual key
+GetVirtualKey: Could not map char: v (118) to any virtual key
+GetVirtualKey: Could not map char: V (86) to any virtual key
+GetVirtualKey: Could not map char: d (100) to any virtual key
+GetVirtualKey: Could not map char: f (102) to any virtual key
+GetVirtualKey: Could not map char: f (102) to any virtual key
+GetVirtualKey: Could not map char: a (97) to any virtual key
+GetVirtualKey: Could not map char: d (100) to any virtual key
+GetVirtualKey: Could not map char: c (99) to any virtual key
+GetVirtualKey: Could not map char: r (114) to any virtual key
+GetVirtualKey: Could not map char: i (105) to any virtual key
+GetVirtualKey: Could not map char: l (108) to any virtual key
+GetVirtualKey: Could not map char: f (102) to any virtual key
+GetVirtualKey: Could not map char: k (107) to any virtual key
+GetVirtualKey: Could not map char: p (112) to any virtual key
+GetVirtualKey: Could not map char: p (112) to any virtual key
+GetVirtualKey: Could not map char: p (112) to any virtual key
+GetVirtualKey: Could not map char: c (99) to any virtual key
+GetVirtualKey: Could not map char: r (114) to any virtual key
+GetVirtualKey: Could not map char: P (80) to any virtual key
+GetVirtualKey: Could not map char: n (110) to any virtual key
+GetVirtualKey: Could not map char: n (110) to any virtual key
+GetVirtualKey: Could not map char: g (103) to any virtual key
+GetVirtualKey: Could not map char: f (102) to any virtual key
+GetVirtualKey: Could not map char: f (102) to any virtual key
+GetVirtualKey: Could not map char: a (97) to any virtual key
+GetVirtualKey: Could not map char: a (97) to any virtual key
+GetVirtualKey: Could not map char: m (109) to any virtual key
+GetVirtualKey: Could not map char: c (99) to any virtual key
+GetVirtualKey: Could not map char: u (117) to any virtual key
+Unloading 56 Unused Serialized files (Serialized files now loaded: 0)
+Unloading 1866 unused Assets / (8.3 MB). Loaded Objects now: 2539.
+Memory consumption went from 284.4 MB to 276.2 MB.
+Total: 27.081000 ms (FindLiveObjects: 0.411300 ms CreateObjectMapping: 0.120300 ms MarkObjects: 15.081500 ms  DeleteObjects: 11.180100 ms)
+
+GetVirtualKey: Could not map char: n (110) to any virtual key
+GetVirtualKey: Could not map char: o (111) to any virtual key
+GetVirtualKey: Could not map char: s (115) to any virtual key
+GetVirtualKey: Could not map char: s (115) to any virtual key
+GetVirtualKey: Could not map char: b (98) to any virtual key
+GetVirtualKey: Could not map char: b (98) to any virtual key
+GetVirtualKey: Could not map char: z (122) to any virtual key
+GetVirtualKey: Could not map char: y (121) to any virtual key
+GetVirtualKey: Could not map char: [ (91) to any virtual key
+GetVirtualKey: Could not map char: ] (93) to any virtual key
+GetVirtualKey: Could not map char: x (120) to any virtual key
+GetVirtualKey: Could not map char: c (99) to any virtual key
+GetVirtualKey: Could not map char: v (118) to any virtual key
+GetVirtualKey: Could not map char: V (86) to any virtual key
+GetVirtualKey: Could not map char: d (100) to any virtual key
+GetVirtualKey: Could not map char: f (102) to any virtual key
+GetVirtualKey: Could not map char: f (102) to any virtual key
+GetVirtualKey: Could not map char: a (97) to any virtual key
+GetVirtualKey: Could not map char: d (100) to any virtual key
+GetVirtualKey: Could not map char: c (99) to any virtual key
+GetVirtualKey: Could not map char: r (114) to any virtual key
+GetVirtualKey: Could not map char: i (105) to any virtual key
+GetVirtualKey: Could not map char: l (108) to any virtual key
+GetVirtualKey: Could not map char: f (102) to any virtual key
+GetVirtualKey: Could not map char: k (107) to any virtual key
+GetVirtualKey: Could not map char: p (112) to any virtual key
+GetVirtualKey: Could not map char: p (112) to any virtual key
+GetVirtualKey: Could not map char: p (112) to any virtual key
+GetVirtualKey: Could not map char: c (99) to any virtual key
+GetVirtualKey: Could not map char: r (114) to any virtual key
+GetVirtualKey: Could not map char: P (80) to any virtual key
+GetVirtualKey: Could not map char: n (110) to any virtual key
+GetVirtualKey: Could not map char: n (110) to any virtual key
+GetVirtualKey: Could not map char: g (103) to any virtual key
+GetVirtualKey: Could not map char: f (102) to any virtual key
+GetVirtualKey: Could not map char: f (102) to any virtual key
+GetVirtualKey: Could not map char: a (97) to any virtual key
+GetVirtualKey: Could not map char: a (97) to any virtual key
+GetVirtualKey: Could not map char: m (109) to any virtual key
+GetVirtualKey: Could not map char: c (99) to any virtual key
+GetVirtualKey: Could not map char: u (117) to any virtual key
+building x86_64 windows player!
+Launched and connected shader compiler UnityShaderCompiler.exe after 0.02 seconds
+Starting: C:\Program Files\Unity\Hub\Editor\6000.6.4f1\Editor\Data\Tools\BuildPipeline\bee_backend.exe --ipc --defer-dag-verification --dagfile="Library/Bee/1900b0aESkipCompile.dag" --continue-on-failure --profile="Library/Bee/backend1.traceevents" ScriptAssembliesAndTypeDB
+WorkingDir: C:/Users/esinencuP/AppData/Local/Temp/FarmGame-RC00-d8b8a510
+ExitCode: 0 Duration: 0s869ms
+[2/3        0s] BuildPlayerDataGenerator Library/BuildPlayerData/Editor/TypeDb-All.json
+*** Tundra build success (0.83 seconds), 1 items updated, 3 evaluated
+Asset Pipeline Refresh (id=7327ba17cf2eab24983aaca36f86c21a): Total: 0.011 seconds - Initiated by RefreshV2(NoUpdateAssetOptions)
+[ScriptCompilation] Requested script compilation because: Recompiling scripts for player build.
+BuildPlayer: start building target 19
+Total cache size 61968632
+Total cache size after purge 61968632, took 00:00:00.0546898
+Starting: C:\Program Files\Unity\Hub\Editor\6000.6.4f1\Editor\Data\Tools\BuildPipeline\bee_backend.exe --ipc --defer-dag-verification --dagfile="Library/Bee/1900b0aP.dag" --continue-on-failure --profile="Library/Bee/backend1.traceevents" ScriptAssembliesAndTypeDB
+WorkingDir: C:/Users/esinencuP/AppData/Local/Temp/FarmGame-RC00-d8b8a510
+Worker ready: AssetImportWorkerHW0 0
+ExitCode: 0 Duration: 0s998ms
+[132/164    0s] ILPP-Configuration Library/ilpp-configuration.nevergeneratedoutput
+[140/164    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.InputSystem.ForUI.dll
+[141/164    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.Postprocessing.Runtime.pdb
+[142/164    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/MCPForUnity.Runtime.pdb
+[143/164    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/UnityEngine.UI.dll
+[144/164    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.InternalAPIEngineBridge.004.dll
+[145/164    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.Postprocessing.Runtime.dll
+[146/164    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/MCPForUnity.Runtime.dll
+[147/164    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.InternalAPIEngineBridge.004.pdb
+[148/164    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.TextMeshPro.dll
+[149/164    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.InputSystem.pdb
+[150/164    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.InputSystem.ForUI.pdb
+[151/164    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/UnityEngine.UI.pdb
+[152/164    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.TextMeshPro.pdb
+[153/164    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.InputSystem.dll
+[154/164    0s] Csc Library/Bee/artifacts/1900b0aP.dag/MyLittleFarm.Runtime.dll (+2 others)
+Assets\_Game\Core\GameBootstrap.cs(356,17): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
+[156/164    0s] ILPostProcess Library/Bee/artifacts/1900b0aP.dag/post-processed/Assembly-CSharp.dll (+pdb)
+Processing assembly Library/Bee/artifacts/1900b0aP.dag/Assembly-CSharp.dll, with 136 defines and 206 references
+
+processors: zzzUnity.Burst.CodeGen.BurstILPostProcessor
+
+1 processor(s) skipped this assembly
+[157/164    0s] ILPostProcess Library/Bee/artifacts/1900b0aP.dag/post-processed/MyLittleFarm.Runtime.dll (+pdb)
+Processing assembly Library/Bee/artifacts/1900b0aP.dag/MyLittleFarm.Runtime.dll, with 136 defines and 200 references
+
+processors: zzzUnity.Burst.CodeGen.BurstILPostProcessor
+
+1 processor(s) skipped this assembly
+[158/164    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Assembly-CSharp.dll
+[159/164    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Assembly-CSharp.pdb
+[160/164    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/MyLittleFarm.Runtime.pdb
+[161/164    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/MyLittleFarm.Runtime.dll
+[163/164    0s] BuildPlayerDataGenerator Library/BuildPlayerData/Player/RuntimeInitializeOnLoads.json (+1 other)
+*** Tundra build success (0.97 seconds), 23 items updated, 164 evaluated
+Assets\_Game\Core\GameBootstrap.cs(356,17): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
+Total cache size 61968632
+Total cache size after purge 61968632, took 00:00:00.0499537
+Not rebuilding Data files -- no changes
+
+
+Mono dependencies included in the build
+Dependency assembly - System.Reflection.Emit.Lightweight.dll
+Dependency assembly - System.Security.Cryptography.DeriveBytes.dll
+Dependency assembly - System.Console.dll
+Dependency assembly - Mono.Parallel.dll
+Dependency assembly - System.Reactive.Core.dll
+Dependency assembly - System.Messaging.dll
+Dependency assembly - System.Runtime.InteropServices.dll
+Dependency assembly - System.ServiceModel.Security.dll
+Dependency assembly - Mono.Messaging.dll
+Dependency assembly - System.Threading.Thread.dll
+Dependency assembly - Unity.InternalAPIEngineBridge.004.dll
+Dependency assembly - System.Diagnostics.DiagnosticSource.dll
+Dependency assembly - System.ServiceModel.Activation.dll
+Dependency assembly - System.Security.Cryptography.Cng.dll
+Dependency assembly - System.ServiceModel.Http.dll
+Dependency assembly - System.Xml.XPath.dll
+Dependency assembly - System.Data.Services.Client.dll
+Dependency assembly - System.Runtime.Serialization.Xml.dll
+Dependency assembly - System.Xml.XPath.XDocument.dll
+Dependency assembly - System.Runtime.CompilerServices.Unsafe.dll
+Dependency assembly - Mono.Messaging.RabbitMQ.dll
+Dependency assembly - System.IO.IsolatedStorage.dll
+Dependency assembly - System.ServiceModel.Routing.dll
+Dependency assembly - System.Resources.Reader.dll
+Dependency assembly - System.Runtime.Serialization.Json.dll
+Dependency assembly - Mono.Posix.dll
+Dependency assembly - System.Management.dll
+Dependency assembly - System.Globalization.Calendars.dll
+Dependency assembly - IBM.Data.DB2.dll
+Dependency assembly - Mono.WebBrowser.dll
+Dependency assembly - System.Diagnostics.Debug.dll
+Dependency assembly - System.Text.RegularExpressions.dll
+Dependency assembly - System.Net.ServicePoint.dll
+Dependency assembly - System.IO.FileSystem.Watcher.dll
+Dependency assembly - System.Web.RegularExpressions.dll
+Dependency assembly - System.Net.Http.Formatting.dll
+Dependency assembly - System.Reactive.Runtime.Remoting.dll
+Dependency assembly - System.Transactions.dll
+Dependency assembly - System.Reactive.Windows.Threading.dll
+Dependency assembly - System.Security.Cryptography.Encryption.Aes.dll
+Dependency assembly - Microsoft.Win32.Primitives.dll
+Dependency assembly - Assembly-CSharp.dll
+Dependency assembly - System.ServiceModel.NetTcp.dll
+Dependency assembly - System.Xml.ReaderWriter.dll
+Dependency assembly - SMDiagnostics.dll
+Dependency assembly - cscompmgd.dll
+Dependency assembly - System.Runtime.DurableInstancing.dll
+Dependency assembly - Mono.Security.dll
+Dependency assembly - System.IO.Compression.ZipFile.dll
+Dependency assembly - System.IO.Compression.FileSystem.dll
+Dependency assembly - Mono.Management.dll
+Dependency assembly - System.ComponentModel.dll
+Dependency assembly - System.Net.Utilities.dll
+Dependency assembly - System.Runtime.Serialization.Primitives.dll
+Dependency assembly - Mono.CSharp.dll
+Dependency assembly - System.Dynamic.dll
+Dependency assembly - System.ComponentModel.Primitives.dll
+Dependency assembly - Mono.C5.dll
+Dependency assembly - System.Reactive.PlatformServices.dll
+Dependency assembly - System.Collections.Concurrent.dll
+Dependency assembly - System.Net.Primitives.dll
+Dependency assembly - System.Net.NameResolution.dll
+Dependency assembly - System.Threading.Tasks.Parallel.dll
+Dependency assembly - Microsoft.Build.Framework.dll
+Dependency assembly - PEAPI.dll
+Dependency assembly - System.Reflection.Primitives.dll
+Dependency assembly - System.Security.Cryptography.RSA.dll
+Dependency assembly - System.ServiceModel.Internals.dll
+Dependency assembly - System.ComponentModel.DataAnnotations.dll
+Dependency assembly - Mono.Cairo.dll
+Dependency assembly - System.Web.Mobile.dll
+Dependency assembly - System.Threading.Tasks.Extensions.dll
+Dependency assembly - MyLittleFarm.Runtime.dll
+Dependency assembly - System.Net.Cache.dll
+Dependency assembly - System.Security.Cryptography.Primitives.dll
+Dependency assembly - System.Diagnostics.TraceSource.dll
+Dependency assembly - System.Xml.XmlSerializer.dll
+Dependency assembly - System.Runtime.Caching.dll
+Dependency assembly - System.Data.Entity.dll
+Dependency assembly - System.Diagnostics.Tracing.dll
+Dependency assembly - System.Core.dll
+Dependency assembly - System.Configuration.dll
+Dependency assembly - Mono.Security.Win32.dll
+Dependency assembly - Commons.Xml.Relaxng.dll
+Dependency assembly - System.Data.SqlClient.dll
+Dependency assembly - System.Net.Sockets.dll
+Dependency assembly - System.Security.Cryptography.Csp.dll
+Dependency assembly - MCPForUnity.Runtime.dll
+Dependency assembly - System.EnterpriseServices.dll
+Dependency assembly - System.Windows.Forms.DataVisualization.dll
+Dependency assembly - System.Drawing.dll
+Dependency assembly - System.Net.WebSockets.dll
+Dependency assembly - System.Security.Principal.dll
+Dependency assembly - System.Workflow.Activities.dll
+Dependency assembly - Mono.Data.Tds.dll
+Dependency assembly - System.DirectoryServices.Protocols.dll
+Dependency assembly - System.IO.FileSystem.Primitives.dll
+Dependency assembly - System.Data.DataSetExtensions.dll
+Dependency assembly - System.Web.WebPages.Deployment.dll
+Dependency assembly - SystemWebTestShim.dll
+Dependency assembly - System.Collections.Specialized.dll
+Dependency assembly - System.Numerics.dll
+Dependency assembly - System.Workflow.ComponentModel.dll
+Dependency assembly - System.Web.Services.dll
+Dependency assembly - System.Net.WebSockets.Client.dll
+Dependency assembly - System.Reactive.Providers.dll
+Dependency assembly - System.Reflection.DispatchProxy.dll
+Dependency assembly - System.Threading.dll
+Dependency assembly - System.Security.Principal.Windows.dll
+Dependency assembly - System.Windows.Forms.dll
+Dependency assembly - monodoc.dll
+Dependency assembly - System.Globalization.Extensions.dll
+Dependency assembly - System.Workflow.Runtime.dll
+Dependency assembly - I18N.Other.dll
+Dependency assembly - System.Dynamic.Runtime.dll
+Dependency assembly - System.Resources.ResourceManager.dll
+Dependency assembly - Mono.Tasklets.dll
+Dependency assembly - System.Threading.Tasks.Dataflow.dll
+Dependency assembly - System.IO.UnmanagedMemoryStream.dll
+Dependency assembly - System.Numerics.Vectors.dll
+Dependency assembly - Unity.Postprocessing.Runtime.dll
+Dependency assembly - System.Web.Abstractions.dll
+Dependency assembly - System.Resources.ReaderWriter.dll
+Dependency assembly - System.Linq.Queryable.dll
+Dependency assembly - System.IO.Hashing.dll
+Dependency assembly - System.Web.Http.SelfHost.dll
+Dependency assembly - System.Linq.Expressions.dll
+Dependency assembly - System.Net.Http.Rtc.dll
+Dependency assembly - System.Linq.Parallel.dll
+Dependency assembly - System.Web.ApplicationServices.dll
+Dependency assembly - System.Runtime.Extensions.dll
+Dependency assembly - CustomMarshalers.dll
+Dependency assembly - Mono.CompilerServices.SymbolWriter.dll
+Dependency assembly - System.Data.Common.dll
+Dependency assembly - System.Reactive.Interfaces.dll
+Dependency assembly - System.Net.Mail.dll
+Dependency assembly - System.Xaml.dll
+Dependency assembly - System.Runtime.InteropServices.RuntimeInformation.dll
+Dependency assembly - System.Security.Cryptography.Pkcs.dll
+Dependency assembly - Microsoft.Build.Utilities.v4.0.dll
+Dependency assembly - System.dll
+Dependency assembly - System.Collections.Immutable.dll
+Dependency assembly - System.Collections.NonGeneric.dll
+Dependency assembly - System.Security.Cryptography.Encoding.dll
+Dependency assembly - System.Reactive.Windows.Forms.dll
+Dependency assembly - System.Threading.Tasks.dll
+Dependency assembly - System.Diagnostics.FileVersionInfo.dll
+Dependency assembly - System.Collections.dll
+Dependency assembly - Microsoft.Extensions.Logging.Abstractions.dll
+Dependency assembly - I18N.MidEast.dll
+Dependency assembly - System.Xml.Serialization.dll
+Dependency assembly - System.Memory.dll
+Dependency assembly - System.Security.Cryptography.Encryption.ECDiffieHellman.dll
+Dependency assembly - System.Diagnostics.Tools.dll
+Dependency assembly - System.Reflection.Emit.ILGeneration.dll
+Dependency assembly - System.IO.FileSystem.dll
+Dependency assembly - System.Security.Cryptography.Algorithms.dll
+Dependency assembly - System.Json.dll
+Dependency assembly - System.Net.NetworkInformation.dll
+Dependency assembly - System.ServiceModel.Web.dll
+Dependency assembly - System.Windows.dll
+Dependency assembly - System.Text.Encoding.dll
+Dependency assembly - System.Runtime.dll
+Dependency assembly - Microsoft.VisualC.dll
+Dependency assembly - System.Diagnostics.Process.dll
+Dependency assembly - System.Runtime.Serialization.Formatters.dll
+Dependency assembly - I18N.West.dll
+Dependency assembly - mscorlib.dll
+Dependency assembly - System.Reactive.Experimental.dll
+Dependency assembly - System.Xml.dll
+Dependency assembly - Mono.XBuild.Tasks.dll
+Dependency assembly - System.Web.Extensions.dll
+Dependency assembly - System.IO.FileSystem.AccessControl.dll
+Dependency assembly - System.Threading.ThreadPool.dll
+Dependency assembly - System.Web.Routing.dll
+Dependency assembly - System.Xml.XDocument.dll
+Dependency assembly - System.ComponentModel.EventBasedAsync.dll
+Dependency assembly - System.Diagnostics.TextWriterTraceListener.dll
+Dependency assembly - UnityEngine.UI.dll
+Dependency assembly - System.Design.dll
+Dependency assembly - System.ComponentModel.Composition.dll
+Dependency assembly - System.Net.WebHeaderCollection.dll
+Dependency assembly - I18N.Rare.dll
+Dependency assembly - System.Web.WebPages.Razor.dll
+Dependency assembly - System.IdentityModel.Selectors.dll
+Dependency assembly - netstandard.dll
+Dependency assembly - System.Net.AuthenticationManager.dll
+Dependency assembly - System.Security.Cryptography.Hashing.Algorithms.dll
+Dependency assembly - Microsoft.Build.dll
+Dependency assembly - System.Runtime.Loader.dll
+Dependency assembly - Microsoft.Build.Engine.dll
+Dependency assembly - System.Web.Http.WebHost.dll
+Dependency assembly - System.Runtime.Serialization.Formatters.Soap.dll
+Dependency assembly - System.Linq.dll
+Dependency assembly - Mono.Profiler.Log.dll
+Dependency assembly - System.Web.DynamicData.dll
+Dependency assembly - System.Reactive.Debugger.dll
+Dependency assembly - System.Security.Cryptography.Encryption.ECDsa.dll
+Dependency assembly - System.Runtime.InteropServices.WindowsRuntime.dll
+Dependency assembly - System.Resources.Writer.dll
+Dependency assembly - System.ServiceModel.Duplex.dll
+Dependency assembly - Accessibility.dll
+Dependency assembly - System.Reflection.Context.dll
+Dependency assembly - System.ValueTuple.dll
+Dependency assembly - System.Text.Encoding.CodePages.dll
+Dependency assembly - System.Security.Cryptography.RandomNumberGenerator.dll
+Dependency assembly - System.Reflection.Emit.dll
+Dependency assembly - System.Reflection.TypeExtensions.dll
+Dependency assembly - System.Web.Http.dll
+Dependency assembly - System.IO.dll
+Dependency assembly - System.Net.Security.dll
+Dependency assembly - Unity.TextMeshPro.dll
+Dependency assembly - RabbitMQ.Client.dll
+Dependency assembly - System.Net.HttpListener.dll
+Dependency assembly - System.Data.Linq.dll
+Dependency assembly - Mono.Options.dll
+Dependency assembly - System.Globalization.dll
+Dependency assembly - System.Diagnostics.TraceEvent.dll
+Dependency assembly - System.Net.dll
+Dependency assembly - System.Runtime.Serialization.dll
+Dependency assembly - System.Configuration.Install.dll
+Dependency assembly - Microsoft.Bcl.AsyncInterfaces.dll
+Dependency assembly - System.Web.Mvc.dll
+Dependency assembly - System.ServiceProcess.ServiceController.dll
+Dependency assembly - System.Json.Microsoft.dll
+Dependency assembly - I18N.dll
+Dependency assembly - Novell.Directory.Ldap.dll
+Dependency assembly - I18N.CJK.dll
+Dependency assembly - System.ComponentModel.TypeConverter.dll
+Dependency assembly - System.IO.MemoryMappedFiles.dll
+Dependency assembly - System.Diagnostics.Contracts.dll
+Dependency assembly - System.ServiceModel.Primitives.dll
+Dependency assembly - System.Xml.XmlDocument.dll
+Dependency assembly - System.ServiceModel.dll
+Dependency assembly - System.Web.dll
+Dependency assembly - System.ServiceProcess.dll
+Dependency assembly - System.Web.Razor.dll
+Dependency assembly - System.Text.Json.dll
+Dependency assembly - System.Runtime.CompilerServices.VisualC.dll
+Dependency assembly - System.Security.Claims.dll
+Dependency assembly - System.Xml.Xsl.Primitives.dll
+Dependency assembly - System.ComponentModel.Annotations.dll
+Dependency assembly - Mono.Simd.dll
+Dependency assembly - System.Security.Cryptography.OpenSsl.dll
+Dependency assembly - System.Threading.Timer.dll
+Dependency assembly - System.Web.Extensions.Design.dll
+Dependency assembly - Mono.Http.dll
+Dependency assembly - System.Data.dll
+Dependency assembly - System.Data.Services.dll
+Dependency assembly - System.Security.dll
+Dependency assembly - System.Security.AccessControl.dll
+Dependency assembly - System.Text.Encoding.Extensions.dll
+Dependency assembly - System.Reactive.Observable.Aliases.dll
+Dependency assembly - System.Text.Encodings.Web.dll
+Dependency assembly - Mono.Btls.Interface.dll
+Dependency assembly - System.Diagnostics.StackTrace.dll
+Dependency assembly - System.IO.FileSystem.DriveInfo.dll
+Dependency assembly - System.IO.Compression.dll
+Dependency assembly - WindowsBase.dll
+Dependency assembly - System.Deployment.dll
+Dependency assembly - System.Security.Cryptography.Hashing.dll
+Dependency assembly - Microsoft.Extensions.DependencyInjection.Abstractions.dll
+Dependency assembly - System.Reactive.Linq.dll
+Dependency assembly - System.IO.Pipes.dll
+Dependency assembly - System.Net.Http.WebRequest.dll
+Dependency assembly - Unity.InputSystem.ForUI.dll
+Dependency assembly - System.Data.OracleClient.dll
+Dependency assembly - System.Security.Cryptography.ProtectedData.dll
+Dependency assembly - Microsoft.Win32.Registry.dll
+Dependency assembly - Microsoft.Win32.Registry.AccessControl.dll
+Dependency assembly - System.Reflection.Extensions.dll
+Dependency assembly - System.AppContext.dll
+Dependency assembly - System.Threading.AccessControl.dll
+Dependency assembly - System.ObjectModel.dll
+Dependency assembly - System.Runtime.Remoting.dll
+Dependency assembly - System.IdentityModel.dll
+Dependency assembly - System.Web.WebPages.dll
+Dependency assembly - Microsoft.CSharp.dll
+Dependency assembly - WebMatrix.Data.dll
+Dependency assembly - Newtonsoft.Json.dll
+Dependency assembly - System.Drawing.Design.dll
+Dependency assembly - System.Threading.Overlapped.dll
+Dependency assembly - System.Buffers.dll
+Dependency assembly - System.Reflection.Metadata.dll
+Dependency assembly - Microsoft.Web.Infrastructure.dll
+Dependency assembly - System.Net.Ping.dll
+Dependency assembly - System.Xml.Linq.dll
+Dependency assembly - System.Drawing.Primitives.dll
+Dependency assembly - Mono.Data.Sqlite.dll
+Dependency assembly - ICSharpCode.SharpZipLib.dll
+Dependency assembly - System.Runtime.Numerics.dll
+Dependency assembly - System.Security.SecureString.dll
+Dependency assembly - System.DirectoryServices.dll
+Dependency assembly - System.Xml.XPath.XmlDocument.dll
+Dependency assembly - Unity.InputSystem.dll
+Dependency assembly - System.ServiceModel.Discovery.dll
+Dependency assembly - System.Net.Requests.dll
+Dependency assembly - Microsoft.Build.Tasks.v4.0.dll
+Dependency assembly - System.Runtime.Handles.dll
+Dependency assembly - System.Security.Cryptography.X509Certificates.dll
+Dependency assembly - System.Reflection.dll
+Dependency assembly - System.Security.Cryptography.Encryption.dll
+Dependency assembly - System.Net.Http.dll
+
+Starting: C:\Program Files\Unity\Hub\Editor\6000.6.4f1\Editor\Data\Tools\BuildPipeline\bee_backend.exe --ipc --dagfile="Library/Bee/Player1b38f7f2.dag" --profile="Library/Bee/backend1.traceevents" Player
+WorkingDir: C:/Users/esinencuP/AppData/Local/Temp/FarmGame-RC00-d8b8a510
+DisplayProgressbar: Incremental Player Build
+ExitCode: 4 Duration: 5s980ms
+Starting: C:\Program Files\Unity\Hub\Editor\6000.6.4f1\Editor\Data\DotNetSdk\dotnet.exe "C:\Program Files\Unity\Hub\Editor\6000.6.4f1\Editor\Data\PlaybackEngines\WindowsStandaloneSupport\WinPlayerBuildProgram.exe" "C:/Program Files/Unity/Hub/Editor/6000.6.4f1/Editor/Data/PlaybackEngines/WindowsStandaloneSupport/Bee;C:/Program Files/Unity/Hub/Editor/6000.6.4f1/Editor/Data/Tools/BuildPipeline" "Library/Bee/Player1b38f7f2.dag.json" "Library/Bee/Player1b38f7f2-inputdata.json" "Library\Bee\buildprogram0.traceevents"
+WorkingDir: C:/Users/esinencuP/AppData/Local/Temp/FarmGame-RC00-d8b8a510
+ExitCode: 0 Duration: 0s322ms
+Starting: C:\Program Files\Unity\Hub\Editor\6000.6.4f1\Editor\Data\Tools\BuildPipeline\bee_backend.exe --ipc --dagfile="Library/Bee/Player1b38f7f2.dag" --dagfilejson="Library\Bee\Player1b38f7f2.dag.json" --profile="Library/Bee/backend2.traceevents" Player
+WorkingDir: C:/Users/esinencuP/AppData/Local/Temp/FarmGame-RC00-d8b8a510
+ExitCode: 0 Duration: 0s83ms
+
+-------------------------------------------------------------------------------
+Build Report
+Information on used Assets is not available, since player data was not rebuilt.
+Do a clean build to view the Asset build report information.
+-------------------------------------------------------------------------------
+Unloading 4 Unused Serialized files (Serialized files now loaded: 0)
+Unloading 36 unused Assets / (1.2 MB). Loaded Objects now: 2557.
+Memory consumption went from 298.0 MB to 296.8 MB.
+Total: 8.524100 ms (FindLiveObjects: 0.201500 ms CreateObjectMapping: 0.031900 ms MarkObjects: 7.646700 ms  DeleteObjects: 0.496200 ms)
+
+DisplayProgressNotification: Build Successful
+Build Finished, Result: Success.
+Total cache size 61968632
+Total cache size after purge 61968632, took 00:00:00.0490555
+Unloading 0 Unused Serialized files (Serialized files now loaded: 0)
+Loaded scene 'Temp/__Backupscenes/0.backup'
+	Deserialize:            2.237 ms
+	Integration:            13.401 ms
+	Integration of assets:  0.001 ms
+	Thread Wait Time:       0.011 ms
+	Total Operation Time:   15.651 ms
+Unloading 0 unused Assets / (0 B). Loaded Objects now: 2556.
+Memory consumption went from 294.3 MB to 294.3 MB.
+Total: 6.297700 ms (FindLiveObjects: 0.200600 ms CreateObjectMapping: 0.031300 ms MarkObjects: 5.897600 ms  DeleteObjects: 0.005000 ms)
+
+##utp:{"success":true,"type":"PlayerBuildInfo","version":2,"phase":"Immediate","time":1793914008244,"processId":38028,"steps":[{"description":"Call PrepareForBuild callbacks","duration":2},{"description":"Call internal build started callbacks","duration":1},{"description":"Preprocess Player","duration":68},{"description":"Save scenes before build","duration":1},{"description":"Prepare For Build","duration":20},{"description":"ProducePlayerScriptAssemblies","duration":2233},{"description":"Verify Build setup","duration":538},{"description":"Prepare assets for target platform","duration":1},{"description":"Prepare splash screen","duration":0},{"description":"Run script only build","duration":16},{"description":"Build scripts DLLs","duration":23},{"description":"Postprocess built player","duration":6696},{"description":"Call Post-Process callbacks","duration":25}],"duration":9624}
+Batchmode quit successfully invoked - shutting down!
+[Physics::Module] Cleanup current backend.
+[Physics::Module] Id: 0xf2b8ea05
+Input System module state changed to: ShutdownInProgress.
+Input Polling Thread exited.
+Input System module state changed to: Shutdown.
+[Licensing::IpcConnector] LicenseClient-esinencuP-notifications channel disconnected successfully.
+[Licensing::IpcConnector] LicenseClient-esinencuP channel disconnected successfully.
+Lingering sessions upon destruction of worker manager
+Unity Data Store service was successfully shut down
+UDS shutting down local client system
+AcceleratorClientConnectionCallback - disconnected - :0
+Cleanup mono
+CodeReloadManager destroyed
+Exiting batchmode successfully now!
+[ExitDontLaunchBugReporter] Exiting without the bug reporter. Application will exit with return code 0

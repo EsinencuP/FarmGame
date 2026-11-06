@@ -36,15 +36,15 @@ namespace MyLittleFarm.UI
         public Button CloseButton => close;
         public void ApplyTheme()
         {
-            FarmUITheme.Style(transact, "secondary"); FarmUITheme.Style(assign, "ghost"); FarmUITheme.Style(close, "ghost");
+            FarmUITheme.Style(transact, "secondary"); FarmUITheme.Style(assign); FarmUITheme.Style(close, "ghost");
             foreach (var cell in cells) { FarmUITheme.Skin(cell.GetComponent<Image>(), "slot"); var colors = cell.colors; colors.disabledColor = Color.white; cell.colors = colors; }
         }
-        public void Open(bool market)
-        { if (market && !shop.CanTrade) return; _market = market; _filter = 0; _selected = null; _quantity = 1; gameObject.SetActive(true); Refresh(); FarmUITheme.Focus(cells[0]); }
+        public void Open(bool market, System.Action back = null)
+        { if (market && !shop.CanTrade) return; _market = market; _filter = 0; _selected = null; _quantity = 1; gameObject.SetActive(true); Refresh(); FarmUIFocus.Show(panel, cells[0].interactable ? cells[0] : tabs[0], back); }
         public void Preview(bool market)
         {
             if (Application.isPlaying) return;
-            gameObject.SetActive(true); heading.text = market ? "МАГАЗИН СЕМЯН" : "ИНВЕНТАРЬ";
+            gameObject.SetActive(true); heading.text = market ? FarmText.Get("inventory.legacyMarket") : FarmText.Get("inventory.title");
             var example = new[] { "carrot", "corn", "wheat", "tomato", "cucumber", "potato", "apple", "egg", "carrot_seed", "wheat_seed", "tomato_seed", "corn_seed" };
             for (var i = 0; i < cells.Length; i++)
             {
@@ -100,7 +100,7 @@ namespace MyLittleFarm.UI
                 if ((_filter == 0 || _filter == 2) && inventory.GetAmount(crop.HarvestItemId) > 0) _items.Add(crop.HarvestItemId);
             }
             if (!_market && (_filter == 0 || _filter == 3)) foreach (var id in new[] { "apple", "egg" }) if (inventory.GetAmount(id) > 0) _items.Add(id);
-            heading.text = _market ? "МАГАЗИН СЕМЯН" : "ИНВЕНТАРЬ";
+            heading.text = _market ? FarmText.Get("inventory.legacyMarket") : FarmText.Get("inventory.title");
             for (var i = 0; i < tabs.Length; i++) { tabs[i].gameObject.SetActive(!_market); FarmUITheme.Style(tabs[i], i == _filter ? "secondary" : "ghost"); }
             for (var i = 0; i < cells.Length; i++)
             {
@@ -111,7 +111,7 @@ namespace MyLittleFarm.UI
             }
             if (!_items.Contains(_selected)) _selected = _items.Count > 0 ? _items[0] : null;
             balance.text = wallet.Coins.ToString("N0");
-            hint.text = _market ? "Покупка у рынка · редкие семена — в тайниках" : "I / Esc — закрыть · выберите предмет";
+            hint.text = _market ? FarmText.Get("inventory.marketHelp") : FarmText.Get("inventory.chooseItem", InputReader.KeyLabel(InputReader.Command.Inventory));
             RefreshDetails(); PaintSelection();
         }
         private void PaintSelection()
@@ -125,7 +125,7 @@ namespace MyLittleFarm.UI
             detailIcon.gameObject.SetActive(found); minus.interactable = plus.interactable = found;
             if (growthIcon != null) { growthIcon.gameObject.SetActive(found); growthText.gameObject.SetActive(found); }
             transact.gameObject.SetActive(false); minus.gameObject.SetActive(false); plus.gameObject.SetActive(false); count.gameObject.SetActive(false); assign.gameObject.SetActive(false);
-            if (!found) { title.text = "Пока пусто"; description.text = "Посадите семена и соберите первый урожай."; count.text = "—"; return; }
+            if (!found) { title.text = FarmText.Get("inventory.empty"); description.text = FarmText.Get("inventory.emptyHelp"); count.text = "—"; return; }
             catalog.TryGetItem(_selected, out var item);
             _quantity = Mathf.Clamp(_quantity, 1, Maximum());
             title.text = item.DisplayName; detailIcon.sprite = item.Icon ?? FarmUITheme.Sprite("Icons/" + FarmUITheme.ItemIcon(_selected));
@@ -139,19 +139,26 @@ namespace MyLittleFarm.UI
                 else growthText.text = "";
                 growthIcon.sprite = FarmUITheme.Sprite("Icons/" + (_selected == "egg" ? "clock" : "growth"));
             }
-            description.text = (_market ? "В наличии: " : "Количество: ") + inventory.GetAmount(_selected)
-                + "\n" + (seed ? "Семена · выберите в быстром слоте для посадки." : "Урожай · можно продать у рынка.")
-                + "\n\n" + (catalog.IsRareSeed(_selected) ? "Редкие семена: ищите тайники у пруда, в лесу и на холме." : (_market ? "Цена покупки: " + item.BuyPrice : "Цена продажи: " + item.SellPrice) + " монет / шт.");
+            description.text = FarmText.Get("inventory.quantity", inventory.GetAmount(_selected))
+                + "\n" + (seed ? FarmText.Get("inventory.seedHelp") : FarmText.Get("inventory.sellHelp"))
+                + "\n\n" + (catalog.IsRareSeed(_selected) ? FarmText.Get("inventory.rareSeed") : FarmText.Get(_market ? "inventory.buyPrice" : "inventory.salePrice", FarmText.Coins(_market ? item.BuyPrice : item.SellPrice)));
             count.text = _quantity.ToString(); minus.interactable = _quantity > 1; plus.interactable = _quantity < Maximum();
             var available = _market ? item.CanBuy && !catalog.IsRareSeed(_selected) && (long)item.BuyPrice * _quantity <= wallet.Coins : !seed && item.SellPrice > 0;
             transact.interactable = available && shop.CanTrade;
+            assign.GetComponentInChildren<Text>().text = FarmText.Get("inventory.assign");
+            close.GetComponentInChildren<Text>().text = FarmText.Get("inventory.close");
             transact.GetComponentInChildren<Text>().text = !shop.CanTrade ? "Подойдите к рынку" : (_market ? "Купить · " : "Продать · ") + (long)(_market ? item.BuyPrice : item.SellPrice) * _quantity;
-            if (!_market && seed) { assign.gameObject.SetActive(true); assign.interactable = inventory.GetAmount(_selected) > 0; }
+            if (!_market && seed)
+            {
+                FarmUITheme.Style(assign);
+                assign.gameObject.SetActive(true);
+                assign.interactable = inventory.GetAmount(_selected) > 0;
+            }
         }
         private void Assign()
         {
             for (var i = 0; i < catalog.Crops.Count; i++)
-                if (catalog.Crops[i].SeedItemId == _selected) { quickSlots.Select(i); hint.text = "Выбран быстрый слот " + (i + 1) + " · закройте инвентарь для посадки"; break; }
+                if (catalog.Crops[i].SeedItemId == _selected) { quickSlots.Select(i); hint.text = FarmText.Get("inventory.assigned", InputReader.ActionHint); break; }
         }
         public void ConfigureReferenceDetails(Font font, OrchardSystem orchardSystem, MyLittleFarm.Gameplay.Animals.AnimalSystem animalSystem)
         {
@@ -175,8 +182,8 @@ namespace MyLittleFarm.UI
         {
             var root = FarmUITheme.Rect(parent, "Inventory and market"); FarmUITheme.Stretch(root); var ui = root.gameObject.AddComponent<FarmInventoryUI>();
             ui.inventory = inventory; ui.wallet = wallet; ui.catalog = catalog; ui.quickSlots = slots; ui.shop = shop; ui.selling = selling;
-            ui.panel = FarmUITheme.Panel(root, "ИНВЕНТАРЬ", font, new Vector2(1280, 830)); ui.heading = ui.panel.Find("Title ribbon").GetComponentInChildren<Text>();
-            ui.tabs = new Button[4]; var names = new[] { "Всё", "Семена", "Урожай", "Продукты" }; var keys = new[] { "inventory", "seeds_carrot", "crop_tomato", "egg" };
+            ui.panel = FarmUITheme.Panel(root, FarmText.Get("inventory.title"), font, new Vector2(1280, 830)); ui.heading = ui.panel.Find("Title ribbon").GetComponentInChildren<Text>();
+            ui.tabs = new Button[4]; var names = new[] { FarmText.Get("inventory.tabAll"), FarmText.Get("inventory.tabSeeds"), FarmText.Get("inventory.tabCrops"), FarmText.Get("inventory.tabProducts") }; var keys = new[] { "inventory", "seeds_carrot", "crop_tomato", "egg" };
             for (var i = 0; i < 4; i++)
             { ui.tabs[i] = FarmUITheme.Button(ui.panel, names[i], font, keys[i], "ghost"); FarmUITheme.Place((RectTransform)ui.tabs[i].transform, new Vector2(0, 1), new Vector2(0, 1), new Vector2(38 + i * 234, -66), new Vector2(220, 62)); }
             var grid = FarmUITheme.Rect(ui.panel, "Item grid"); ui.gridRect = grid;
@@ -201,11 +208,11 @@ namespace MyLittleFarm.UI
             FarmUITheme.Place((RectTransform)ui.minus.transform, Vector2.zero, Vector2.zero, new Vector2(24, 96), new Vector2(56, 58));
             FarmUITheme.Place(ui.count.rectTransform, Vector2.zero, Vector2.zero, new Vector2(82, 96), new Vector2(72, 58));
             FarmUITheme.Place((RectTransform)ui.plus.transform, Vector2.zero, Vector2.zero, new Vector2(156, 96), new Vector2(56, 58));
-            ui.transact = FarmUITheme.Button(detail, "Продать", font, null, "secondary"); FarmUITheme.Place((RectTransform)ui.transact.transform, new Vector2(1, 0), new Vector2(1, 0), new Vector2(-24, 96), new Vector2(230, 58));
-            ui.assign = FarmUITheme.Button(detail, "В быстрый слот", font, "play", "ghost"); FarmUITheme.Place((RectTransform)ui.assign.transform, new Vector2(.5f, 0), new Vector2(.5f, 0), new Vector2(0, 22), new Vector2(440, 58));
+            ui.transact = FarmUITheme.Button(detail, FarmText.Get("inventory.sell"), font, null, "secondary"); FarmUITheme.Place((RectTransform)ui.transact.transform, new Vector2(1, 0), new Vector2(1, 0), new Vector2(-24, 96), new Vector2(230, 58));
+            ui.assign = FarmUITheme.Button(detail, FarmText.Get("inventory.assign"), font, "play", "ghost"); FarmUITheme.Place((RectTransform)ui.assign.transform, new Vector2(.5f, 0), new Vector2(.5f, 0), new Vector2(0, 22), new Vector2(440, 58));
             ui.balance = FarmUITheme.Label(ui.panel, "", font, 28); FarmUITheme.Place(ui.balance.rectTransform, Vector2.zero, Vector2.zero, new Vector2(38, 112), new Vector2(654, 54));
             ui.hint = FarmUITheme.Label(ui.panel, "", font, 21); FarmUITheme.Place(ui.hint.rectTransform, Vector2.zero, Vector2.zero, new Vector2(38, 36), new Vector2(860, 58));
-            ui.close = FarmUITheme.Button(ui.panel, "Закрыть", font, "close", "ghost"); FarmUITheme.Place((RectTransform)ui.close.transform, new Vector2(1, 0), new Vector2(1, 0), new Vector2(-38, 30), new Vector2(270, 68));
+            ui.close = FarmUITheme.Button(ui.panel, FarmText.Get("inventory.close"), font, "close", "ghost"); FarmUITheme.Place((RectTransform)ui.close.transform, new Vector2(1, 0), new Vector2(1, 0), new Vector2(-38, 30), new Vector2(270, 68));
             root.gameObject.SetActive(false); return ui;
         }
     }

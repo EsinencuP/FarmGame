@@ -1,5 +1,7 @@
+using System.Collections.Generic;
 using MyLittleFarm.Core;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace MyLittleFarm.Gameplay.World
 {
@@ -40,6 +42,13 @@ namespace MyLittleFarm.Gameplay.World
         private float _targetDistance;
         private float _yawVelocity;
         private float _distanceVelocity;
+        private Camera _camera;
+        private readonly List<(Renderer Visual, int SubMeshes)> _playerVisuals = new();
+        private readonly List<Renderer> _occluders = new();
+        private readonly RaycastHit[] _hits = new RaycastHit[32];
+        private Material _silhouette;
+        private CommandBuffer _silhouettePass;
+        private bool _showingSilhouette;
 
         private void OnValidate()
         {
@@ -59,6 +68,7 @@ namespace MyLittleFarm.Gameplay.World
             _targetDistance = _distance;
             _yawVelocity = 0f;
             _distanceVelocity = 0f;
+            ConfigureVisibility();
             SnapToTarget();
         }
 
@@ -70,19 +80,15 @@ namespace MyLittleFarm.Gameplay.World
                 return;
             }
 
-            if (!_input.BuildModeActive && _input.RotateLeftPressed)
+            if (!_input.ModalInputActive)
             {
-                _targetYaw -= keyboardRotationStep;
-            }
+                if (!_input.BuildModeActive && _input.RotateLeftPressed) _targetYaw -= keyboardRotationStep;
+                if (!_input.BuildModeActive && _input.RotateRightPressed) _targetYaw += keyboardRotationStep;
 
-            if (!_input.BuildModeActive && _input.RotateRightPressed)
-            {
-                _targetYaw += keyboardRotationStep;
+                _targetYaw += _input.OrbitDelta * orbitSensitivity;
+                _targetDistance = Mathf.Clamp(_targetDistance - _input.ZoomDelta * zoomSensitivity,
+                    minDistance, Mathf.Max(minDistance, maxDistance));
             }
-
-            _targetYaw += _input.OrbitDelta * orbitSensitivity;
-            _targetDistance = Mathf.Clamp(_targetDistance - _input.ZoomDelta * zoomSensitivity,
-                minDistance, Mathf.Max(minDistance, maxDistance));
             _yaw = Mathf.SmoothDamp(_yaw, _targetYaw, ref _yawVelocity,
                 orbitSmoothTime, Mathf.Infinity, Time.deltaTime);
             _distance = Mathf.SmoothDamp(_distance, _targetDistance, ref _distanceVelocity,
@@ -97,7 +103,14 @@ namespace MyLittleFarm.Gameplay.World
             SnapToTarget();
         }
 
-        public void RefreshPosition() { if (_target != null) SnapToTarget(); }
+        public void RefreshPosition()
+        {
+            if (_target == null) return;
+            _yaw = _targetYaw;
+            _distance = _targetDistance;
+            _yawVelocity = _distanceVelocity = 0;
+            SnapToTarget();
+        }
 
         private void SnapToTarget()
         {
@@ -106,6 +119,85 @@ namespace MyLittleFarm.Gameplay.World
             var rotation = Quaternion.Euler(pitch, _yaw, 0f);
             transform.position = lookPoint + rotation * (Vector3.back * _distance);
             transform.rotation = Quaternion.LookRotation(lookPoint - transform.position, Vector3.up);
+            UpdateSilhouette(lookPoint);
+        }
+
+        private void ConfigureVisibility()
+        {
+            ReleaseSilhouette();
+            _occluders.Clear();
+            _playerVisuals.Clear();
+            var player = _target == null ? null : _target.GetComponent<PlayerController>();
+            if (!Application.isPlaying || player == null || player.VisualRoot == null) return;
+            var shader = Resources.Load<Shader>("PlayerOcclusion");
+            if (shader == null || !shader.isSupported) return;
+
+            _camera = GetComponent<Camera>();
+            foreach (var visual in player.VisualRoot.GetComponentsInChildren<Renderer>())
+            {
+                var mesh = visual is SkinnedMeshRenderer skinned ? skinned.sharedMesh : visual.GetComponent<MeshFilter>()?.sharedMesh;
+                if (mesh != null) _playerVisuals.Add((visual, mesh.subMeshCount));
+            }
+            var root = player.GetComponentInParent<GameBootstrap>();
+            if (root != null)
+                foreach (var renderer in root.GetComponentsInChildren<MeshRenderer>(true))
+                    if (!renderer.transform.IsChildOf(_target) && renderer.bounds.size.y > 1.5f)
+                        _occluders.Add(renderer);
+            _silhouette = new Material(shader) { hideFlags = HideFlags.DontSave };
+            _silhouettePass = new CommandBuffer { name = "Occluded farm player" };
+            _camera.AddCommandBuffer(CameraEvent.AfterForwardOpaque, _silhouettePass);
+        }
+
+        private void UpdateSilhouette(Vector3 lookPoint)
+        {
+            if (_silhouettePass == null) return;
+            // Bounds catch the visual-only landscape props. Solid geometry also includes new buildings.
+            var show = IsObscured(lookPoint + Vector3.up * .35f) || IsObscured(lookPoint - Vector3.up * .25f);
+            if (show == _showingSilhouette) return;
+            _showingSilhouette = show;
+            _silhouettePass.Clear();
+            if (!show) return;
+            for (var pass = 0; pass < 3; pass++)
+            foreach (var part in _playerVisuals)
+            {
+                var visual = part.Visual;
+                if (visual == null || !visual.enabled || !visual.gameObject.activeInHierarchy) continue;
+                for (var i = 0; i < part.SubMeshes; i++) _silhouettePass.DrawRenderer(visual, _silhouette, i, pass);
+            }
+        }
+
+        private bool IsObscured(Vector3 point)
+        {
+            var delta = point - transform.position;
+            var distance = delta.magnitude - .45f;
+            if (distance <= 0) return false;
+            var ray = new Ray(transform.position, delta.normalized);
+            foreach (var renderer in _occluders)
+                if (renderer != null && renderer.enabled && renderer.gameObject.activeInHierarchy && !renderer.forceRenderingOff
+                    && renderer.bounds.IntersectRay(ray, out var hit) && hit < distance) return true;
+            var count = Physics.RaycastNonAlloc(ray, _hits, distance, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
+            for (var i = 0; i < count; i++)
+                if (_hits[i].collider != null && !_hits[i].collider.transform.IsChildOf(_target)) return true;
+            return false;
+        }
+
+        private void OnEnable()
+        {
+            if (_target != null) ConfigureVisibility();
+        }
+
+        private void OnDisable() => ReleaseSilhouette();
+
+        private void ReleaseSilhouette()
+        {
+            _showingSilhouette = false;
+            if (_silhouettePass != null)
+            {
+                if (_camera != null) _camera.RemoveCommandBuffer(CameraEvent.AfterForwardOpaque, _silhouettePass);
+                _silhouettePass.Release();
+                _silhouettePass = null;
+            }
+            if (_silhouette != null) Destroy(_silhouette);
         }
     }
 }

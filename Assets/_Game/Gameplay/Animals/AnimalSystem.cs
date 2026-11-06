@@ -162,7 +162,7 @@ namespace MyLittleFarm.Gameplay.Animals
             state.nextProductAtUnixMs = 0;
             if(!quiet)GameEvents.RaiseStatusChanged($"Собрано: {yield} × яйцо");
             GameEvents.Record("eggs",amount:yield);
-            GameEvents.RaiseActionFeedback("collect", _grid.GridToWorld(state.Position));
+            GameEvents.RaiseActionFeedback("collect", _grid.GridToWorld(state.Position), _chicken.ProductItemId, yield);
             return true;
         }
 
@@ -213,10 +213,10 @@ namespace MyLittleFarm.Gameplay.Animals
         {
             if (!IsWithinReach(id, playerPosition)) return "Курица слишком далеко — подойдите ближе";
             if (!_animals.TryGetValue(id, out var animal)) return string.Empty;
-            if (animal.readyProductCount > 0) return "E / ЛКМ — собрать яйцо";
+            if (animal.readyProductCount > 0) return $"{InputReader.ActionHint} — собрать яйцо";
             if (animal.nextProductAtUnixMs > 0) return "Курица накормлена — яйцо созревает";
             return _inventory.GetAmount(_chicken.FeedItemId) > 0
-                ? "E / ЛКМ — покормить курицу пшеницей" : "Курице нужна пшеница";
+                ? $"{InputReader.ActionHint} — покормить курицу пшеницей" : "Курице нужна пшеница";
         }
 
         /// <summary>Подсказывает сбор, ожидание или кормление ближайшей курицы.</summary>
@@ -224,10 +224,10 @@ namespace MyLittleFarm.Gameplay.Animals
         {
             var nearest = FindNearest(playerPosition);
             if (nearest == null) return string.Empty;
-            if (nearest.readyProductCount > 0) return "E / ЛКМ — собрать яйцо";
+            if (nearest.readyProductCount > 0) return $"{InputReader.ActionHint} — собрать яйцо";
             if (nearest.nextProductAtUnixMs > 0) return "Курица накормлена — яйцо созревает";
             return _inventory != null && _chicken != null && _inventory.GetAmount(_chicken.FeedItemId) > 0
-                ? "E / ЛКМ — покормить курицу пшеницей"
+                ? $"{InputReader.ActionHint} — покормить курицу пшеницей"
                 : "Курице нужна пшеница";
         }
 

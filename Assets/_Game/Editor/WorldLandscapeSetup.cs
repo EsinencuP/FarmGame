@@ -80,8 +80,9 @@ namespace MyLittleFarm.Editor
                 throw new InvalidOperationException("This authored layout uses one-unit cells and 10x10 chunks.");
             EnsureFolder(Folder);
             var shader=AssetDatabase.LoadAssetAtPath<Shader>("Assets/_Game/Content/Art/CropStages/CropVertexColor.shader");
-            var groundMaterial=AssetDatabase.LoadAssetAtPath<Material>(Folder+"/LandscapeGround.mat");
-            if(groundMaterial==null){groundMaterial=new Material(shader){name="Landscape Vertex Palette"};AssetDatabase.CreateAsset(groundMaterial,Folder+"/LandscapeGround.mat");}
+            var paletteMaterial=AssetDatabase.LoadAssetAtPath<Material>(Folder+"/LandscapeGround.mat");
+            if(paletteMaterial==null){paletteMaterial=new Material(shader){name="Landscape Vertex Palette"};AssetDatabase.CreateAsset(paletteMaterial,Folder+"/LandscapeGround.mat");}
+            var groundMaterial=AssetDatabase.LoadAssetAtPath<Material>(Folder+"/LandscapeSurface.mat") ?? paletteMaterial;
             var chunks=new List<TilemapChunk>();
             for(var x=-3;x<=3;x++) for(var z=-3;z<=3;z++)
             {
@@ -277,11 +278,29 @@ namespace MyLittleFarm.Editor
             }
             var mesh=AssetDatabase.LoadAssetAtPath<Mesh>(Folder+"/PondWater.mesh.asset");
             if(mesh==null){mesh=new Mesh{name="Authored Pond Water"};AssetDatabase.CreateAsset(mesh,Folder+"/PondWater.mesh.asset");}
-            mesh.Clear();mesh.SetVertices(points);mesh.SetTriangles(triangles,0);mesh.RecalculateNormals();mesh.RecalculateBounds();EditorUtility.SetDirty(mesh);
+            mesh.Clear();mesh.SetVertices(points);mesh.SetTriangles(triangles,0);mesh.RecalculateNormals();mesh.RecalculateBounds();
+            AssignPondSurfaceData(mesh,parent.GetComponentInParent<GameBootstrap>().GetComponentInChildren<GridSystem>());
             var material=AssetDatabase.LoadAssetAtPath<Material>(Folder+"/PondWater.mat");
             if(material==null){material=new Material(Shader.Find("Standard")){name="Pond Water",color=new Color(.17f,.48f,.54f,1)};material.SetFloat("_Glossiness",.72f);AssetDatabase.CreateAsset(material,Folder+"/PondWater.mat");}
             var go=new GameObject("Pond Water — fixed shoreline");go.transform.SetParent(parent,false);go.AddComponent<MeshFilter>().sharedMesh=mesh;
             var renderer=go.AddComponent<MeshRenderer>();renderer.sharedMaterial=material;renderer.shadowCastingMode=UnityEngine.Rendering.ShadowCastingMode.Off;go.isStatic=true;
+        }
+
+        internal static void AssignPondSurfaceData(Mesh mesh, GridSystem grid)
+        {
+            var vertices = mesh.vertices;
+            var planarUv = new List<Vector2>(vertices.Length);
+            var depths = new List<Vector2>(vertices.Length);
+            foreach (var point in vertices)
+            {
+                planarUv.Add(new Vector2(point.x, point.z));
+                var land = grid.GetSurfaceHeight(point.x, point.z) + .02f;
+                depths.Add(new Vector2(Mathf.Max(0, point.y - land), 0));
+            }
+            mesh.SetUVs(0, planarUv);
+            mesh.SetUVs(3, depths);
+            mesh.RecalculateTangents();
+            EditorUtility.SetDirty(mesh);
         }
 
         private static void AddClippedWater(Vector3 a,Vector3 b,Vector3 c,List<Vector3> vertices,List<int> triangles)
@@ -335,8 +354,11 @@ namespace MyLittleFarm.Editor
             foreach(var chunk in chunks)chunk.ApplyTo(grid);
             foreach(var chunk in chunks)
             {
-                var settings=new SerializedObject(chunk.GetComponent<ChunkRenderer>());settings.FindProperty("waterColor").colorValue=new Color(.32f,.39f,.24f);settings.ApplyModifiedPropertiesWithoutUndo();
-                var view=chunk.GetComponent<ChunkRenderer>();view.AssignBakedGeometry(AssetDatabase.LoadAssetAtPath<Mesh>(Folder+"/"+chunk.name+".mesh.asset"),AssetDatabase.LoadAssetAtPath<Material>(Folder+"/LandscapeGround.mat"));
+                var view=chunk.GetComponent<ChunkRenderer>();
+                var settings=new SerializedObject(view);settings.FindProperty("waterColor").colorValue=new Color(.32f,.39f,.24f);settings.ApplyModifiedPropertiesWithoutUndo();
+                var material=(Material)settings.FindProperty("surfaceMaterial").objectReferenceValue
+                    ?? AssetDatabase.LoadAssetAtPath<Material>(Folder+"/LandscapeSurface.mat");
+                view.AssignBakedGeometry(AssetDatabase.LoadAssetAtPath<Mesh>(Folder+"/"+chunk.name+".mesh.asset"),material);
                 EditorUtility.SetDirty(chunk.WorldMap);EditorUtility.SetDirty(chunk.GetComponent<MeshFilter>().sharedMesh);
             }
             var landscape=root.transform.Find("Authored Landscape");

@@ -1,0 +1,1 @@
+frames=2670 meanFPS=178.0 p50ms=5.55 p95ms=5.57 maxms=77.83 | 1920x1080 api=Direct3D12 focused=True quality=Ultra vsync=1 scene=Prototype player=(5.926, 2.125, -3.734) camera=(-1.292, 10.925, -10.978) euler=(38.000, 45.000, 0.000) projection=perspective ortho=5.000 fov=46.000 hour=9.254 weather=Sunny clouds=0.00 rain=0.00 onboarding=0

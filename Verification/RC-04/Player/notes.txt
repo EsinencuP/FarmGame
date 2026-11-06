@@ -1,0 +1,48 @@
+profile C:/Users/esinencuP/AppData/LocalLow/USM-RC04-Preview/My Little Farm
+size 1280×720 safe=(x:0.00, y:0.00, width:1280.00, height:720.00)
+state restartMotion scene=MainMenu focus=Играть ·  modal= pos= reduced=True
+ready
+state startupRestored scene=Prototype focus=Продолжить · Загрузить modal=True pos=(3.500, 0.744, 0.500) reduced=True
+state farmRestored scene=Prototype focus=- modal=False pos=(3.500, 0.744, 0.500) reduced=True
+size 1280×720 safe=(x:0.00, y:0.00, width:1280.00, height:720.00)
+state journalFinal scene=Prototype focus=Ферма · Ферма modal=True pos=(3.500, 0.744, 0.500) reduced=True
+control Пропустить обучение · Пропустить обучение · 640 533
+control Day Night Speed · ×1 · 317 36
+control Открытия · Открытия · 868 158
+control Достижения · Достижения · 640 158
+control Справочник · Справочник · 904 595
+control Seed slot 2 · 2 · 556 679
+control Seed slot 1 · 1 · 500 679
+control Seed slot 5 · 5 · 724 679
+control Seed slot 6 · 6 · 780 679
+control Ферма · Ферма · 412 158
+control Seed slot 3 · 3 · 612 679
+control Seed slot 4 · 4 · 668 679
+control Вернуться · Esc · Закрыть · Esc · 376 595
+ready
+state journalMouse scene=Prototype focus=Открытия · Открытия modal=True pos=(3.500, 0.744, 0.500) reduced=True
+state journalGuide scene=Prototype focus=Статистика и награды · Статистика и награды modal=True pos=(3.500, 0.744, 0.500) reduced=True
+state journalGuideRestored scene=Prototype focus=Справочник · Справочник modal=True pos=(3.500, 0.744, 0.500) reduced=True
+state marketBlocked scene=Prototype focus=Семена · Семена modal=True pos=(10.000, 1.183, 1.500) reduced=True
+size 1280×800 safe=(x:0.00, y:0.00, width:1280.00, height:800.00)
+size 1920×1080 safe=(x:0.00, y:0.00, width:1920.00, height:1080.00)
+size 1280×800 safe=(x:0.00, y:0.00, width:1280.00, height:800.00)
+ready
+size 1280×720 safe=(x:0.00, y:0.00, width:1280.00, height:720.00)
+size 1280×800 safe=(x:0.00, y:0.00, width:1280.00, height:800.00)
+size 1920×1080 safe=(x:0.00, y:0.00, width:1920.00, height:1080.00)
+ready
+size 1280×720 safe=(x:0.00, y:0.00, width:1280.00, height:720.00)
+state confirmFinal scene=Prototype focus=Отмена · Отмена modal=True pos=(10.000, 0.764, 1.500) reduced=True
+state confirmReturnFinal scene=Prototype focus=Продолжить · Загрузить modal=True pos=(10.000, 0.764, 1.500) reduced=True
+state finalWorld scene=Prototype focus=- modal=False pos=(10.000, 0.764, 1.500) reduced=True
+ready
+profile C:/Users/esinencuP/AppData/LocalLow/USM-RC04-Preview/My Little Farm
+state startup scene=MainMenu focus=Играть ·  modal= pos= reduced=True
+ready
+state safeSlot scene=Prototype focus=Продолжить · Загрузить modal=True pos=(3.500, 0.744, 0.500) reduced=True
+state safeFarm scene=Prototype focus=- modal=False pos=(3.500, 0.744, 0.500) reduced=True
+state safeSaveBrowser scene=Prototype focus=Продолжить · Загрузить modal=True pos=(3.500, 0.744, 0.500) reduced=True
+size 1280×720 safe=(x:0.00, y:0.00, width:1280.00, height:720.00)
+state safeClosed scene=Prototype focus=- modal=False pos=(3.500, 0.744, 0.500) reduced=True
+ready

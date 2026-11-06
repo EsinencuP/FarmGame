@@ -12,7 +12,7 @@ namespace MyLittleFarm.UI
     [DefaultExecutionOrder(-180)]
     public sealed class FarmMenuUI : MonoBehaviour
     {
-        public enum Page { Game, Main, Pause, Settings, Inventory, Shop, Quit, Guide }
+        public enum Page { Game, Main, Pause, Settings, Inventory, Shop, Quit, Guide, Journal }
         [SerializeField] private InputReader input;
         [SerializeField] private SaveSystem saves;
         [SerializeField] private SaveSlotsUI slots;
@@ -30,7 +30,8 @@ namespace MyLittleFarm.UI
         [SerializeField] private Button resume, pauseSettings, pauseSlots, home, pauseExit, quitConfirm, quitCancel;
         [SerializeField] private Button journalShortcut, pauseShortcut;
         [SerializeField] private Text pauseMessage;
-        private readonly Stack<Page> _history = new Stack<Page>();
+        private readonly Stack<(Page Page, GameObject Focus)> _history = new Stack<(Page, GameObject)>();
+        private GameObject _slotFocus;
         private Page _page = Page.Game, _slotReturn = Page.Main;
         private float _previousTimeScale = 1;
         private bool _ownsPause, _waitingForSlots, _bound;
@@ -51,7 +52,8 @@ namespace MyLittleFarm.UI
             resume.onClick.AddListener(Resume); pauseSettings.onClick.AddListener(OpenSettings); pauseSlots.onClick.AddListener(OpenSlots); home.onClick.AddListener(ReturnHome); pauseExit.onClick.AddListener(AskQuit);
             quitConfirm.onClick.AddListener(Quit); quitCancel.onClick.AddListener(Back);
             settings.BackButton.onClick.AddListener(Back); inventory.CloseButton.onClick.AddListener(Back);
-            journalShortcut.onClick.AddListener(OpenGuide); pauseShortcut.onClick.AddListener(OpenPause);
+            journalShortcut.onClick.AddListener(OpenJournal);
+            if (journal != null) { journal.Closed += Back; journal.GuideRequested += OpenGuideFromJournal; } pauseShortcut.onClick.AddListener(OpenPause);
             if (guide != null) { guide.CloseButton.onClick.AddListener(Back); guide.JournalButton.onClick.AddListener(OpenJournalFromGuide); }
             if (market != null) market.CloseButton.onClick.AddListener(Back);
             slots.Closed += SlotsClosed; _bound = true;
@@ -63,6 +65,7 @@ namespace MyLittleFarm.UI
                 settings.BackButton, inventory.CloseButton, journalShortcut, pauseShortcut }) button.onClick.RemoveAllListeners();
             if (guide != null) { guide.CloseButton.onClick.RemoveListener(Back); guide.JournalButton.onClick.RemoveListener(OpenJournalFromGuide); }
             if (market != null) market.CloseButton.onClick.RemoveListener(Back);
+            if (journal != null) { journal.Closed -= Back; journal.GuideRequested -= OpenGuideFromJournal; }
             slots.Closed -= SlotsClosed; _bound = false;
             ReleasePause();
             if (IsOpen && input != null) { input.ModalInputActive = false; input.SuppressGameplayThisFrame = true; }
@@ -71,6 +74,7 @@ namespace MyLittleFarm.UI
         {
             Resize();
             if (!Application.isPlaying || input == null || _waitingForSlots || FarmSceneFlow.IsLoading) return;
+            RefreshShortcutLabels();
             if (marketPrompt != null) marketPrompt.gameObject.SetActive(CanOpenFromGame() && shop != null && shop.CanTrade);
             if (_page == Page.Game)
             {
@@ -79,9 +83,10 @@ namespace MyLittleFarm.UI
                 if (input.PausePressed) OpenPause();
                 else if (input.InventoryPressed) OpenInventory();
                 else if (input.MarketPressed || (input.InteractPressed && !input.PointerInteractPressed && shop != null && shop.CanTrade)) OpenMarket();
-                else if (input.JournalPressed) OpenGuide();
+                else if (input.JournalPressed) OpenJournal();
             }
-            else if (input.ModalCancelPressed || ((_page == Page.Inventory || _page == Page.Shop) && input.InventoryPressed)) Back();
+            else if ((_page == Page.Inventory || _page == Page.Shop) && input.InventoryPressed
+                && !FarmUIFocus.EditingText && !FarmUIFocus.TabPressed) Back();
         }
         private void PauseTime()
         { if (_ownsPause) return; _previousTimeScale = Time.timeScale; Time.timeScale = 0; _ownsPause = true; }
@@ -94,6 +99,10 @@ namespace MyLittleFarm.UI
         public void OpenMarket() { if (CanOpenFromGame() && shop != null && shop.CanTrade) Show(Page.Shop); }
         public void OpenGuide()
         { if (CanOpenFromGame()) { if (guide != null) Show(Page.Guide); else journal.Open(); } }
+        public void OpenJournal()
+        { if (CanOpenFromGame() && journal != null) Show(Page.Journal); }
+        private void OpenGuideFromJournal()
+        { if (_page == Page.Journal && guide != null) Show(Page.Guide); }
         private bool CanOpenFromGame() => _page == Page.Game && !input.ModalInputActive && !input.BuildModeActive && saves.HasActiveFarm;
         private void OpenSettings() => Show(Page.Settings);
         private void AskQuit() => Show(Page.Quit);
@@ -101,38 +110,59 @@ namespace MyLittleFarm.UI
         {
             if (page == Page.Main) { ReturnHome(); return; }
             MyLittleFarm.Audio.FarmAudio.Play(page == Page.Game ? MyLittleFarm.Audio.SoundId.UiClose : MyLittleFarm.Audio.SoundId.UiOpen);
-            if (push) _history.Push(_page); _page = page;
-            overlay.SetActive(page != Page.Game); navigation.gameObject.SetActive(page == Page.Game);
+            if (push) _history.Push((_page, FarmUIFocus.Selected)); _page = page;
+            overlay.SetActive(page != Page.Game && page != Page.Journal);
+            navigation.gameObject.SetActive(page == Page.Game);
             shade.SetActive(true);
             pausePanel.gameObject.SetActive(page == Page.Pause); quitPanel.gameObject.SetActive(page == Page.Quit);
+            if (journal != null && page != Page.Journal) journal.Hide();
             settings.Hide(); inventory.gameObject.SetActive(false); loading.SetActive(false); if (guide != null) guide.Hide();
             if (marketPrompt != null) marketPrompt.gameObject.SetActive(false);
             if (market != null) market.Hide();
-            if (page == Page.Game) { input.ModalInputActive = false; input.SuppressGameplayThisFrame = true; ReleasePause(); FarmUITheme.Focus(null); return; }
+            if (page == Page.Game) { input.ModalInputActive = false; input.SuppressGameplayThisFrame = true; ReleasePause(); FarmUIFocus.Show(null, null, null); return; }
             PauseTime(); input.ModalInputActive = true; input.SuppressGameplayThisFrame = true;
             switch (page)
             {
-                case Page.Pause: pauseMessage.text = "F5 — сохранить · F9 — слоты фермы"; FarmUITheme.Focus(resume); break;
-                case Page.Settings: settings.Open(); break;
-                case Page.Inventory: inventory.Open(false); break;
-                case Page.Shop: if (market != null) market.Open(); break;
-                case Page.Guide: guide.Open(); break;
-                case Page.Quit: FarmUITheme.Focus(quitCancel); break;
+                case Page.Pause: pauseMessage.text = FarmText.Get("pause.shortcuts", InputReader.KeyLabel(InputReader.Command.Save), InputReader.KeyLabel(InputReader.Command.Load)); FarmUIFocus.Show(pausePanel, resume, Back); break;
+                case Page.Settings: settings.Open(Back); break;
+                case Page.Inventory: inventory.Open(false, Back); break;
+                case Page.Shop: if (market != null) market.Open(Back); break;
+                case Page.Guide: guide.Open(); FarmUIFocus.Show(guide.Panel, guide.JournalButton, Back); break;
+                case Page.Journal: journal.Open(true); break;
+                case Page.Quit: FarmUIFocus.Show(quitPanel, quitCancel, Back); break;
             }
             Resize(true);
+        }
+
+        private int _shortcutRevision = -1;
+        private void RefreshShortcutLabels()
+        {
+            if (_shortcutRevision == InputReader.BindingRevision) return;
+            _shortcutRevision = InputReader.BindingRevision;
+            if (marketPrompt != null) marketPrompt.GetComponentInChildren<Text>(true).text = FarmText.Get("market.openHint", InputReader.MarketHint);
+            var guideLabel = journalShortcut.GetComponentInChildren<Text>(true);
+            if (guideLabel != null) guideLabel.text = FarmText.Get("journal.shortcut", InputReader.KeyLabel(InputReader.Command.Guide));
         }
         private void Back()
         {
             if (_page == Page.Main) return;
             MyLittleFarm.Audio.FarmAudio.Play(MyLittleFarm.Audio.SoundId.UiBack);
-            Show(_history.Count > 0 ? _history.Pop() : Page.Game, false);
+            var previous = _history.Count > 0 ? _history.Pop() : (Page.Game, (GameObject)null);
+            Show(previous.Item1, false);
+            FarmUIFocus.Restore(previous.Item2, FarmUIFocus.Selected == null ? null : FarmUIFocus.Selected.GetComponent<Selectable>());
         }
-        private void Resume() { _history.Clear(); Show(Page.Game, false); }
+        private void Resume()
+        {
+            while (_history.Count > 1) _history.Pop();
+            var previous = _history.Count == 0 ? null : _history.Pop().Focus;
+            Show(Page.Game, false);
+            FarmUIFocus.Restore(previous);
+        }
         private void OpenSlots()
         {
             if (marketPrompt != null) marketPrompt.gameObject.SetActive(false);
             PauseTime();
-            _slotReturn = _page; _waitingForSlots = true;
+            _slotReturn = _page; _slotFocus = FarmUIFocus.Selected; _waitingForSlots = true;
             navigation.gameObject.SetActive(false);
             overlay.SetActive(false); input.ModalInputActive = false;
             slots.Open();
@@ -143,18 +173,24 @@ namespace MyLittleFarm.UI
         {
             if (!_waitingForSlots) return;
             _waitingForSlots = false;
-            if (selectedFarm) Resume(); else Show(_slotReturn, false);
+            if (selectedFarm) Resume();
+            else
+            {
+                Show(_slotReturn, false);
+                FarmUIFocus.Restore(_slotFocus, FarmUIFocus.Selected == null ? null : FarmUIFocus.Selected.GetComponent<Selectable>());
+            }
+            _slotFocus = null;
         }
         private void ReturnHome()
         {
-            if (saves.HasActiveFarm && !saves.SaveActivePoint(true)) { pauseMessage.text = "Не удалось сохранить ферму. Возврат в меню отменён."; return; }
-            if (!FarmSceneFlow.LoadMenu()) { pauseMessage.text = "Не удалось открыть главное меню."; return; }
+            if (saves.HasActiveFarm && !saves.SaveActivePoint(true)) { pauseMessage.text = FarmText.Get("pause.homeSaveFailed"); return; }
+            if (!FarmSceneFlow.LoadMenu()) { pauseMessage.text = FarmText.Get("pause.menuFailed"); return; }
             input.ModalInputActive = true;
         }
         private void Quit()
         {
             if (saves.HasActiveFarm && !saves.SaveActivePoint(true))
-            { Back(); pauseMessage.text = "Не удалось сохранить ферму. Выход отменён."; return; }
+            { Back(); pauseMessage.text = FarmText.Get("pause.quitSaveFailed"); return; }
             Application.Quit();
 #if UNITY_EDITOR
             UnityEditor.EditorApplication.isPlaying = false;
@@ -163,7 +199,8 @@ namespace MyLittleFarm.UI
         private void OpenJournalFromGuide()
         {
             if (_page != Page.Guide) return;
-            _history.Clear(); Show(Page.Game, false); journal.Open(); navigation.gameObject.SetActive(false);
+            if (_history.Count > 0 && _history.Peek().Page == Page.Journal) Back();
+            else if (journal != null) Show(Page.Journal);
         }
         public void SetLoading(bool visible) { loading.SetActive(visible); if (visible) loading.transform.SetAsLastSibling(); }
         public void ApplyTheme()

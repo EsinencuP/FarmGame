@@ -47,7 +47,17 @@ namespace MyLittleFarm.UI
             Canvas.ForceUpdateCanvases(); plantScroll.verticalNormalizedPosition = Mathf.Clamp01(scrollPosition);
         }
         private void ShowPlants() => Show(false);
-        private void ShowAnimals() => Show(true);
+        private void ShowAnimals()
+        {
+            foreach (var label in animalsPage.GetComponentsInChildren<Text>(true))
+            {
+                if (label.text.StartsWith("2. Дайте корм"))
+                    label.text = $"2. Дайте корм\n{MyLittleFarm.Core.InputReader.ActionHint} рядом с курицей: нужна пшеница.";
+                else if (label.text.StartsWith("3. Соберите продукцию"))
+                    label.text = $"3. Соберите продукцию\nДождитесь яйца и нажмите {MyLittleFarm.Core.InputReader.ActionHint}.";
+            }
+            Show(true);
+        }
         private void Show(bool showAnimals)
         {
             if (upgradesPage != null) { upgradesPage.SetActive(false); FarmUITheme.Style(upgradesTab, "ghost"); }
@@ -64,7 +74,7 @@ namespace MyLittleFarm.UI
             var text = new System.Text.StringBuilder("КАТАЛОГ УЛУЧШЕНИЙ\n\n");
             foreach (var offer in market.Offers(MyLittleFarm.Gameplay.Economy.FarmMarket.Category.Upgrades))
                 text.Append(offer.Name).Append(" · ").Append(offer.Price).Append(" монет").Append(offer.Available ? "" : " · " + offer.Unavailable).Append('\n').Append(offer.Description).Append("\n\n");
-            text.Append("Покупка улучшений и найм — в окне рынка.\nПодойдите к рынку и нажмите P или E.");
+            text.Append($"Покупка улучшений и найм — в окне рынка.\nПодойдите к рынку и нажмите {MyLittleFarm.Core.InputReader.MarketHint}.");
             upgradePrices.text = text.ToString();
         }
         public void ConfigureUpgrades(Font font, MyLittleFarm.Gameplay.Economy.FarmMarket system)
@@ -87,12 +97,7 @@ namespace MyLittleFarm.UI
                 if (label.text.Contains("C — купить")) label.text = "1. Купите курицу на рынке\nПосле оплаты она поселится в свободном месте загона.";
             upgradesPage.SetActive(false);
         }
-        public static string Duration(float seconds)
-        {
-            if (seconds < 60) return seconds.ToString("0.#") + " с";
-            var minutes = Mathf.FloorToInt(seconds / 60); var rest = Mathf.RoundToInt(seconds % 60);
-            return minutes + " мин" + (rest > 0 ? " " + rest + " с" : "");
-        }
+        public static string Duration(float seconds) => FarmText.Duration(seconds);
         private string ItemName(string id) => catalog.TryGetItem(id, out var item) ? item.DisplayName : id;
         private int SalePrice(string id) => catalog.TryGetItem(id, out var item) ? item.SellPrice : 0;
         private void Refresh()

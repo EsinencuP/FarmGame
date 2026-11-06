@@ -26,6 +26,8 @@ namespace MyLittleFarm.UI
         private string _selected;
         private int _quantity = 1;
         private bool _dirty;
+        private float _balancePulseUntil;
+        private Color _balancePulseColor;
         private float _nextProximityCheck;
         private Dictionary<string, int> Cart => _carts[(int)_category];
         public RectTransform Panel => panel;
@@ -43,15 +45,18 @@ namespace MyLittleFarm.UI
                 quantity.transform.SetParent(image.transform, false); FarmUITheme.Stretch(quantity.rectTransform, 6);
                 quantityInput = image.gameObject.AddComponent<InputField>(); quantityInput.targetGraphic = image; quantityInput.textComponent = quantity;
                 quantityInput.contentType = InputField.ContentType.IntegerNumber; quantityInput.characterLimit = 10;
-                maximum = FarmUITheme.Button(panel, "Макс.", font, null, "ghost"); At((RectTransform)maximum.transform, 284, 726, 106, 64);
+                maximum = FarmUITheme.Button(panel, FarmText.Get("market.maximum"), font, null, "ghost"); At((RectTransform)maximum.transform, 284, 726, 106, 64);
                 At((RectTransform)add.transform, 402, 726, 288, 64);
             }
         }
-        public void Open()
+        public void Open(System.Action back = null)
         {
             if (!market.CanTrade) return;
             foreach (var cart in _carts) cart.Clear();
-            gameObject.SetActive(true); SelectCategory(0); status.text = "Выберите товары, добавьте в корзину и оплатите заказ.";
+            tabs[1].GetComponentInChildren<Text>().text = FarmText.Get("market.tabSell");
+            close.GetComponentInChildren<Text>().text = FarmText.Get("market.close");
+            FarmUITheme.FitCompactButton(clear, 22);
+            gameObject.SetActive(true); SelectCategory(0); FarmUIFocus.Show(panel, tabs[0], back);
         }
         public void Hide() => gameObject.SetActive(false);
         public void Preview(int category = 0, bool sampleCart = false)
@@ -60,7 +65,7 @@ namespace MyLittleFarm.UI
             foreach (var cart in _carts) cart.Clear();
             gameObject.SetActive(true); SelectCategory(category);
             if (sampleCart && category == 0) { Cart["carrot_seed"] = 4; Cart["wheat_seed"] = 2; Basket(); }
-            status.text = "Предпросмотр · запасы фермы не загружены";
+            status.text = FarmText.Get("market.preview");
         }
         private void OnEnable()
         {
@@ -70,6 +75,7 @@ namespace MyLittleFarm.UI
             add.onClick.AddListener(Add); minus.onClick.AddListener(Less); plus.onClick.AddListener(More); pay.onClick.AddListener(Checkout); clear.onClick.AddListener(Clear);
             quantityInput.onEndEdit.AddListener(EnterQuantity); maximum.onClick.AddListener(Maximum);
             GameEvents.InventoryChanged += Dirty; GameEvents.MoneyChanged += MoneyChanged; market.Changed += Dirty;
+            GameEvents.ActionVisualFeedback += ShowTradeDelta;
         }
         private void OnDisable()
         {
@@ -78,24 +84,44 @@ namespace MyLittleFarm.UI
             add.onClick.RemoveListener(Add); minus.onClick.RemoveListener(Less); plus.onClick.RemoveListener(More); pay.onClick.RemoveListener(Checkout); clear.onClick.RemoveListener(Clear);
             quantityInput.onEndEdit.RemoveListener(EnterQuantity); maximum.onClick.RemoveListener(Maximum);
             GameEvents.InventoryChanged -= Dirty; GameEvents.MoneyChanged -= MoneyChanged; market.Changed -= Dirty;
+            GameEvents.ActionVisualFeedback -= ShowTradeDelta;
+            _balancePulseUntil = 0;
+            balance.color = FarmUITheme.Ink;
         }
         private void Dirty() => _dirty = true;
         private void MoneyChanged(int ignored) => Dirty();
+        private void ShowTradeDelta(string action, Vector3 position, string item, int amount)
+        {
+            if (item != "coin" || amount == 0) return;
+            _balancePulseColor = amount > 0 ? new Color(.22f, .47f, .17f) : new Color(.68f, .28f, .14f);
+            balance.color = _balancePulseColor;
+            _balancePulseUntil = Time.unscaledTime + .65f;
+        }
         private void LateUpdate()
         {
             if (_dirty) { _dirty = false; Refresh(); }
+            if (_balancePulseUntil > 0)
+            {
+                var remaining = _balancePulseUntil - Time.unscaledTime;
+                balance.color = Color.Lerp(FarmUITheme.Ink, _balancePulseColor, Mathf.Clamp01(remaining / .45f));
+                if (remaining <= 0) _balancePulseUntil = 0;
+            }
             if (Time.unscaledTime < _nextProximityCheck) return;
             _nextProximityCheck = Time.unscaledTime + .2f;
-            if (!market.CanTrade) { pay.interactable = false; add.interactable = false; status.text = "Подойдите к рынку для торговли."; }
+            if (!market.CanTrade) { pay.interactable = false; add.interactable = false; status.text = FarmText.Get("market.approach"); }
         }
         private void SelectCategory(int index)
         {
+            _receipt = null;
             _category = (FarmMarket.Category)index; _selected = null; _quantity = 1; status.text = "";
             for (var i = 0; i < tabs.Length; i++) FarmUITheme.Style(tabs[i], i == index ? "secondary" : "ghost");
-            Refresh(); FarmUITheme.Focus(cards[0]);
+            Refresh(); FarmUITheme.Focus(tabs[index]);
         }
         private void Select(int index)
-        { if (_offers == null || index >= _offers.Count) return; _selected = _offers[index].Id; _quantity = 1; Details(); Paint(); }
+        {
+            if (_offers == null || index >= _offers.Count) return;
+            _receipt = null; _selected = _offers[index].Id; _quantity = 1; Details(); Paint(); Basket();
+        }
         private FarmMarket.Offer Selected => _offers == null ? null : _offers.Find(o => o.Id == _selected);
         private int Remaining(FarmMarket.Offer offer) => Mathf.Max(0, offer.Maximum - (Cart.TryGetValue(offer.Id, out var value) ? value : 0));
         private void Less() { _quantity = Mathf.Max(1, _quantity - 1); Details(); }
@@ -117,13 +143,19 @@ namespace MyLittleFarm.UI
         {
             var offer = Selected;
             if (offer == null || !offer.Available || !market.CanTrade || _quantity > Remaining(offer)) return;
-            Cart.TryGetValue(offer.Id, out var owned); Cart[offer.Id] = owned + _quantity;
-            status.text = "Добавлено в корзину: " + offer.Name; Details(); Basket();
+            var amount = _quantity;
+            _receipt = null;
+            Cart.TryGetValue(offer.Id, out var owned); Cart[offer.Id] = owned + amount;
+            Details(); Basket();
+            if (pay.interactable)
+                status.text = FarmText.Get(_category == FarmMarket.Category.Sell ? "market.saleAdded" : "market.added", offer.Name, amount);
         }
-        private void Clear() { Cart.Clear(); status.text = "Корзина очищена"; Details(); Basket(); }
+        private void Clear() { _receipt = null; Cart.Clear(); Details(); Basket(); }
+        private string _receipt;
         private void Checkout()
         {
-            if (market.Checkout(_category, Cart, out var message)) { Cart.Clear(); _quantity = 1; }
+            if (Cart.Count == 0) return;
+            if (market.Checkout(_category, Cart, out var message)) { Cart.Clear(); _quantity = 1; _receipt = message; }
             else MyLittleFarm.Audio.FarmAudio.Play(MyLittleFarm.Audio.SoundId.UiError);
             Refresh(); status.text = message;
         }
@@ -137,7 +169,7 @@ namespace MyLittleFarm.UI
             {
                 var exists = i < _offers.Count; cards[i].gameObject.SetActive(exists); if (!exists) continue;
                 var offer = _offers[i]; cardIcons[i].sprite = FarmUITheme.Sprite("Icons/" + offer.Icon);
-                cardLabels[i].text = offer.Name.Replace("Улучшение инструмента", "Инструмент") + "\n" + (offer.Available ? offer.Price + " монет" : offer.Unavailable);
+                cardLabels[i].text = offer.Name.Replace("Улучшение инструмента", "Инструмент") + "\n" + (offer.Available ? FarmText.Coins(offer.Price) : offer.Unavailable);
                 cardIcons[i].color = offer.Available ? Color.white : new Color(1, 1, 1, .5f);
             }
             Details(); Paint(); Basket();
@@ -161,16 +193,18 @@ namespace MyLittleFarm.UI
             var offer = Selected; var exists = offer != null;
             if (quantityInput != null) { quantityInput.interactable = exists; maximum.interactable = exists && offer.Available && Remaining(offer) > 0; }
             portrait.gameObject.SetActive(exists); add.interactable = minus.interactable = plus.interactable = exists;
-            if (!exists) { title.text = "Нет доступных позиций"; description.text = "Постройте дом, чтобы увидеть его улучшения."; unitPrice.text = ""; quantity.text = "—"; return; }
+            if (!exists) { title.text = FarmText.Get("market.noOffers"); description.text = FarmText.Get("market.noOffersHelp"); unitPrice.text = ""; quantity.text = "—"; return; }
             _quantity = Mathf.Clamp(_quantity, 1, Mathf.Max(1, Remaining(offer)));
             title.text = offer.Name; portrait.sprite = FarmUITheme.Sprite("Icons/" + offer.Icon);
             var metric = panel.Find("Selected item/Detail metric").GetComponent<Image>();
             metric.sprite = FarmUITheme.Sprite("Icons/" + (_category == FarmMarket.Category.Upgrades ? "upgrade" : _category == FarmMarket.Category.Animals ? "clock" : "growth"));
             description.text = offer.Description;
-            unitPrice.text = offer.Available ? "Цена за 1 шт. · " + offer.Price : offer.Unavailable;
+            unitPrice.text = !offer.Available ? offer.Unavailable : Remaining(offer) > 0
+                ? FarmText.Get("market.unitPrice", FarmText.Coins(offer.Price))
+                : FarmText.Get("market.limit");
             quantityInput.SetTextWithoutNotify(_quantity.ToString()); minus.interactable = _quantity > 1; plus.interactable = _quantity < Remaining(offer);
             add.interactable = offer.Available && Remaining(offer) > 0 && (!Application.isPlaying || market.CanTrade);
-            add.GetComponentInChildren<Text>().text = _category == FarmMarket.Category.Sell ? "К продаже" : "В корзину";
+            add.GetComponentInChildren<Text>().text = _category == FarmMarket.Category.Sell ? FarmText.Get("market.addSale") : FarmText.Get("market.addPurchase");
         }
         private void Basket()
         {
@@ -178,8 +212,7 @@ namespace MyLittleFarm.UI
             // before a domain reload. Nonserialized row caches cannot own authored objects.
             for (var i = cartContent.childCount - 1; i >= 0; i--)
             { var row = cartContent.GetChild(i).gameObject; row.SetActive(false); if (Application.isPlaying) Destroy(row); else DestroyImmediate(row); }
-            var heading = _category == FarmMarket.Category.Sell ? "К ПРОДАЖЕ" : "КОРЗИНА";
-            cartTitle.text = heading + " · " + Cart.Count + " поз.";
+            cartTitle.text = FarmText.Get(_category == FarmMarket.Category.Sell ? "market.saleCartTitle" : "market.cartTitle", Cart.Count);
             var index = 0; long sum = 0;
             foreach (var line in Cart)
             {
@@ -188,10 +221,12 @@ namespace MyLittleFarm.UI
                 var row = FarmUITheme.Rect(cartContent, id);
                 At(row, 0, index++ * 48, 590, 44);
                 var icon = FarmUITheme.Icon(row, offer == null ? "warning" : offer.Icon); At(icon.rectTransform, 2, 4, 36, 36);
-                var label = FarmUITheme.Label(row, (offer == null ? "Недоступно" : offer.Name) + " ×" + line.Value + " · " + (long)price * line.Value, font, 21);
+                var label = FarmUITheme.Label(row, (offer == null ? FarmText.Get("market.unavailable") : offer.Name) + " ×" + line.Value + " · " + FarmText.Coins((long)price * line.Value), font, 21);
                 label.alignment = TextAnchor.MiddleLeft; At(label.rectTransform, 48, 0, 420, 44);
                 var less = FarmUITheme.Button(row, "−", font, null, "ghost"); At((RectTransform)less.transform, 476, 0, 48, 44);
                 var remove = FarmUITheme.Button(row, "×", font, null, "ghost"); At((RectTransform)remove.transform, 534, 0, 48, 44);
+                FarmUITheme.FitCompactButton(less, 22);
+                FarmUITheme.FitCompactButton(remove, 22);
                 if (Application.isPlaying)
                 {
                     less.onClick.AddListener(() => { if (--Cart[id] <= 0) Cart.Remove(id); Details(); Basket(); });
@@ -200,17 +235,18 @@ namespace MyLittleFarm.UI
             }
             cartContent.sizeDelta = new Vector2(0, Mathf.Max(200, index * 48));
             var valid = market.Quote(_category, Cart, out _, out var reason);
-            total.text = (_category == FarmMarket.Category.Sell ? "Вы получите: " : "Итого: ") + sum.ToString("N0");
-            pay.GetComponentInChildren<Text>().text = _category == FarmMarket.Category.Sell ? "Продать" : "Оплатить";
+            total.text = FarmText.Get(_category == FarmMarket.Category.Sell ? "market.sellTotal" : "market.payTotal", FarmText.Coins(sum));
+            pay.GetComponentInChildren<Text>().text = _category == FarmMarket.Category.Sell ? FarmText.Get("market.sell") : FarmText.Get("market.pay");
             pay.interactable = Application.isPlaying && market.CanTrade && valid; clear.interactable = Cart.Count > 0;
-            if (!valid && Cart.Count > 0) status.text = reason;
+            status.text = !market.CanTrade && Application.isPlaying ? FarmText.Get("market.approach")
+                : valid ? string.Empty : _receipt ?? reason;
         }
         public static FarmMarketUI Create(Transform parent, Font font, FarmMarket market)
         {
             var root = FarmUITheme.Rect(parent, "Market"); FarmUITheme.Stretch(root);
             var ui = root.gameObject.AddComponent<FarmMarketUI>(); ui.font = font; ui.market = market;
-            ui.panel = FarmUITheme.Panel(root, "РЫНОК", font, new Vector2(1440, 900));
-            var names = new[] { "Семена", "Продать", "Улучшения", "Животные" }; var keys = new[] { "seeds_carrot", "sell", "upgrade", "chicken" };
+            ui.panel = FarmUITheme.Panel(root, FarmText.Get("market.title"), font, new Vector2(1440, 900));
+            var names = new[] { FarmText.Get("market.tabSeeds"), FarmText.Get("market.tabSell"), FarmText.Get("market.tabUpgrades"), FarmText.Get("market.tabAnimals") }; var keys = new[] { "seeds_carrot", "sell", "upgrade", "chicken" };
             ui.tabs = new Button[4];
             for (var i = 0; i < 4; i++) { ui.tabs[i] = FarmUITheme.Button(ui.panel, names[i], font, keys[i], "ghost"); At((RectTransform)ui.tabs[i].transform, 40 + i * 344, 78, 328, 64); }
             var viewport = FarmUITheme.Image(ui.panel, "Catalogue viewport"); viewport.color = Color.clear; At(viewport.rectTransform, 40, 170, 650, 518);
@@ -235,7 +271,7 @@ namespace MyLittleFarm.UI
             ui.unitPrice = FarmUITheme.Label(detail, "", font, 23); ui.unitPrice.alignment = TextAnchor.MiddleLeft; At(ui.unitPrice.rectTransform, 184, 184, 460, 42);
             var basket = FarmUITheme.Image(ui.panel, "Order", "Skin/slot").rectTransform; At(basket, 730, 420, 670, 288);
             ui.cartTitle = FarmUITheme.Label(basket, "КОРЗИНА", font, 26); ui.cartTitle.alignment = TextAnchor.MiddleLeft; At(ui.cartTitle.rectTransform, 24, 12, 430, 44);
-            ui.clear = FarmUITheme.Button(basket, "Очистить", font, null, "ghost"); At((RectTransform)ui.clear.transform, 474, 12, 170, 44);
+            ui.clear = FarmUITheme.Button(basket, FarmText.Get("market.clear"), font, null, "ghost"); At((RectTransform)ui.clear.transform, 474, 12, 170, 44);
             var cartView = FarmUITheme.Image(basket, "Order viewport"); cartView.color = Color.clear; At(cartView.rectTransform, 24, 70, 622, 200); cartView.gameObject.AddComponent<RectMask2D>();
             var cartScroll = cartView.gameObject.AddComponent<ScrollRect>(); ui.cartContent = FarmUITheme.Rect(cartView.transform, "Order lines");
             ui.cartContent.anchorMin = new Vector2(0, 1); ui.cartContent.anchorMax = Vector2.one; ui.cartContent.pivot = new Vector2(.5f, 1); ui.cartContent.sizeDelta = new Vector2(0, 200);
@@ -243,10 +279,10 @@ namespace MyLittleFarm.UI
             ui.minus = FarmUITheme.Button(ui.panel, "−", font, null, "ghost"); At((RectTransform)ui.minus.transform, 40, 726, 64, 64);
             ui.quantity = FarmUITheme.Label(ui.panel, "1", font, 30); At(ui.quantity.rectTransform, 110, 726, 90, 64);
             ui.plus = FarmUITheme.Button(ui.panel, "+", font, null, "ghost"); At((RectTransform)ui.plus.transform, 206, 726, 64, 64);
-            ui.add = FarmUITheme.Button(ui.panel, "В корзину", font, "buy"); At((RectTransform)ui.add.transform, 294, 726, 396, 64);
+            ui.add = FarmUITheme.Button(ui.panel, FarmText.Get("market.addPurchase"), font, "buy"); At((RectTransform)ui.add.transform, 294, 726, 396, 64);
             ui.total = FarmUITheme.Label(ui.panel, "Итого: 0", font, 28); ui.total.alignment = TextAnchor.MiddleLeft; At(ui.total.rectTransform, 730, 726, 370, 64);
-            ui.pay = FarmUITheme.Button(ui.panel, "Оплатить", font, "confirm", "secondary"); At((RectTransform)ui.pay.transform, 1110, 726, 290, 64);
-            ui.close = FarmUITheme.Button(ui.panel, "Закрыть · Esc", font, "close", "ghost"); At((RectTransform)ui.close.transform, 40, 818, 320, 58);
+            ui.pay = FarmUITheme.Button(ui.panel, FarmText.Get("market.pay"), font, "confirm", "secondary"); At((RectTransform)ui.pay.transform, 1110, 726, 290, 64);
+            ui.close = FarmUITheme.Button(ui.panel, FarmText.Get("market.close"), font, "close", "ghost"); At((RectTransform)ui.close.transform, 40, 818, 320, 58);
             var money = FarmUITheme.Icon(ui.panel, "coin"); At(money.rectTransform, 404, 824, 42, 42);
             ui.balance = FarmUITheme.Label(ui.panel, "0", font, 28); ui.balance.alignment = TextAnchor.MiddleLeft; At(ui.balance.rectTransform, 458, 818, 212, 58);
             ui.status = FarmUITheme.Label(ui.panel, "", font, 22); ui.status.alignment = TextAnchor.MiddleLeft; At(ui.status.rectTransform, 730, 806, 670, 76);

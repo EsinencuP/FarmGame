@@ -268,7 +268,7 @@ namespace MyLittleFarm.Editor
             var material=AssetDatabase.LoadAssetAtPath<Material>("Assets/_Game/Content/World/Landscape/PondWater.mat");
             var mesh=AssetDatabase.LoadAssetAtPath<Mesh>("Assets/_Game/Content/World/Landscape/PondWater.mesh.asset");
             if(material==null||mesh==null)throw new MissingReferenceException("Authored pond is missing.");
-            material.shader=Shader.Find("MyLittleFarm/World/Animated Pond");material.SetFloat("_PhaseOffset",0);material.SetFloat("_RippleStrength",.025f);EditorUtility.SetDirty(material);
+            material.shader=Shader.Find("MyLittleFarm/World/Animated Pond");material.SetFloat("_PhaseOffset",0);EditorUtility.SetDirty(material);
             var tangents=new Vector4[mesh.vertexCount];var uv=new Vector2[mesh.vertexCount];var vertices=mesh.vertices;
             for(var i=0;i<tangents.Length;i++){tangents[i]=new Vector4(1,0,0,-1);uv[i]=new Vector2(vertices[i].x,vertices[i].z)*.25f;}
             mesh.tangents=tangents;mesh.uv=uv;EditorUtility.SetDirty(mesh);

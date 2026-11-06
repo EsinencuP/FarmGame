@@ -88,5 +88,15 @@ namespace MyLittleFarm.UI
         }
         public static void Focus(Selectable control)
         { if (Application.isPlaying && EventSystem.current != null) EventSystem.current.SetSelectedGameObject(control == null ? null : control.gameObject); }
+
+        public static void FitCompactButton(Button button, int fontSize)
+        {
+            var label = button.GetComponentInChildren<Text>(true);
+            label.fontSize = label.resizeTextMaxSize = fontSize;
+            label.resizeTextMinSize = 14;
+            var rect = label.rectTransform;
+            rect.offsetMin = new Vector2(rect.offsetMin.x, 3);
+            rect.offsetMax = new Vector2(rect.offsetMax.x, -3);
+        }
     }
 }

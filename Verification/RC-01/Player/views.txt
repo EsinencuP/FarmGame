@@ -1,0 +1,15 @@
+profile=C:/Users/esinencuP/AppData/LocalLow/USM-RC01-Preview/My Little Farm; api=Direct3D12; quality=Ultra; baseHash=3966892030404822408; material=LandscapeSurface
+(5, 0)=Tilled, (5, -1)=Planted, (6, 0)=Tilled, (6, -1)=Planted
+farm-day-normal-before | camera=(-3.744, 9.548, -6.744) yaw=45 pitch=38 distance=13 fov=46 hour=11.5 pointShadows=0
+farm-day-normal | camera=(-3.744, 9.548, -6.744) yaw=45 pitch=38 distance=13 fov=46 hour=11.5 pointShadows=0
+farm-day-close | camera=(1.600, 5.854, -3.900) yaw=45 pitch=38 distance=7 fov=46 hour=11.5 pointShadows=0
+farm-day-far | camera=(-7.644, 13.857, -10.644) yaw=45 pitch=38 distance=20 fov=46 hour=11.5 pointShadows=0
+market-day-normal | camera=(3.874, 9.568, -8.797) yaw=24.3 pitch=38 distance=13 fov=46 hour=11.5 pointShadows=0
+dirt-trail-and-stone-day | camera=(17.256, 9.724, -24.044) yaw=45 pitch=38 distance=13 fov=46 hour=11.5 pointShadows=0
+pond-day-normal | camera=(-2.256, 9.504, 9.500) yaw=-90 pitch=38 distance=13 fov=46 hour=11.5 pointShadows=0
+pond-day-close | camera=(-7.684, 5.670, 8.500) yaw=-90 pitch=38 distance=7 fov=46 hour=11.5 pointShadows=0
+farm-night-normal | camera=(-3.744, 9.548, -6.744) yaw=45 pitch=38 distance=13 fov=46 hour=23 pointShadows=3
+farm-night-close | camera=(1.600, 5.854, -3.900) yaw=45 pitch=38 distance=7 fov=46 hour=23 pointShadows=3
+farm-night-close-no-point-shadows | camera=(1.600, 5.854, -3.900) yaw=45 pitch=38 distance=7 fov=46 hour=23 pointShadows=0
+pond-night-normal | camera=(-2.256, 9.504, 9.500) yaw=-90 pitch=38 distance=13 fov=46 hour=23 pointShadows=2
+pond-night-close | camera=(-7.684, 5.670, 8.500) yaw=-90 pitch=38 distance=7 fov=46 hour=23 pointShadows=2

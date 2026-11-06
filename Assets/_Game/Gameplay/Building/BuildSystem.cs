@@ -5,6 +5,7 @@ using MyLittleFarm.Core;
 using MyLittleFarm.Core.Grid;
 using MyLittleFarm.Gameplay.Economy;
 using MyLittleFarm.Gameplay.Farming;
+using MyLittleFarm.UI;
 using UnityEngine;
 
 namespace MyLittleFarm.Gameplay.Building
@@ -232,7 +233,7 @@ namespace MyLittleFarm.Gameplay.Building
             // Обработка организована как конечный автомат: обычное размещение, перенос или подтверждение удаления.
             if (_input == null || _layout == null) return;
             if(_input.ModalInputActive)return;
-            if (_input.BuildTogglePressed) SetActive(!IsActive);
+            if (_input.BuildTogglePressed) { SetActive(!IsActive); return; }
             if (!IsActive) return;
             _input.SuppressGameplayThisFrame = true;
             if (_input.CancelPressed)
@@ -262,7 +263,8 @@ namespace MyLittleFarm.Gameplay.Building
                 if (_previewModel != null) _previewModel.SetActive(false);
                 var state = _layout.Get(_deleteId);
                 if (state == null) { _deleteId = null; return; }
-                CurrentPrompt = $"Удалить {_layout.Definition(state.definitionId).Name}? Возврат: {state.Refund} монет\nE / Enter — подтвердить\nEsc / ПКМ — отменить";
+                CurrentPrompt = FarmText.Get("construction.deletePrompt", _layout.Definition(state.definitionId).Name,
+                    FarmText.Coins(state.Refund), InputReader.KeyLabel(InputReader.Command.Interact));
                 if (_input.ConfirmPressed || (_input.InteractPressed && !_input.PointerInteractPressed))
                 {
                     TryRemove(_deleteId, out var reason);
@@ -296,7 +298,7 @@ namespace MyLittleFarm.Gameplay.Building
             // Валидность влияет одновременно на цвет предпросмотра и возможность подтвердить действие.
             var valid = _hasTarget && CanPlace(SelectedDefinition.Id, _target, _turns, _movingId, out reasonText);
             if (valid && _movingId == null && _wallet.Coins < SelectedDefinition.Price)
-            { valid = false; reasonText = "Недостаточно монет"; }
+            { valid = false; reasonText = FarmText.MissingCoins(SelectedDefinition.Price - _wallet.Coins); }
             _preview.SetActive(_hasTarget);
             UpdateModelPreview(valid);
             if (_hasTarget)
@@ -329,10 +331,13 @@ namespace MyLittleFarm.Gameplay.Building
         /// <summary>Shared text for runtime and data-only Editor preview; does not touch game state.</summary>
         public static string PlacementPrompt(BuildingDefinition definition, int turns, bool moving, bool valid, string reason)
         {
-            return $"СТРОИТЕЛЬСТВО · {definition.Name} · {(moving ? "бесплатный перенос" : definition.Price + " монет")} · {definition.RotatedWidth(turns)}×{definition.RotatedDepth(turns)}\n"
-                + "1–5 — постройки   Tab — каталог и декор\n"
-                + (valid ? "Размещение доступно" : reason)
-                + "\nE / ЛКМ — подтвердить   Q / R — повернуть   Esc / ПКМ — отмена\nM — перенос   Delete — удалить   F — настроить объект   B — выйти";
+            return FarmText.Get("construction.placement", definition.Name,
+                moving ? FarmText.Get("construction.freeMove") : FarmText.Coins(definition.Price),
+                definition.RotatedWidth(turns), definition.RotatedDepth(turns),
+                InputReader.SlotHint(InputReader.Command.Building1, 5), InputReader.KeyLabel(InputReader.Command.Catalogue),
+                valid ? FarmText.Get("construction.valid") : reason, InputReader.ActionHint, InputReader.BuildRotateHint,
+                InputReader.KeyLabel(InputReader.Command.MoveBuilding), InputReader.KeyLabel(InputReader.Command.DeleteBuilding),
+                InputReader.KeyLabel(InputReader.Command.Customize), InputReader.KeyLabel(InputReader.Command.Build));
         }
 
         private Material GhostMaterial(Shader shader, Color tint)
@@ -449,7 +454,7 @@ namespace MyLittleFarm.Gameplay.Building
             // Деньги списываются только после всех проверок и успешного добавления в layout.
             if (!CanPlace(definitionId, cell, turns, null, out reason)) return false;
             var definition = _layout.Definition(definitionId);
-            if (_wallet.Coins < definition.Price) { reason = "Недостаточно монет"; return false; }
+            if (_wallet.Coins < definition.Price) { reason = FarmText.MissingCoins(definition.Price - _wallet.Coins); return false; }
             var state = new BuildingRuntimeState { id = Guid.NewGuid().ToString("N"), definitionId = definitionId,
                 x = cell.x, z = cell.y, quarterTurns = turns, paidCost = definition.Price };
             if (!_layout.TryPlace(state, (x, z) => IsTerrainBlocked(x, z), out reason)) return false;

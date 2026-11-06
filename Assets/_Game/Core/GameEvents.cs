@@ -17,6 +17,7 @@ namespace MyLittleFarm.Core
             MoneyChanged = null;
             StatusChanged = null;
             ActionFeedback = null;
+            ActionVisualFeedback = null;
             ProgressAction = null;
             OnboardingChanged = null;
             FarmAction = null;
@@ -26,6 +27,7 @@ namespace MyLittleFarm.Core
         public static event Action<string> StatusChanged;
         // action — тип эффекта, позиция указывает место его появления в мире.
         public static event Action<string, UnityEngine.Vector3> ActionFeedback;
+        public static event Action<string, UnityEngine.Vector3, string, int> ActionVisualFeedback;
         // ProgressAction используется онбордингом и не зависит от визуальных эффектов.
         public static event Action<string> ProgressAction;
         public static event Action<int> OnboardingChanged;
@@ -55,9 +57,10 @@ namespace MyLittleFarm.Core
         }
 
         /// <summary>Просит систему эффектов показать короткий маркер игрового действия.</summary>
-        public static void RaiseActionFeedback(string action, UnityEngine.Vector3 worldPosition)
+        public static void RaiseActionFeedback(string action, UnityEngine.Vector3 worldPosition, string itemId = null, int amount = 0)
         {
             ActionFeedback?.Invoke(action, worldPosition);
+            ActionVisualFeedback?.Invoke(action, worldPosition, itemId, amount);
         }
 
         /// <summary>Сообщает прогресс сценария обучения без жёсткой связи с игровыми системами.</summary>

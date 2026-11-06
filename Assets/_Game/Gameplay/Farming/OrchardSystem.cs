@@ -92,7 +92,7 @@ namespace MyLittleFarm.Gameplay.Farming
             GameEvents.Record("apples",amount:yield);
             UpdateView(position, nowUnixMs);
             GameEvents.RaiseStatusChanged($"Собрано: {yield} × {_appleTree.DisplayName}");
-            GameEvents.RaiseActionFeedback("harvest", _grid.GridToWorld(position));
+            GameEvents.RaiseActionFeedback("harvest", _grid.GridToWorld(position), itemId, yield);
             GameEvents.RaiseProgressAction("harvest");
             return true;
         }

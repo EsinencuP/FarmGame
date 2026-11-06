@@ -1,6 +1,5 @@
 using MyLittleFarm.Core;
 using UnityEngine;
-using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
 namespace MyLittleFarm.UI
@@ -16,7 +15,7 @@ namespace MyLittleFarm.UI
         [SerializeField] private Text status;
         [SerializeField] private bool illustratedButtons;
         private enum Page { Main, Settings, Quit }
-        private Page _page;
+        private GameObject _previousSelection;
         private Rect _safe;
         private Vector2 _size;
         private void Awake()
@@ -38,14 +37,12 @@ namespace MyLittleFarm.UI
         {
             Resize();
             if (FarmSceneFlow.IsLoading) return;
-            if (!interaction.interactable) { interaction.interactable = true; status.text = "Не удалось загрузить сцену фермы."; }
-            if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
-            { if (_page == Page.Main) AskQuit(); else Back(); }
+            if (!interaction.interactable) { interaction.interactable = true; status.text = FarmText.Get("menu.loadFailed"); }
         }
         private void Launch()
         {
             if (FarmSceneFlow.LoadGame()) interaction.interactable = false;
-            else if (!FarmSceneFlow.IsLoading) status.text = "Не удалось загрузить сцену фермы.";
+            else if (!FarmSceneFlow.IsLoading) status.text = FarmText.Get("menu.loadFailed");
         }
         private void Back() { MyLittleFarm.Audio.FarmAudio.Play(MyLittleFarm.Audio.SoundId.UiBack); Show(Page.Main); }
         private void OpenSettings() => Show(Page.Settings);
@@ -53,10 +50,17 @@ namespace MyLittleFarm.UI
         private void Show(Page page)
         {
             if (page != Page.Main) MyLittleFarm.Audio.FarmAudio.Play(MyLittleFarm.Audio.SoundId.UiOpen);
-            _page = page; actions.gameObject.SetActive(page == Page.Main); dimmer.SetActive(page != Page.Main);
+            if (page != Page.Main) _previousSelection = FarmUIFocus.Selected;
+            actions.gameObject.SetActive(page == Page.Main); dimmer.SetActive(page != Page.Main);
             quitPanel.gameObject.SetActive(page == Page.Quit); settings.Hide();
-            if (page == Page.Settings) settings.Open();
-            else FarmUITheme.Focus(page == Page.Main ? start : cancelQuit);
+            if (page == Page.Settings) settings.Open(Back);
+            else if (page == Page.Main)
+            {
+                FarmUIFocus.Show(actions, start, AskQuit);
+                FarmUIFocus.Restore(_previousSelection, start);
+                _previousSelection = null;
+            }
+            else FarmUIFocus.Show(quitPanel, cancelQuit, Back);
             Resize(true);
         }
         private static void Quit()
@@ -130,8 +134,8 @@ namespace MyLittleFarm.UI
             ui.status = FarmUITheme.Label(ui.actions, "", font, 20); ui.status.color = Color.white;
             FarmUITheme.Place(ui.status.rectTransform, Vector2.zero, Vector2.zero, Vector2.zero, new Vector2(440, 64));
             ui.settings = FarmSettingsUI.Create(ui.safeArea, font);
-            ui.quitPanel = FarmUITheme.Panel(ui.safeArea, "ВЫЙТИ ИЗ ИГРЫ?", font, new Vector2(740, 300));
-            ui.cancelQuit = FarmUITheme.Button(ui.quitPanel, "Отмена", font, "back", "ghost"); ui.confirmQuit = FarmUITheme.Button(ui.quitPanel, "Выйти", font, "exit", "danger");
+            ui.quitPanel = FarmUITheme.Panel(ui.safeArea, FarmText.Get("menu.quitTitle"), font, new Vector2(740, 300));
+            ui.cancelQuit = FarmUITheme.Button(ui.quitPanel, FarmText.Get("menu.quitCancel"), font, "back", "ghost"); ui.confirmQuit = FarmUITheme.Button(ui.quitPanel, FarmText.Get("menu.quit"), font, "exit", "danger");
             FarmUITheme.Place((RectTransform)ui.cancelQuit.transform, Vector2.zero, Vector2.zero, new Vector2(36, 60), new Vector2(310, 76));
             FarmUITheme.Place((RectTransform)ui.confirmQuit.transform, new Vector2(1, 0), new Vector2(1, 0), new Vector2(-36, 60), new Vector2(310, 76));
             ui.Preview(); return ui;

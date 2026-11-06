@@ -24,7 +24,7 @@ namespace MyLittleFarm.Core.Grid
         [SerializeField, Min(1f)] private float maxRayDistance = 500f;
         [SerializeField, Range(0f, 0.5f)] private float hoverSettleTime = 0.12f;
 
-        // Зависимости назначаются GameBootstrap; player сохранён для будущих ограничений радиуса действия.
+        // Зависимости назначаются GameBootstrap.
         private GridSystem _grid;
         private Transform _player;
         private InputReader _input;
@@ -87,7 +87,6 @@ namespace MyLittleFarm.Core.Grid
 
         private void Update()
         {
-            // Поле считывается, чтобы Unity не удалял зависимость player при будущей оптимизации компонента.
             if (_player == null) ClearSelection();
             else RefreshSelection();
         }
@@ -95,8 +94,7 @@ namespace MyLittleFarm.Core.Grid
         /// <summary>Пересчитывает наведение по текущей позиции указателя.</summary>
         public void RefreshSelection()
         {
-            if (_grid == null || _input == null || !_input.HasPointer || _input.WorldPointerBlocked || mainCamera == null
-                || (_buildings != null && _buildings.IsActive))
+            if (!CanPickPointer())
             {
                 ClearSelection();
                 return;
@@ -107,11 +105,32 @@ namespace MyLittleFarm.Core.Grid
 
         public void SelectRay(Ray ray)
         {
+            Pick(ray, out var target, out var foundTerrain, out var point);
+            if (target != null) SelectTarget(target);
+            else if (foundTerrain) SelectWorldPoint(point);
+            else ClearSelection();
+        }
+
+        /// <summary>Checks the current click against the highlighted identity without changing the highlight.</summary>
+        public bool ConfirmPointerSelection()
+        {
+            if (!HasSelection || !CanPickPointer()) return false;
+            Pick(mainCamera.ScreenPointToRay(_input.PointerPosition), out var target, out var terrain, out var point);
+            if (HoveredTarget != null) return target == HoveredTarget;
+            return target == null && terrain && _grid.TryWorldToCell(point, out var cell) && cell == HoveredCell;
+        }
+
+        private bool CanPickPointer() => _grid != null && _input != null && _input.HasPointer
+            && !_input.WorldPointerBlocked && !_input.ModalInputActive && !_input.SuppressGameplayThisFrame
+            && mainCamera != null && (_buildings == null || !_buildings.IsActive);
+
+        private void Pick(Ray ray, out InteractionTarget target, out bool foundTerrain, out Vector3 point)
+        {
             // Only authored terrain colliders can select ground. Object triggers have their own independent pass.
             var hitCount = Physics.RaycastNonAlloc(ray, Hits, maxRayDistance, terrainLayer, QueryTriggerInteraction.Ignore);
             var terrainDistance = maxRayDistance;
-            var foundTerrain = false;
-            var point = default(Vector3);
+            foundTerrain = false;
+            point = default;
             for (var index = 0; index < hitCount; index++)
             {
                 var hit = Hits[index];
@@ -121,7 +140,7 @@ namespace MyLittleFarm.Core.Grid
                 foundTerrain = true;
             }
 
-            InteractionTarget target = null;
+            target = null;
             var nearestDistance = float.MaxValue;
             hitCount = Physics.RaycastNonAlloc(ray, Hits, foundTerrain ? terrainDistance + 0.02f : maxRayDistance,
                 interactionLayer, QueryTriggerInteraction.Collide);
@@ -136,9 +155,6 @@ namespace MyLittleFarm.Core.Grid
                     && candidate.GetHashCode() > target.GetHashCode()) continue;
                 nearestDistance = hit.distance; target = candidate;
             }
-            if (target != null) SelectTarget(target);
-            else if (foundTerrain) SelectWorldPoint(point);
-            else ClearSelection();
         }
 
         public bool SelectTarget(InteractionTarget target)

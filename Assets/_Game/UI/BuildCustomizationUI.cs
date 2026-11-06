@@ -1,12 +1,12 @@
 using MyLittleFarm.Core;
 using MyLittleFarm.Gameplay.Building;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace MyLittleFarm.UI
 {
     /// <summary>Baked construction catalogue and modal editing; no gameplay initialization in Edit Mode.</summary>
+    [DefaultExecutionOrder(-170)]
     public sealed class BuildCustomizationUI : MonoBehaviour
     {
         [SerializeField] private BuildSystem buildings;
@@ -23,6 +23,7 @@ namespace MyLittleFarm.UI
         private string _detailId;
         private int _page;
         private bool _bound;
+        private GameObject _previousFocus;
 
         private void OnEnable()
         {
@@ -46,12 +47,16 @@ namespace MyLittleFarm.UI
         private void Update()
         {
             if(input==null||!Application.isPlaying)return;
-            if(input.ModalCancelPressed&&shade.activeSelf){Close();return;}
-            if(input.CatalogPressed&&buildings.IsActive&&(!shade.activeSelf||cataloguePanel.gameObject.activeSelf))ToggleCatalogue();
-            if(input.ModalSubmitPressed&&signPanel.gameObject.activeSelf)SaveText();
+            if (input.CatalogPressed && buildings.IsActive && !shade.activeSelf)ToggleCatalogue();
+            if(input.ModalSubmitPressed && signPanel.gameObject.activeSelf && signInput.isFocused) SaveText();
         }
         private void OnBuildMode(bool active)
-        {openCatalogue.gameObject.SetActive(active);if(!active)Close();}
+        {
+            openCatalogue.gameObject.SetActive(active);
+            if (!active) { Close(); return; }
+            openCatalogue.GetComponentInChildren<Text>().text =
+                FarmText.Get("construction.openCatalogue", InputReader.KeyLabel(InputReader.Command.Catalogue));
+        }
 
         public bool BlocksWorldPointer(Vector2 position)=>isActiveAndEnabled
             &&(shade.activeSelf||(openCatalogue.gameObject.activeInHierarchy
@@ -60,8 +65,8 @@ namespace MyLittleFarm.UI
         private void ToggleCatalogue()
         {
             if(cataloguePanel.gameObject.activeSelf){Close();return;}
-            Close();shade.SetActive(true);cataloguePanel.gameObject.SetActive(true);input.ModalInputActive=true;
-            ShowPage(_page);Focus(itemButtons[0].gameObject);
+            BeginModal(); cataloguePanel.gameObject.SetActive(true);
+            ShowPage(_page); FarmUIFocus.Show(cataloguePanel, itemButtons[0], Close);
         }
         public void OpenCatalogue()
         {
@@ -71,13 +76,13 @@ namespace MyLittleFarm.UI
         private void ShowPage(int page)
         {
             var count=BuildingDefinition.Catalog.Count;var pages=(count+itemButtons.Length-1)/itemButtons.Length;
-            _page=Mathf.Clamp(page,0,pages-1);catalogueTitle.text="КАТАЛОГ ФЕРМЫ   "+(_page+1)+" / "+pages;
+            _page=Mathf.Clamp(page,0,pages-1);catalogueTitle.text=FarmText.Get("construction.pageTitle", _page + 1, pages);
             previous.interactable=_page>0;next.interactable=_page+1<pages;
             for(var i=0;i<itemButtons.Length;i++)
             {
                 var index=_page*itemButtons.Length+i;itemButtons[i].gameObject.SetActive(index<count);
                 if(index>=count)continue;var definition=BuildingDefinition.Catalog[index];
-                itemLabels[i].text=definition.Name+"\n"+definition.Price+" монет · "+definition.Width+"×"+definition.Depth;
+                itemLabels[i].text=FarmText.Get("construction.offer", definition.Name, FarmText.Coins(definition.Price), definition.Width, definition.Depth);
                 var icon = itemButtons[i].transform.Find("Catalogue icon");
                 if (icon != null)
                 {
@@ -92,22 +97,22 @@ namespace MyLittleFarm.UI
         {
             if(!Application.isPlaying||state==null)return;
             if(state.definitionId!="house"&&!FarmDecorationCatalog.SupportsText(state.definitionId))
-            {GameEvents.RaiseStatusChanged("Этот предмет можно перенести (M) или удалить (Delete)");return;}
-            Close();_detailId=state.id;shade.SetActive(true);input.ModalInputActive=true;
+            {GameEvents.RaiseStatusChanged(FarmText.Get("construction.moveDelete", InputReader.KeyLabel(InputReader.Command.MoveBuilding), InputReader.KeyLabel(InputReader.Command.DeleteBuilding)));return;}
+            BeginModal(); _detailId=state.id;
             if(FarmDecorationCatalog.SupportsText(state.definitionId))
             {
                 signPanel.gameObject.SetActive(true);signInput.text=state.customText??string.Empty;
-                Focus(signInput.gameObject);signInput.ActivateInputField();
+                FarmUIFocus.Show(signPanel, signInput, Close); signInput.ActivateInputField();
             }
             else
             {
                 housePanel.gameObject.SetActive(true);var level=state.appearanceLevel;
-                houseDescription.text="ДОМ · УРОВЕНЬ "+(level+1)+" / 3\n"+FarmDecorationCatalog.HouseLevelName(level)
-                    +(level<2?"\nСледующий: "+FarmDecorationCatalog.HouseLevelName(level+1):"\nУсадьба полностью улучшена");
-                upgradeHouse.gameObject.SetActive(level<2);
-                upgradeLabel.text="На рынке · "+FarmDecorationCatalog.HouseUpgradePrice(level)+" монет";
-                upgradeHouse.interactable=false;
-                feedback.text=string.Empty;Focus(level<2?upgradeHouse.gameObject:closeHouse.gameObject);
+                houseDescription.text = FarmText.Get("construction.houseLevel", level + 1, FarmDecorationCatalog.HouseLevelName(level))
+                    + "\n" + (level < 2 ? FarmText.Get("construction.houseNext", FarmDecorationCatalog.HouseLevelName(level + 1)) : FarmText.Get("construction.houseComplete"));
+                upgradeHouse.gameObject.SetActive(level < 2);
+                upgradeHouse.interactable = false;
+                upgradeLabel.text = FarmText.Get("construction.upgradeHouse");
+                feedback.text = level < 2 ? FarmText.Get("construction.marketUpgrade", FarmText.Coins(FarmDecorationCatalog.HouseUpgradePrice(level))) : string.Empty; FarmUIFocus.Show(housePanel, closeHouse, Close);
             }
         }
         private void SaveText()
@@ -129,9 +134,21 @@ namespace MyLittleFarm.UI
             var ownedModal=shade.activeSelf;
             shade.SetActive(false);cataloguePanel.gameObject.SetActive(false);signPanel.gameObject.SetActive(false);housePanel.gameObject.SetActive(false);
             _detailId=null;if(input!=null&&ownedModal){input.ModalInputActive=false;input.SuppressGameplayThisFrame=true;}
-            if(ownedModal&&EventSystem.current!=null)EventSystem.current.SetSelectedGameObject(null);
+            if (ownedModal)
+            {
+                FarmUIFocus.Show(null, null, null);
+                FarmUIFocus.Restore(_previousFocus);
+                _previousFocus = null;
+            }
         }
-        private static void Focus(GameObject target){if(EventSystem.current!=null)EventSystem.current.SetSelectedGameObject(target);}
+        private void BeginModal()
+        {
+            Close();
+            _previousFocus = FarmUIFocus.Selected;
+            shade.SetActive(true);
+            input.ModalInputActive = true;
+            input.SuppressGameplayThisFrame = true;
+        }
 
         private void OnRectTransformDimensionsChange()=>Resize();
         private void Resize()
@@ -157,31 +174,31 @@ namespace MyLittleFarm.UI
             ui.shade=new GameObject("Modal Backdrop",typeof(RectTransform),typeof(Image));ui.shade.transform.SetParent(root.transform,false);Stretch(ui.shade.GetComponent<RectTransform>());
             ui.shade.GetComponent<Image>().color=new Color(.015f,.03f,.02f,.8f);
             ui.cataloguePanel=Panel(ui.shade.transform,"Catalogue",new Vector2(640,590));
-            ui.catalogueTitle=Label(ui.cataloguePanel,"КАТАЛОГ ФЕРМЫ",font,24);Top(ui.catalogueTitle.rectTransform,20,18,40);
-            var hint=Label(ui.cataloguePanel,"Выберите предмет, затем разместите его на сетке",font,17);Top(hint.rectTransform,20,60,30);
+            ui.catalogueTitle=Label(ui.cataloguePanel,FarmText.Get("construction.catalog"),font,24);Top(ui.catalogueTitle.rectTransform,20,18,40);
+            var hint=Label(ui.cataloguePanel,FarmText.Get("construction.catalogHelp"),font,17);Top(hint.rectTransform,20,60,30);
             var gridObject=new GameObject("Items",typeof(RectTransform),typeof(GridLayoutGroup));gridObject.transform.SetParent(ui.cataloguePanel,false);
             var rect=gridObject.GetComponent<RectTransform>();Stretch(rect);rect.offsetMin=new Vector2(20,85);rect.offsetMax=new Vector2(-20,-100);
             var grid=gridObject.GetComponent<GridLayoutGroup>();grid.constraint=GridLayoutGroup.Constraint.FixedColumnCount;grid.constraintCount=2;grid.spacing=new Vector2(12,10);
             ui.itemButtons=new Button[10];ui.itemLabels=new Text[10];
             for(var i=0;i<10;i++){ui.itemButtons[i]=Button(gridObject.transform,"",font,new Vector2(294,80));ui.itemLabels[i]=ui.itemButtons[i].GetComponentInChildren<Text>();}
-            ui.previous=Button(ui.cataloguePanel,"Назад",font,new Vector2(140,44));Bottom(ui.previous,20,20,false);
-            ui.next=Button(ui.cataloguePanel,"Далее",font,new Vector2(140,44));Bottom(ui.next,-20,20,true);
-            ui.closeCatalogue=Button(ui.cataloguePanel,"Закрыть · Esc",font,new Vector2(190,44));Bottom(ui.closeCatalogue,0,20,null);
+            ui.previous=Button(ui.cataloguePanel,FarmText.Get("construction.previous"),font,new Vector2(140,44));Bottom(ui.previous,20,20,false);
+            ui.next=Button(ui.cataloguePanel,FarmText.Get("construction.next"),font,new Vector2(140,44));Bottom(ui.next,-20,20,true);
+            ui.closeCatalogue=Button(ui.cataloguePanel,FarmText.Get("construction.close"),font,new Vector2(190,44));Bottom(ui.closeCatalogue,0,20,null);
             ui.signPanel=Panel(ui.shade.transform,"Sign Text",new Vector2(640,310));
-            var title=Label(ui.signPanel,"ТЕКСТ ВЫВЕСКИ",font,24);Top(title.rectTransform,20,20,42);
-            var caption=Label(ui.signPanel,"До 48 символов · текст появится с обеих сторон",font,18);Top(caption.rectTransform,20,65,38);
+            var title=Label(ui.signPanel,FarmText.Get("construction.signTitle"),font,24);Top(title.rectTransform,20,20,42);
+            var caption=Label(ui.signPanel,FarmText.Get("construction.signHelp"),font,18);Top(caption.rectTransform,20,65,38);
             var field=new GameObject("Sign Input",typeof(RectTransform),typeof(Image),typeof(InputField));field.transform.SetParent(ui.signPanel,false);Top(field.GetComponent<RectTransform>(),26,120,62);
             field.GetComponent<Image>().color=new Color(.96f,.94f,.85f);ui.signInput=field.GetComponent<InputField>();
             var content=Label(field.transform,"",font,24);content.color=new Color(.07f,.12f,.08f);Stretch(content.rectTransform);content.rectTransform.offsetMin=new Vector2(14,8);content.rectTransform.offsetMax=new Vector2(-14,-8);content.alignment=TextAnchor.MiddleLeft;
             ui.signInput.textComponent=content;ui.signInput.characterLimit=FarmDecorationCatalog.MaximumSignLength;ui.signInput.lineType=InputField.LineType.SingleLine;
-            var placeholder=Label(field.transform,"Моя ферма",font,24);placeholder.color=new Color(.4f,.44f,.38f);Stretch(placeholder.rectTransform);placeholder.rectTransform.offsetMin=new Vector2(14,8);placeholder.rectTransform.offsetMax=new Vector2(-14,-8);placeholder.alignment=TextAnchor.MiddleLeft;ui.signInput.placeholder=placeholder;
-            ui.saveText=Button(ui.signPanel,"Сохранить · Enter",font,new Vector2(250,46));Bottom(ui.saveText,24,26,false);
-            ui.closeText=Button(ui.signPanel,"Отмена · Esc",font,new Vector2(210,46));Bottom(ui.closeText,-24,26,true);
+            var placeholder=Label(field.transform,FarmText.Get("construction.signPlaceholder"),font,24);placeholder.color=new Color(.4f,.44f,.38f);Stretch(placeholder.rectTransform);placeholder.rectTransform.offsetMin=new Vector2(14,8);placeholder.rectTransform.offsetMax=new Vector2(-14,-8);placeholder.alignment=TextAnchor.MiddleLeft;ui.signInput.placeholder=placeholder;
+            ui.saveText=Button(ui.signPanel,FarmText.Get("construction.signSave"),font,new Vector2(250,46));Bottom(ui.saveText,24,26,false);
+            ui.closeText=Button(ui.signPanel,FarmText.Get("construction.signCancel"),font,new Vector2(210,46));Bottom(ui.closeText,-24,26,true);
             ui.housePanel=Panel(ui.shade.transform,"House Upgrade",new Vector2(640,340));
             ui.houseDescription=Label(ui.housePanel,"",font,23);Top(ui.houseDescription.rectTransform,24,20,140);
             ui.feedback=Label(ui.housePanel,"",font,18);Top(ui.feedback.rectTransform,24,165,62);
             ui.upgradeHouse=Button(ui.housePanel,"Улучшить",font,new Vector2(290,46));ui.upgradeLabel=ui.upgradeHouse.GetComponentInChildren<Text>();Bottom(ui.upgradeHouse,24,28,false);
-            ui.closeHouse=Button(ui.housePanel,"Закрыть · Esc",font,new Vector2(210,46));Bottom(ui.closeHouse,-24,28,true);
+            ui.closeHouse=Button(ui.housePanel,FarmText.Get("construction.close"),font,new Vector2(210,46));Bottom(ui.closeHouse,-24,28,true);
             ui.ShowPage(0);ui.Resize();ui.Close();ui.openCatalogue.gameObject.SetActive(false);return ui;
         }
         private static RectTransform Panel(Transform parent,string name,Vector2 size)

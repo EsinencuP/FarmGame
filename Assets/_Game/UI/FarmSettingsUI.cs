@@ -6,14 +6,17 @@ using UnityEngine.UI;
 namespace MyLittleFarm.UI
 {
     /// <summary>Draft settings are committed only by Apply; Back leaves the applied profile intact.</summary>
-    public sealed class FarmSettingsUI : MonoBehaviour
+    public sealed partial class FarmSettingsUI : MonoBehaviour
     {
         [Serializable] private sealed class Profile : AudioPreferences
         {
             public bool fullscreen = true, vsync = true, shadows = true;
             public int quality = -1, width, height;
+            public bool reduceMotion;
         }
         private const string Key = AudioPreferences.Key;
+        public static bool ReduceMotion { get; private set; }
+        private Button _motion;
         [SerializeField] private RectTransform panel;
         [SerializeField] private GameObject[] pages;
         [SerializeField] private Button[] tabs;
@@ -123,10 +126,20 @@ namespace MyLittleFarm.UI
             result.quality = Mathf.Clamp(result.quality, 0, Mathf.Max(0, QualitySettings.names.Length - 1));
             return result;
         }
-        public void Open()
+        public void Open(Action backAction = null)
         {
             _applied = _applied ?? Defaults(); _draft = JsonUtility.FromJson<Profile>(JsonUtility.ToJson(_applied));
+            var tabKeys = new[] { "settings.sound", "settings.graphics", "settings.controls" };
+            for (var i = 0; i < tabs.Length; i++)
+            {
+                tabs[i].transform.SetSiblingIndex(i + 1);
+                tabs[i].GetComponentInChildren<Text>().text = FarmText.Get(tabKeys[i]);
+            }
+            back.GetComponentInChildren<Text>().text = FarmText.Get("settings.back");
+            apply.GetComponentInChildren<Text>().text = FarmText.Get("settings.apply");
+            reset.GetComponentInChildren<Text>().text = FarmText.Get("settings.reset");
             gameObject.SetActive(true); ShowPage(0); Refresh();
+            FarmUIFocus.Show(panel, tabs[0], backAction, resolutionDropdown);
         }
         public void Hide() => gameObject.SetActive(false);
         public void PreviewPage(int page)
@@ -138,6 +151,7 @@ namespace MyLittleFarm.UI
         private void ApplyProfile(Profile profile, bool save)
         {
             _applied = profile; _applied.Sanitize(); ApplyAudio();
+            ReduceMotion = profile.reduceMotion;
             var quality = Mathf.Clamp(profile.quality, 0, QualitySettings.names.Length - 1);
             if (QualitySettings.GetQualityLevel() != quality) QualitySettings.SetQualityLevel(quality, true);
             QualitySettings.vSyncCount = profile.vsync ? 1 : 0;
@@ -185,40 +199,48 @@ namespace MyLittleFarm.UI
         private void RefreshResolutions()
         {
             if (resolutionDropdown == null) return;
-            _resolutionChoices = new[] { new Vector2Int(1280, 720), new Vector2Int(1600, 900), new Vector2Int(1920, 1080), new Vector2Int(2560, 1440), new Vector2Int(3840, 2160) };
+            _resolutionChoices = new[] { new Vector2Int(1280, 720), new Vector2Int(1280, 800), new Vector2Int(1600, 900), new Vector2Int(1920, 1080), new Vector2Int(2560, 1440), new Vector2Int(3840, 2160) };
             var current = new Vector2Int(_draft.width, _draft.height);
             var index = Array.IndexOf(_resolutionChoices, current);
             // A legacy custom size is migrated in the draft, committed only by Apply.
             if (index < 0) { index = 2; _draft.width = 1920; _draft.height = 1080; }
+            resolutionDropdown.alphaFadeSpeed = ReduceMotion ? .01f : .12f;
             resolutionDropdown.ClearOptions();
             var options = new System.Collections.Generic.List<string>();
             foreach (var size in _resolutionChoices) options.Add(size.x + " × " + size.y);
             resolutionDropdown.AddOptions(options); resolutionDropdown.SetValueWithoutNotify(index);
-            resolutionDropdown.captionText.text = "Разрешение: " + options[index];
+            resolutionDropdown.captionText.text = FarmText.Get("settings.resolution", options[index]);
         }
         private void SelectResolution(int index)
         {
             if (_draft == null || _resolutionChoices == null || index < 0 || index >= _resolutionChoices.Length) return;
             _draft.width = _resolutionChoices[index].x; _draft.height = _resolutionChoices[index].y;
-            resolutionDropdown.captionText.text = "Разрешение: " + _draft.width + " × " + _draft.height;
+            resolutionDropdown.captionText.text = FarmText.Get("settings.resolution", _draft.width + " × " + _draft.height);
         }
         private void Refresh()
         {
             master.SetValueWithoutNotify(_draft.volume); percentage.text = Mathf.RoundToInt(_draft.volume * 100) + "%";
             if (audioSliders != null) for (var i = 0; i < audioSliders.Length; i++)
             { var value = DraftAudio(i); audioSliders[i].SetValueWithoutNotify(value); audioValues[i].text = Mathf.RoundToInt(value * 100) + "%"; }
-            qualityLabel.text = "Качество: " + QualitySettings.names[Mathf.Clamp(_draft.quality, 0, QualitySettings.names.Length - 1)];
-            resolutionLabel.text = "Разрешение: " + _draft.width + " × " + _draft.height;
+            var qualityName = QualitySettings.names[Mathf.Clamp(_draft.quality, 0, QualitySettings.names.Length - 1)];
+            qualityLabel.text = FarmText.Get("settings.quality", FarmText.QualityName(qualityName));
+            resolutionLabel.text = FarmText.Get("settings.resolution", _draft.width + " × " + _draft.height);
             RefreshResolutions();
+            if (_motion != null)
+                _motion.GetComponentInChildren<Text>().text = FarmText.Get("settings.reduceMotion", OnOff(_draft.reduceMotion));
             muteLabel.text = "Без звука: " + OnOff(_draft.mute); backgroundLabel.text = "Звук в фоне: " + OnOff(_draft.backgroundAudio);
-            fullscreenLabel.text = "Полный экран: " + OnOff(_draft.fullscreen); vsyncLabel.text = "VSync: " + OnOff(_draft.vsync); shadowLabel.text = "Тени: " + OnOff(_draft.shadows);
+            fullscreenLabel.text = FarmText.Get("settings.fullscreen", OnOff(_draft.fullscreen)); vsyncLabel.text = FarmText.Get("settings.vsync", OnOff(_draft.vsync)); shadowLabel.text = FarmText.Get("settings.shadows", OnOff(_draft.shadows));
         }
-        private static string OnOff(bool value) => value ? "Вкл." : "Выкл.";
+        private static string OnOff(bool value) => value ? FarmText.Get("settings.on") : FarmText.Get("settings.off");
         private void ShowPage(int index)
         {
+            if (Application.isPlaying) CancelControlCapture();
             for (var i = 0; i < pages.Length; i++) { pages[i].SetActive(i == index); FarmUITheme.Style(tabs[i], i == index ? "secondary" : "ghost"); }
+            apply.gameObject.SetActive(index != 2);
+            reset.gameObject.SetActive(index != 2);
             if (index == 2)
             {
+                if (Application.isPlaying) EnsureBindingRows();
                 var scroll = pages[2].GetComponentInChildren<ScrollRect>(true);
                 if (scroll != null) { Canvas.ForceUpdateCanvases(); scroll.verticalNormalizedPosition = 1; }
             }
@@ -235,6 +257,11 @@ namespace MyLittleFarm.UI
         private void OnEnable()
         {
             if (!Application.isPlaying) return;
+            if (_motion == null)
+            {
+                _motion = Row(pages[1].transform, FarmText.Get("settings.reduceMotion.title"), "controls", 5);
+                _motion.onClick.AddListener(() => { _draft.reduceMotion = !_draft.reduceMotion; Refresh(); });
+            }
             for (var i = 0; i < tabs.Length; i++) { var tab = i; tabs[i].onClick.AddListener(() => ShowPage(tab)); }
             if (audioSliders != null) for (var i = 0; i < audioSliders.Length; i++)
             { var index = i; audioSliders[i].onValueChanged.AddListener(value => SetDraftAudio(index, value)); }
@@ -250,6 +277,7 @@ namespace MyLittleFarm.UI
         private void OnDisable()
         {
             if (!Application.isPlaying) return;
+            CancelControlCapture();
             if (resolutionDropdown != null) { resolutionDropdown.Hide(); resolutionDropdown.onValueChanged.RemoveListener(SelectResolution); }
             foreach (var button in new[] { quality, resolution, fullscreen, vsync, shadows, mute, background, apply, reset }) button.onClick.RemoveAllListeners();
             foreach (var tab in tabs) tab.onClick.RemoveAllListeners();
@@ -259,9 +287,9 @@ namespace MyLittleFarm.UI
         {
             var root = FarmUITheme.Rect(parent, "Settings"); FarmUITheme.Stretch(root);
             var ui = root.gameObject.AddComponent<FarmSettingsUI>(); ui.font = font;
-            ui.panel = FarmUITheme.Panel(root, "НАСТРОЙКИ", font, new Vector2(1060, 800));
+            ui.panel = FarmUITheme.Panel(root, FarmText.Get("settings.title"), font, new Vector2(1060, 800));
             ui.pages = new GameObject[3]; ui.tabs = new Button[3];
-            var titles = new[] { "Звук", "Графика", "Управление" }; var icons = new[] { "volume", "graphics", "controls" };
+            var titles = new[] { FarmText.Get("settings.sound"), FarmText.Get("settings.graphics"), FarmText.Get("settings.controls") }; var icons = new[] { "volume", "graphics", "controls" };
             for (var i = 0; i < 3; i++)
             {
                 ui.tabs[i] = FarmUITheme.Button(ui.panel, titles[i], font, icons[i], "ghost");
@@ -290,9 +318,9 @@ namespace MyLittleFarm.UI
             var controls = FarmUITheme.Label(ui.pages[2].transform,
                 "Движение                       W A S D\nБег / спринт                     Shift / Shift + Ctrl\nДействие                         E / ЛКМ\nПрыжок                           Space\nСемена                            1–6\nИнвентарь / рынок                I / P у рынка\nСтроительство / каталог         B / Tab\nПоворот постройки                Q / R\nПоворот камеры                  Q / Shift + E\nЖурнал / пауза                   J / Esc\nСохранить / загрузить           F5 / F9", font, 25);
             controls.alignment = TextAnchor.MiddleLeft;
-            ui.back = FarmUITheme.Button(ui.panel, "Назад", font, "back", "ghost");
-            ui.reset = FarmUITheme.Button(ui.panel, "Сбросить", font, null, "ghost");
-            ui.apply = FarmUITheme.Button(ui.panel, "Применить", font, "confirm");
+            ui.back = FarmUITheme.Button(ui.panel, FarmText.Get("settings.back"), font, "back", "ghost");
+            ui.reset = FarmUITheme.Button(ui.panel, FarmText.Get("settings.reset"), font, null, "ghost");
+            ui.apply = FarmUITheme.Button(ui.panel, FarmText.Get("settings.apply"), font, "confirm");
             FarmUITheme.Place((RectTransform)ui.back.transform, Vector2.zero, Vector2.zero, new Vector2(36, 30), new Vector2(260, 70));
             FarmUITheme.Place((RectTransform)ui.reset.transform, new Vector2(.5f, 0), new Vector2(.5f, 0), new Vector2(30, 30), new Vector2(230, 70));
             FarmUITheme.Place((RectTransform)ui.apply.transform, new Vector2(1, 0), new Vector2(1, 0), new Vector2(-36, 30), new Vector2(300, 70));

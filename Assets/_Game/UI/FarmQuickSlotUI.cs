@@ -16,13 +16,30 @@ namespace MyLittleFarm.UI
         [SerializeField] private Button[] buttons;
         [SerializeField] private Text[] amounts;
         [SerializeField] private Image[] seedImages;
+        private Text[] _keyLabels;
+        private int _bindingRevision = -1;
         private void OnEnable()
         {
             if (!Application.isPlaying) return;
             RepairIconLayout();
+            _keyLabels = new Text[buttons.Length];
+            for (var i = 0; i < buttons.Length; i++)
+                foreach (var label in buttons[i].GetComponentsInChildren<Text>())
+                    if (label.alignment == TextAnchor.UpperLeft) { _keyLabels[i] = label; break; }
+            _bindingRevision = -1;
+            RefreshKeyLabels();
             GameEvents.InventoryChanged += Refresh;
             for (var i = 0; i < buttons.Length; i++) { var index = i; buttons[i].onClick.AddListener(() => Select(index)); }
             Refresh();
+        }
+        private void Update() => RefreshKeyLabels();
+
+        private void RefreshKeyLabels()
+        {
+            if (_keyLabels == null || _bindingRevision == InputReader.BindingRevision) return;
+            _bindingRevision = InputReader.BindingRevision;
+            for (var i = 0; i < _keyLabels.Length && i < 6; i++)
+                if (_keyLabels[i] != null) _keyLabels[i].text = InputReader.KeyLabel(InputReader.Command.Seed1 + i);
         }
         private void OnDisable()
         {
