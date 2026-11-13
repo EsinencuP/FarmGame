@@ -1,0 +1,203 @@
+{
+  "meta": null,
+  "content": [
+    {
+      "type": "text",
+      "text": "{\"success\":true,\"message\":\"Code executed successfully.\",\"data\":{\"result\":{\"scene\":\"Assets/_Game/Scenes/Prototype.unity\",\"dirty\":false,\"playing\":false,\"sources\":[{\"path\":\"Assets/moreAssets/Farm Animals by @Quaternius/FBX/Cow.fbx\",\"size\":\"(2.851, 6.685, 10.610)\",\"clips\":[{\"name\":\"Armature|Death\",\"length\":1.25,\"isLooping\":false},{\"name\":\"Armature|Idle\",\"length\":6.25,\"isLooping\":false},{\"name\":\"Armature|Jump\",\"length\":1.70833337,\"isLooping\":false},{\"name\":\"Armature|Run\",\"length\":1.41666675,\"isLooping\":false},{\"name\":\"Armature|Walk\",\"length\":3.33333349,\"isLooping\":false},{\"name\":\"Armature|WalkSlow\",\"length\":2.08333349,\"isLooping\":false}],\"materials\":[\"White / Standard\",\"Black / Standard\",\"Pink / Standard\"],\"transforms\":[\"Cow\",\"Armature\",\"root\",\"BackFoot.L\",\"BackFoot.L_end\",\"BackFoot.R\",\"BackFoot.R_end\",\"Body\",\"Back\",\"Tail1\",\"Tail2\",\"Tail3\",\"Tail4\",\"Tail4_end\",\"BackLeg.L\",\"BackUpLeg.L\",\"BackLowLeg.L\",\"BackLowLeg.L_end\",\"BackLeg.R\",\"BackUpLeg.R\",\"BackLowLeg.R\",\"BackLowLeg.R_end\",\"FrontLeg.L\",\"FrontUpLeg.L\",\"FrontLowLeg.L\",\"FrontLowLeg.L_end\",\"FrontLeg.R\",\"FrontUpLeg.R\",\"FrontLowLeg.R\",\"FrontLowLeg.R_end\",\"Hips\",\"Torso\",\"Torso_end\",\"Shoulders\",\"Neck\",\"Head\",\"Head_end\",\"FrontFoot.L\",\"FrontFoot.L_end\",\"FrontFoot.R\",\"FrontFoot.R_end\",\"Cow\"]},{\"path\":\"Assets/moreAssets/Farm Animals by @Quaternius/FBX/Chicken.fbx\",\"missing\":true},{\"path\":\"Assets/moreAssets/Farm Buildings - Sept 2018/FBX/Windmill.fbx\",\"size\":\"(6.508, 11.196, 1.898)\",\"clips\":[],\"materials\":[\"Brown / Standard\",\"Grey / Standard\"],\"transforms\":[\"Windmill\",\"Windmill\",\"Windmill_Blades\"]},{\"path\":\"Assets/moreAssets/Farm Buildings - Sept 2018/FBX/SmallBarn.fbx\",\"size\":\"(6.079, 4.961, 6.274)\",\"clips\":[],\"materials\":[\"DarkRed / Standard\",\"White / Standard\",\"RoofBlack / Standard\",\"LightRed / Standard\"],\"transforms\":[\"SmallBarn\",\"Small_Barn\",\"Small_Barn_Door\",\"SmallBarn_Window\",\"SmallBarn_Window2\"]},{\"path\":\"Assets/Pandazole_Ultimate_Pack/Pandazole Farm Ranch Pack/Prefabs/Bld_FarmMill_01.prefab\",\"size\":\"(5.464, 11.329, 2.697)\",\"clips\":[],\"materials\":[\"PandaMat / Standard\"],\"transforms\":[\"Bld_FarmMill_01\",\"FRP_Bld_FarmMill_01_p2\"]},{\"path\":\"Assets/LowPolyFarmLite/Prefabs/Tree_04.prefab\",\"size\":\"(3.781, 4.951, 3.134)\",\"clips\":[],\"materials\":[\"LowPolyFarmLite_MAIN / Standard\"],\"transforms\":[\"Tree_04\"]},{\"path\":\"Assets/LowPolyFoodLite/Prefabs/Pear.prefab\",\"size\":\"(0.107, 0.188, 0.105)\",\"clips\":[],\"materials\":[\"LP_FoodLite_MAIN / Standard\"],\"transforms\":[\"Pear\"]},{\"path\":\"Assets/LowPolyFoodLite/Prefabs/Pumpkin.prefab\",\"size\":\"(0.339, 0.253, 0.344)\",\"clips\":[],\"materials\":[\"LP_FoodLite_MAIN / Standard\"],\"transforms\":[\"Pumpkin\"]},{\"path\":\"Assets/moreAssets/Farm Animals by @Quaternius/Models/FBX format/strawberry.fbx\",\"size\":\"(0.120, 0.182, 0.120)\",\"clips\":[],\"materials\":[\"colormap / Standard\"],\"transforms\":[\"strawberry\"]}]},\"compiler\":\"codedom\"}}",
+      "annotations": null,
+      "meta": null
+    }
+  ],
+  "structuredContent": {
+    "success": true,
+    "message": "Code executed successfully.",
+    "data": {
+      "result": {
+        "scene": "Assets/_Game/Scenes/Prototype.unity",
+        "dirty": false,
+        "playing": false,
+        "sources": [
+          {
+            "path": "Assets/moreAssets/Farm Animals by @Quaternius/FBX/Cow.fbx",
+            "size": "(2.851, 6.685, 10.610)",
+            "clips": [
+              {
+                "name": "Armature|Death",
+                "length": 1.25,
+                "isLooping": false
+              },
+              {
+                "name": "Armature|Idle",
+                "length": 6.25,
+                "isLooping": false
+              },
+              {
+                "name": "Armature|Jump",
+                "length": 1.70833337,
+                "isLooping": false
+              },
+              {
+                "name": "Armature|Run",
+                "length": 1.41666675,
+                "isLooping": false
+              },
+              {
+                "name": "Armature|Walk",
+                "length": 3.33333349,
+                "isLooping": false
+              },
+              {
+                "name": "Armature|WalkSlow",
+                "length": 2.08333349,
+                "isLooping": false
+              }
+            ],
+            "materials": [
+              "White / Standard",
+              "Black / Standard",
+              "Pink / Standard"
+            ],
+            "transforms": [
+              "Cow",
+              "Armature",
+              "root",
+              "BackFoot.L",
+              "BackFoot.L_end",
+              "BackFoot.R",
+              "BackFoot.R_end",
+              "Body",
+              "Back",
+              "Tail1",
+              "Tail2",
+              "Tail3",
+              "Tail4",
+              "Tail4_end",
+              "BackLeg.L",
+              "BackUpLeg.L",
+              "BackLowLeg.L",
+              "BackLowLeg.L_end",
+              "BackLeg.R",
+              "BackUpLeg.R",
+              "BackLowLeg.R",
+              "BackLowLeg.R_end",
+              "FrontLeg.L",
+              "FrontUpLeg.L",
+              "FrontLowLeg.L",
+              "FrontLowLeg.L_end",
+              "FrontLeg.R",
+              "FrontUpLeg.R",
+              "FrontLowLeg.R",
+              "FrontLowLeg.R_end",
+              "Hips",
+              "Torso",
+              "Torso_end",
+              "Shoulders",
+              "Neck",
+              "Head",
+              "Head_end",
+              "FrontFoot.L",
+              "FrontFoot.L_end",
+              "FrontFoot.R",
+              "FrontFoot.R_end",
+              "Cow"
+            ]
+          },
+          {
+            "path": "Assets/moreAssets/Farm Animals by @Quaternius/FBX/Chicken.fbx",
+            "missing": true
+          },
+          {
+            "path": "Assets/moreAssets/Farm Buildings - Sept 2018/FBX/Windmill.fbx",
+            "size": "(6.508, 11.196, 1.898)",
+            "clips": [],
+            "materials": [
+              "Brown / Standard",
+              "Grey / Standard"
+            ],
+            "transforms": [
+              "Windmill",
+              "Windmill",
+              "Windmill_Blades"
+            ]
+          },
+          {
+            "path": "Assets/moreAssets/Farm Buildings - Sept 2018/FBX/SmallBarn.fbx",
+            "size": "(6.079, 4.961, 6.274)",
+            "clips": [],
+            "materials": [
+              "DarkRed / Standard",
+              "White / Standard",
+              "RoofBlack / Standard",
+              "LightRed / Standard"
+            ],
+            "transforms": [
+              "SmallBarn",
+              "Small_Barn",
+              "Small_Barn_Door",
+              "SmallBarn_Window",
+              "SmallBarn_Window2"
+            ]
+          },
+          {
+            "path": "Assets/Pandazole_Ultimate_Pack/Pandazole Farm Ranch Pack/Prefabs/Bld_FarmMill_01.prefab",
+            "size": "(5.464, 11.329, 2.697)",
+            "clips": [],
+            "materials": [
+              "PandaMat / Standard"
+            ],
+            "transforms": [
+              "Bld_FarmMill_01",
+              "FRP_Bld_FarmMill_01_p2"
+            ]
+          },
+          {
+            "path": "Assets/LowPolyFarmLite/Prefabs/Tree_04.prefab",
+            "size": "(3.781, 4.951, 3.134)",
+            "clips": [],
+            "materials": [
+              "LowPolyFarmLite_MAIN / Standard"
+            ],
+            "transforms": [
+              "Tree_04"
+            ]
+          },
+          {
+            "path": "Assets/LowPolyFoodLite/Prefabs/Pear.prefab",
+            "size": "(0.107, 0.188, 0.105)",
+            "clips": [],
+            "materials": [
+              "LP_FoodLite_MAIN / Standard"
+            ],
+            "transforms": [
+              "Pear"
+            ]
+          },
+          {
+            "path": "Assets/LowPolyFoodLite/Prefabs/Pumpkin.prefab",
+            "size": "(0.339, 0.253, 0.344)",
+            "clips": [],
+            "materials": [
+              "LP_FoodLite_MAIN / Standard"
+            ],
+            "transforms": [
+              "Pumpkin"
+            ]
+          },
+          {
+            "path": "Assets/moreAssets/Farm Animals by @Quaternius/Models/FBX format/strawberry.fbx",
+            "size": "(0.120, 0.182, 0.120)",
+            "clips": [],
+            "materials": [
+              "colormap / Standard"
+            ],
+            "transforms": [
+              "strawberry"
+            ]
+          }
+        ]
+      },
+      "compiler": "codedom"
+    }
+  },
+  "isError": false
+}

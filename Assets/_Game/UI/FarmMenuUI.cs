@@ -12,7 +12,7 @@ namespace MyLittleFarm.UI
     [DefaultExecutionOrder(-180)]
     public sealed class FarmMenuUI : MonoBehaviour
     {
-        public enum Page { Game, Main, Pause, Settings, Inventory, Shop, Quit, Guide, Journal }
+        public enum Page { Game, Main, Pause, Settings, Inventory, Shop, Quit, Guide, Journal, Production, Warehouse, Feeder }
         [SerializeField] private InputReader input;
         [SerializeField] private SaveSystem saves;
         [SerializeField] private SaveSlotsUI slots;
@@ -26,6 +26,10 @@ namespace MyLittleFarm.UI
         [SerializeField] private FarmGuideUI guide;
         [SerializeField] private FarmMarketUI market;
         [SerializeField] private SeedShopSystem shop;
+        private FarmProductionUI production;
+        private FarmFeederUI feeder;
+        private string feederBuildingId;
+        private string productionBuildingId,warehouseBuildingId;
         [SerializeField] private RectTransform marketPrompt;
         [SerializeField] private Button resume, pauseSettings, pauseSlots, home, pauseExit, quitConfirm, quitCancel;
         [SerializeField] private Button journalShortcut, pauseShortcut;
@@ -43,9 +47,39 @@ namespace MyLittleFarm.UI
         {
             if (!Application.isPlaying) return;
             settings.Initialize();
+            EnsureProductionUI();
+            EnsureFeederUI();
             // Prevent one frame of world interaction before SaveSystem opens the startup screen.
             input.ModalInputActive = true;
         }
+        private void EnsureProductionUI()
+        {
+            if(production!=null) return;
+            production=FarmProductionUI.Create(safeArea,pauseMessage.font,buildings);
+            production.CloseButton.onClick.AddListener(Back);
+        }
+        public bool OpenProduction(string id)
+        {
+            if(!CanOpenFromGame() || buildings.RecipeFor(id)==null) return false;
+            EnsureProductionUI(); productionBuildingId=id; Show(Page.Production); return true;
+        }
+        public void CloseProduction() { if(_page==Page.Production) Back(); }
+        public bool OpenWarehouse(string id)
+        {
+            var player=buildings.GetComponentInParent<GameBootstrap>().GetComponentInChildren<MyLittleFarm.Gameplay.World.PlayerController>(true);
+            if(!CanOpenFromGame() || player==null || !buildings.WarehouseInReach(id,player.transform.position))return false;
+            warehouseBuildingId=id;Show(Page.Warehouse);return true;
+        }
+        public void CloseItemScreens(){FarmItemDrag.Cancel();if(_page==Page.Inventory || _page==Page.Warehouse)Back();}
+        private void EnsureFeederUI()
+        {if(feeder!=null)return;feeder=FarmFeederUI.Create(safeArea,pauseMessage.font,buildings);feeder.CloseButton.onClick.AddListener(Back);}
+        public bool OpenFeeder(string id)
+        {
+            var player=buildings.GetComponentInParent<GameBootstrap>().GetComponentInChildren<MyLittleFarm.Gameplay.World.PlayerController>(true);
+            if(!CanOpenFromGame() || player==null || !buildings.FeederInReach(id,player.transform.position))return false;
+            EnsureFeederUI();feederBuildingId=id;Show(Page.Feeder);return true;
+        }
+        public void CloseFeeder(){if(_page==Page.Feeder)Back();}
         private void OnEnable()
         {
             if (!Application.isPlaying || _bound) return;
@@ -85,7 +119,7 @@ namespace MyLittleFarm.UI
                 else if (input.MarketPressed) OpenMarket();
                 else if (input.JournalPressed) OpenJournal();
             }
-            else if ((_page == Page.Inventory || _page == Page.Shop) && input.InventoryPressed
+            else if ((_page == Page.Inventory || _page == Page.Warehouse || _page == Page.Shop) && input.InventoryPressed
                 && !FarmUIFocus.EditingText && !FarmUIFocus.TabPressed) Back();
         }
         private void PauseTime()
@@ -108,6 +142,7 @@ namespace MyLittleFarm.UI
         private void AskQuit() => Show(Page.Quit);
         private void Show(Page page, bool push = true)
         {
+            FarmItemDrag.Cancel();
             if (page == Page.Main) { ReturnHome(); return; }
             MyLittleFarm.Audio.FarmAudio.Play(page == Page.Game ? MyLittleFarm.Audio.SoundId.UiClose : MyLittleFarm.Audio.SoundId.UiOpen);
             if (push) _history.Push((_page, FarmUIFocus.Selected)); _page = page;
@@ -119,6 +154,8 @@ namespace MyLittleFarm.UI
             settings.Hide(); inventory.gameObject.SetActive(false); loading.SetActive(false); if (guide != null) guide.Hide();
             if (marketPrompt != null) marketPrompt.gameObject.SetActive(false);
             if (market != null) market.Hide();
+            if (production != null) production.Hide();
+            if(feeder!=null)feeder.Hide();
             if (page == Page.Game) { input.ModalInputActive = false; input.SuppressGameplayThisFrame = true; ReleasePause(); FarmUIFocus.Show(null, null, null); return; }
             PauseTime(); input.ModalInputActive = true; input.SuppressGameplayThisFrame = true;
             switch (page)
@@ -126,9 +163,12 @@ namespace MyLittleFarm.UI
                 case Page.Pause: pauseMessage.text = FarmText.Get("pause.shortcuts", InputReader.KeyLabel(InputReader.Command.Save), InputReader.KeyLabel(InputReader.Command.Load)); FarmUIFocus.Show(pausePanel, resume, Back); break;
                 case Page.Settings: settings.Open(Back); break;
                 case Page.Inventory: inventory.Open(false, Back); break;
+                case Page.Feeder: feeder.Open(feederBuildingId);FarmUIFocus.Show(feeder.Panel,feeder.CloseButton,Back);break;
+                case Page.Warehouse: inventory.OpenWarehouse(warehouseBuildingId,Back); break;
                 case Page.Shop: if (market != null) market.Open(Back); break;
                 case Page.Guide: guide.Open(); FarmUIFocus.Show(guide.Panel, guide.JournalButton, Back); break;
                 case Page.Journal: journal.Open(true); break;
+                case Page.Production: production.Open(productionBuildingId); FarmUIFocus.Show(production.Panel, production.CloseButton, Back); break;
                 case Page.Quit: FarmUIFocus.Show(quitPanel, quitCancel, Back); break;
             }
             Resize(true);
@@ -225,6 +265,8 @@ namespace MyLittleFarm.UI
             { var factor = Mathf.Min(1, (area.x - 48) / panel.sizeDelta.x, (area.y - 80) / panel.sizeDelta.y); panel.localScale = Vector3.one * Mathf.Max(.3f, factor); }
             if (guide != null) guide.Panel.localScale = Vector3.one * Mathf.Max(.3f, Mathf.Min(1, (area.x - 48) / guide.Panel.sizeDelta.x, (area.y - 80) / guide.Panel.sizeDelta.y));
             if (market != null) market.Panel.localScale = Vector3.one * Mathf.Max(.3f, Mathf.Min(1, (area.x - 48) / market.Panel.sizeDelta.x, (area.y - 80) / market.Panel.sizeDelta.y));
+            if (production != null) production.Panel.localScale = Vector3.one * Mathf.Max(.3f, Mathf.Min(1, (area.x - 48) / production.Panel.sizeDelta.x, (area.y - 80) / production.Panel.sizeDelta.y));
+            if(feeder!=null)feeder.Panel.localScale=Vector3.one*Mathf.Max(.3f,Mathf.Min(1,(area.x-48)/feeder.Panel.sizeDelta.x,(area.y-80)/feeder.Panel.sizeDelta.y));
             FarmUITheme.Place(navigation, Vector2.one, Vector2.one, new Vector2(-20, -18), new Vector2(138, 64));
             if (marketPrompt != null) FarmUITheme.Place(marketPrompt, new Vector2(1, 0), new Vector2(1, 0), new Vector2(-20, area.x < 1500 ? 248 : 122), new Vector2(286, 60));
         }

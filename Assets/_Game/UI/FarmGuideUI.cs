@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using MyLittleFarm.Gameplay.Animals;
 using MyLittleFarm.Gameplay.Farming;
 using UnityEngine;
@@ -25,6 +26,10 @@ namespace MyLittleFarm.UI
         [SerializeField] private GameObject upgradesPage;
         [SerializeField] private Text upgradePrices;
         [SerializeField] private MyLittleFarm.Gameplay.Economy.FarmMarket market;
+        private bool _cowReference;
+        private Button _chickenChoice, _cowChoice;
+        private Image _animalPortrait;
+        private Image _animalProductIcon, _animalHomeIcon;
         public RectTransform Panel => panel;
         public Button CloseButton => close;
         public Button JournalButton => journal;
@@ -49,14 +54,34 @@ namespace MyLittleFarm.UI
         private void ShowPlants() => Show(false);
         private void ShowAnimals()
         {
+            EnsureAnimalChoice();
             foreach (var label in animalsPage.GetComponentsInChildren<Text>(true))
             {
-                if (label.text.StartsWith("2. Дайте корм"))
-                    label.text = $"2. Дайте корм\n{MyLittleFarm.Core.InputReader.ActionHint} рядом с курицей: нужна пшеница.";
+                if (label.text.StartsWith("1. "))
+                    label.text = "1. Купите животное на рынке\nДля коровы сначала постройте коровник с загоном.";
+                else if (label.text.StartsWith("2. Дайте корм"))
+                    label.text = $"2. Дайте корм\n{MyLittleFarm.Core.InputReader.ActionHint} рядом с животным: нужна пшеница.";
                 else if (label.text.StartsWith("3. Соберите продукцию"))
-                    label.text = $"3. Соберите продукцию\nДождитесь яйца и нажмите {MyLittleFarm.Core.InputReader.ActionHint}.";
+                    label.text = $"3. Соберите продукцию\nДождитесь яйца или молока и нажмите {MyLittleFarm.Core.InputReader.ActionHint}.";
             }
             Show(true);
+        }
+        private void EnsureAnimalChoice()
+        {
+            if (_chickenChoice != null) return;
+            var parent = animalName.transform.parent;
+            _animalProductIcon = parent.Find("Icon eggs_basket")?.GetComponent<Image>();
+            _animalHomeIcon = parent.Find("Icon b_coop")?.GetComponent<Image>();
+            foreach (var image in parent.GetComponentsInChildren<Image>())
+                if (image.sprite != null && image.sprite.name == "chicken") { _animalPortrait = image; break; }
+            _chickenChoice = FarmUITheme.Button(parent, "Куры", animalName.font, "chicken", "ghost");
+            _cowChoice = FarmUITheme.Button(parent, "Коровы", animalName.font, "cow", "ghost");
+            At((RectTransform)_chickenChoice.transform, 150, 103, 185, 36);
+            At((RectTransform)_cowChoice.transform, 345, 103, 185, 36);
+            FarmUITheme.FitCompactButton(_chickenChoice, 22);
+            FarmUITheme.FitCompactButton(_cowChoice, 22);
+            _chickenChoice.onClick.AddListener(() => { _cowReference = false; Refresh(); });
+            _cowChoice.onClick.AddListener(() => { _cowReference = true; Refresh(); });
         }
         private void Show(bool showAnimals)
         {
@@ -75,6 +100,13 @@ namespace MyLittleFarm.UI
             foreach (var offer in market.Offers(MyLittleFarm.Gameplay.Economy.FarmMarket.Category.Upgrades))
                 text.Append(offer.Name).Append(" · ").Append(offer.Price).Append(" монет").Append(offer.Available ? "" : " · " + offer.Unavailable).Append('\n').Append(offer.Description).Append("\n\n");
             text.Append($"Покупка улучшений и найм — в окне рынка.\nПодойдите к рынку и нажмите {MyLittleFarm.Core.InputReader.MarketHint}.");
+            text.Append("\n\nКОРМУШКА\n18 монет, 12 пшеницы, радиус 6 м. Кормит кур и коров после сбора продукта. Пастух берёт корм сначала здесь, затем в инвентаре; молоко собирается вручную.\n");
+            text.Append("\n\nПРОИЗВОДСТВО\n\n");
+            foreach(var recipe in MyLittleFarm.Gameplay.Building.ProductionRecipe.All)
+                text.Append(recipe.Name).Append(": ").Append(recipe.InputName).Append(" × ").Append(recipe.InputAmount)
+                    .Append(" → ").Append(recipe.OutputName).Append(" × 1 · ").Append(FarmText.Duration(recipe.Seconds)).Append("\n")
+                    .Append("Ручной сбор; продажа ").Append(recipe.SellPrice).Append(" монет.\n\n");
+            text.Append("Откройте постройку обычным действием. Следующая партия — после сбора. Перенос сохраняет партию; удаление занятой постройки заблокировано.");
             upgradePrices.text = text.ToString();
         }
         public void ConfigureUpgrades(Font font, MyLittleFarm.Gameplay.Economy.FarmMarket system)
@@ -102,7 +134,17 @@ namespace MyLittleFarm.UI
         private int SalePrice(string id) => catalog.TryGetItem(id, out var item) ? item.SellPrice : 0;
         private void Refresh()
         {
-            for (var i = 0; i < plantCards.Length - 1; i++)
+            var trees = new List<TreeDefinition>();
+            if (orchard.Definitions.Count > 0) trees.AddRange(orchard.Definitions);
+            else
+            {
+                if (orchard.Definition != null) trees.Add(orchard.Definition);
+                if (orchard.TryGetDefinition("pear", out var pear)) trees.Add(pear);
+            }
+            EnsurePlantCards(catalog.Crops.Count + trees.Count);
+            for (var i = catalog.Crops.Count + trees.Count; i < plantCards.Length; i++)
+                plantCards[i].portrait.transform.parent.gameObject.SetActive(false);
+            for (var i = 0; i < catalog.Crops.Count; i++)
             {
                 var view = plantCards[i]; var available = i < catalog.Crops.Count;
                 view.portrait.transform.parent.gameObject.SetActive(available); if (!available) continue;
@@ -113,24 +155,58 @@ namespace MyLittleFarm.UI
                 view.seedLabel.text = crop.RareSeeds ? "Редкие семена" : "Посадка из семян";
                 view.growth.text = "Рост · " + Duration(crop.GrowDurationSeconds);
                 view.price.text = (crop.RareSeeds ? "Семена: тайники" : "Семя: " + (seed == null ? 0 : seed.BuyPrice)) + "  ·  Урожай: " + SalePrice(crop.HarvestItemId);
-                view.yield.text = "Сбор · " + crop.YieldAmount + " шт. за посадку";
+                view.yield.text = "Сбор · " + crop.YieldAmount + (crop.RegrowSeconds>0?" шт. · повтор через "+Duration(crop.RegrowSeconds):" шт. за посадку");
             }
-            var tree = plantCards[plantCards.Length - 1]; var definition = orchard.Definition;
-            tree.title.text = definition == null ? "Яблоня" : definition.DisplayName;
-            tree.portrait.sprite = FarmUITheme.Sprite("Icons/sapling"); tree.seed.sprite = FarmUITheme.Sprite("Icons/crop_apple");
-            tree.seedLabel.text = "Сад · повторный урожай";
-            tree.growth.text = "Первый сбор · " + Duration(orchard.FirstHarvestSeconds);
-            tree.price.text = "Посадка: 0  ·  Плод: " + SalePrice(definition == null ? "apple" : definition.FruitItemId);
-            tree.yield.text = orchard.YieldAmount + " шт.  ·  Повтор: " + Duration(orchard.RegrowSeconds);
-            var animal = animals.Definition; var feedId = animal == null ? "wheat" : animal.FeedItemId;
+            for (var i = 0; i < trees.Count; i++)
+            {
+                var definition = trees[i]; var tree = plantCards[catalog.Crops.Count + i];
+                tree.portrait.transform.parent.gameObject.SetActive(true);
+                tree.title.text = definition.DisplayName;
+                tree.portrait.sprite = FarmUITheme.Sprite("Icons/" + FarmUITheme.ItemIcon(definition.SaplingItemId));
+                tree.seed.sprite = FarmUITheme.Sprite("Icons/" + FarmUITheme.ItemIcon(definition.FruitItemId));
+                tree.seedLabel.text = "Сад · повторный урожай";
+                tree.growth.text = "Первый сбор · " + Duration(definition.FirstHarvestSeconds);
+                catalog.TryGetItem(definition.SaplingItemId, out var sapling);
+                tree.price.text = "Саженец: " + (orchard.IsFree(definition) ? "бесплатно" : (sapling?.BuyPrice ?? 0).ToString()) + " · Плод: " + SalePrice(definition.FruitItemId);
+                tree.yield.text = definition.YieldAmount + " шт. · Повтор: " + Duration(definition.RegrowSeconds);
+            }
+            var animal = _cowReference ? animals.CowDefinition : animals.Definition;
+            var feedId = animal == null ? "wheat" : animal.FeedItemId;
             var productId = animal == null ? "egg" : animal.ProductItemId;
             animalName.text = animal == null ? "Курица" : animal.DisplayName;
-            animalValues[0].text = "Покупка · " + animals.ChickenPrice + " монет";
+            if (_animalPortrait != null) _animalPortrait.sprite = FarmUITheme.Sprite("Icons/" + (_cowReference ? "cow" : "chicken"));
+            if (_animalProductIcon != null) _animalProductIcon.sprite = FarmUITheme.Sprite("Icons/" + (_cowReference ? "milk" : "eggs_basket"));
+            if (_animalHomeIcon != null) _animalHomeIcon.sprite = FarmUITheme.Sprite("Icons/" + (_cowReference ? "b_barn" : "b_coop"));
+            if (_chickenChoice != null)
+            { FarmUITheme.Style(_chickenChoice, _cowReference ? "ghost" : "secondary"); FarmUITheme.Style(_cowChoice, _cowReference ? "secondary" : "ghost"); }
+            animalValues[0].text = "Покупка · " + (_cowReference ? animals.CowPrice : animals.ChickenPrice) + " монет";
             animalValues[1].text = "Корм · 1 × " + ItemName(feedId);
             animalValues[2].text = "Продукция · " + (animal == null ? 1 : animal.ProductYield) + " × " + ItemName(productId);
-            animalValues[3].text = "Производство · " + Duration(animals.ProductIntervalSeconds);
+            animalValues[3].text = "Производство · " + Duration(animal == null ? animals.ProductIntervalSeconds : animal.ProductIntervalSeconds);
             animalValues[4].text = "Продажа продукта · " + SalePrice(productId) + " монет / шт.";
-            animalValues[5].text = "Содержание · загон, до " + animals.MaxAnimals + " животных";
+            animalValues[5].text = _cowReference ? "Содержание · коровник, до 2 коров" : "Содержание · загон, до " + animals.MaxAnimals + " кур";
+        }
+        private void EnsurePlantCards(int count)
+        {
+            while (plantCards.Length < count)
+            {
+                var template = plantCards[plantCards.Length - 1]; var original = template.portrait.transform.parent;
+                var clone = Instantiate(original.gameObject, original.parent, false).transform;
+                clone.name = "Additional plant reference";
+                var card = new PlantCard {
+                    portrait = CloneReference(template.portrait, original, clone), seed = CloneReference(template.seed, original, clone),
+                    title = CloneReference(template.title, original, clone), seedLabel = CloneReference(template.seedLabel, original, clone),
+                    growth = CloneReference(template.growth, original, clone), price = CloneReference(template.price, original, clone),
+                    yield = CloneReference(template.yield, original, clone) };
+                Array.Resize(ref plantCards, plantCards.Length + 1); plantCards[plantCards.Length - 1] = card;
+            }
+        }
+        private static T CloneReference<T>(T source, Transform original, Transform clone) where T : Component
+        {
+            var indices = new List<int>();
+            for (var t = source.transform; t != original; t = t.parent) indices.Add(t.GetSiblingIndex());
+            for (var i = indices.Count - 1; i >= 0; i--) clone = clone.GetChild(indices[i]);
+            return clone.GetComponent<T>();
         }
         public static FarmGuideUI Create(Transform parent, Font font, FarmCatalog catalog, AnimalSystem animals, OrchardSystem orchard)
         {

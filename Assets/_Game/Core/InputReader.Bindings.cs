@@ -39,15 +39,15 @@ namespace MyLittleFarm.Core
             new("Действие / установка", Key.E, Mode.Both), new("Камера влево", Key.Q, Mode.Farm),
             new("Камера вправо · вместе с бегом", Key.E, Mode.Farm),
             new("Сохранить", Key.F5, Mode.Both), new("Слоты сохранений", Key.F9, Mode.Both),
-            new("Рынок", Key.P, Mode.Farm), new("Посадить яблоню", Key.T, Mode.Farm),
-            new("Открыть / закрыть стройку", Key.B, Mode.Both), new("Повернуть постройку", Key.R, Mode.Build),
+            new("Рынок", Key.P, Mode.Farm), new("Посадить выбранное дерево", Key.T, Mode.Farm),
+            new("Открыть / закрыть стройку", Key.B, Mode.Both), new("Повернуть постройку / полосу", Key.R, Mode.Build),
             new("Повернуть постройку · дополнительная", Key.Q, Mode.Build), new("Перенести постройку", Key.M, Mode.Build),
             new("Удалить постройку", Key.Delete, Mode.Build), new("Каталог строительства", Key.Tab, Mode.Build),
             new("Настроить постройку", Key.F, Mode.Build), new(MyLittleFarm.UI.FarmText.Get("settings.openJournal"), Key.J, Mode.Farm),
-            new("Инвентарь", Key.I, Mode.Farm), new("Семена · слот 1", Key.Digit1, Mode.Farm),
-            new("Семена · слот 2", Key.Digit2, Mode.Farm), new("Семена · слот 3", Key.Digit3, Mode.Farm),
-            new("Семена · слот 4", Key.Digit4, Mode.Farm), new("Семена · слот 5", Key.Digit5, Mode.Farm),
-            new("Семена · слот 6", Key.Digit6, Mode.Farm), new("Стройка · слот 1", Key.Digit1, Mode.Build),
+            new("Инвентарь", Key.I, Mode.Farm), new("Предмет · слот 1", Key.Digit1, Mode.Farm),
+            new("Предмет · слот 2", Key.Digit2, Mode.Farm), new("Предмет · слот 3", Key.Digit3, Mode.Farm),
+            new("Предмет · слот 4", Key.Digit4, Mode.Farm), new("Предмет · слот 5", Key.Digit5, Mode.Farm),
+            new("Предмет · слот 6", Key.Digit6, Mode.Farm), new("Стройка · слот 1", Key.Digit1, Mode.Build),
             new("Стройка · слот 2", Key.Digit2, Mode.Build), new("Стройка · слот 3", Key.Digit3, Mode.Build),
             new("Стройка · слот 4", Key.Digit4, Mode.Build), new("Стройка · слот 5", Key.Digit5, Mode.Build)
         };
@@ -81,6 +81,16 @@ namespace MyLittleFarm.Core
             };
         }
 
+        // Preserve older context-specific overrides. A shared key retains its existing farm action.
+        public static bool CanRotateField
+        {
+            get
+            {
+                var key=Keys[(int)Command.Rotate];
+                for(var i=0;i<Bindings.Length;i++)if(i!=(int)Command.Rotate && (Bindings[i].Context&Mode.Farm)!=0 && Keys[i]==key)return false;
+                return true;
+            }
+        }
         public static string ActionHint => KeyLabel(Command.Interact) + " / ЛКМ";
         public static string MarketHint => KeyLabel(Command.Market) + " / " + KeyLabel(Command.Interact);
         public static string BuildRotateHint => KeyLabel(Command.RotateAlternate) + " / " + KeyLabel(Command.Rotate);

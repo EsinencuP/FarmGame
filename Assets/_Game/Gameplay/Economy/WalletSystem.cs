@@ -40,6 +40,8 @@ namespace MyLittleFarm.Gameplay.Economy
             return true;
         }
 
+        internal void SetCoinsSilently(int amount)=>Coins=amount;
+
         public void SetCoins(int amount)
         {
             // Используется загрузкой и настройкой; отрицательные значения приводятся к нулю.

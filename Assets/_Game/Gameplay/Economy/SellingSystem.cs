@@ -20,7 +20,7 @@ namespace MyLittleFarm.Gameplay.Economy
         private FarmCatalog _catalog;
 
         /// <summary>Цена одной моркови, установленная в Inspector.</summary>
-        public int CarrotSellPrice => carrotSellPrice;
+        public int CarrotSellPrice => _catalog!=null && _catalog.TryGetItem(InventorySystem.CarrotId,out var item)?item.SellPrice:carrotSellPrice;
 
         /// <summary>Quantity sale for the inventory UI; caller supplies the existing market reach check.</summary>
         public bool TrySellItem(string itemId, int amount, SeedShopSystem market)

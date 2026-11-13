@@ -1,0 +1,23 @@
+// Targeted corrections to U1-0's newly authored assets only. No scene or gameplay state.
+var folder=MyLittleFarm.Editor.UniversityArtPreparation.Root;
+var idle=AssetDatabase.LoadAssetAtPath<AnimationClip>(folder+"/Animations/Cow_Idle.anim");
+var eat=AssetDatabase.LoadAssetAtPath<AnimationClip>(folder+"/Animations/Cow_Eat.anim");
+var preview=UnityEditor.SceneManagement.EditorSceneManager.NewPreviewScene();
+try {
+ var cow=UnityEngine.Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>(folder+"/cow.prefab"));
+ UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(cow,preview);
+ var animator=cow.GetComponentInChildren<Animator>(); idle.SampleAnimation(animator.gameObject,0);
+ var head=cow.GetComponentsInChildren<Transform>(true).First(t=>t.name=="Head");
+ var path=AnimationUtility.CalculateTransformPath(head,animator.transform);
+ var angle=head.localEulerAngles.x;
+ AnimationUtility.SetEditorCurve(eat,EditorCurveBinding.FloatCurve(path,typeof(Transform),"localEulerAnglesRaw.x"),new AnimationCurve(new Keyframe(0,angle-28),new Keyframe(eat.length*.5f,angle-34),new Keyframe(eat.length,angle-28)));
+ EditorUtility.SetDirty(eat);
+} finally {UnityEditor.SceneManagement.EditorSceneManager.ClosePreviewScene(preview);}
+var feeder=PrefabUtility.LoadPrefabContents(folder+"/feeder.prefab");
+try {
+ var basePart=feeder.transform.Find("Base");
+ if(basePart.localPosition.y>.1f) foreach(Transform child in feeder.transform) child.localPosition-=Vector3.up*.11f;
+ PrefabUtility.SaveAsPrefabAsset(feeder,folder+"/feeder.prefab");
+} finally {PrefabUtility.UnloadPrefabContents(feeder);}
+AssetDatabase.SaveAssets();
+return "Corrected eating pose and feeder grounding.";

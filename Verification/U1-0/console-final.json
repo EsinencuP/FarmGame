@@ -1,0 +1,21 @@
+{
+  "meta": null,
+  "content": [
+    {
+      "type": "text",
+      "text": "{\"success\":true,\"message\":\"Retrieved 3 log entries.\",\"data\":[\"Assets\\\\_Game\\\\Editor\\\\ChunkRendererUpgrade.cs(16,94): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'\\n\",\"Assets\\\\_Game\\\\Editor\\\\ChunkRendererUpgrade.cs(16,26): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'\\n\",\"Assets\\\\_Game\\\\Editor\\\\FarmAudioSetup.cs(29,24): warning UAC0005: AppDomain.GetAssemblies() in Unity may return already unloaded assemblies and result in errors or leaks. Use Unity APIs instead, such as 'CurrentAssemblies.GetLoadedAssemblies()' or 'TypeCache.GetTypesDerivedFrom()'.\\n\"]}",
+      "annotations": null,
+      "meta": null
+    }
+  ],
+  "structuredContent": {
+    "success": true,
+    "message": "Retrieved 3 log entries.",
+    "data": [
+      "Assets\\_Game\\Editor\\ChunkRendererUpgrade.cs(16,94): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'\n",
+      "Assets\\_Game\\Editor\\ChunkRendererUpgrade.cs(16,26): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'\n",
+      "Assets\\_Game\\Editor\\FarmAudioSetup.cs(29,24): warning UAC0005: AppDomain.GetAssemblies() in Unity may return already unloaded assemblies and result in errors or leaks. Use Unity APIs instead, such as 'CurrentAssemblies.GetLoadedAssemblies()' or 'TypeCache.GetTypesDerivedFrom()'.\n"
+    ]
+  },
+  "isError": false
+}

@@ -1,0 +1,27 @@
+{
+  "meta": null,
+  "content": [
+    {
+      "type": "text",
+      "text": "{\"success\":true,\"message\":\"Code executed successfully.\",\"data\":{\"result\":{\"scene\":\"Assets/_Game/Scenes/Prototype.unity\",\"dirty\":true,\"roots\":[\"My Little Farm — Stage 2\"],\"persistentPath\":\"C:/Users/esinencuP/AppData/LocalLow/USM/My Little Farm\"},\"compiler\":\"codedom\"}}",
+      "annotations": null,
+      "meta": null
+    }
+  ],
+  "structuredContent": {
+    "success": true,
+    "message": "Code executed successfully.",
+    "data": {
+      "result": {
+        "scene": "Assets/_Game/Scenes/Prototype.unity",
+        "dirty": true,
+        "roots": [
+          "My Little Farm — Stage 2"
+        ],
+        "persistentPath": "C:/Users/esinencuP/AppData/LocalLow/USM/My Little Farm"
+      },
+      "compiler": "codedom"
+    }
+  },
+  "isError": false
+}

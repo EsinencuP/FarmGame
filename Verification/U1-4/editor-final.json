@@ -1,0 +1,21 @@
+{
+  "success": true,
+  "message": "Code executed successfully.",
+  "data": {
+    "result": {
+      "playing": false,
+      "paused": false,
+      "compiling": false,
+      "scene": "Assets/_Game/Scenes/Prototype.unity",
+      "dirty": true,
+      "gridEnabled": true,
+      "instance": true,
+      "reviewRemoved": true,
+      "sourceBackup": true,
+      "gameViewSize": 0,
+      "cowEatSeconds": 1.6,
+      "saveVersion": 15
+    },
+    "compiler": "codedom"
+  }
+}

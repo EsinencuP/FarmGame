@@ -1,0 +1,20 @@
+var scene=UnityEditor.SceneManagement.EditorSceneManager.NewPreviewScene();
+try {
+ var cg=new GameObject("Animal preview camera");UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(cg,scene);var cam=cg.AddComponent<Camera>();cam.scene=scene;cam.orthographic=true;cam.clearFlags=CameraClearFlags.SolidColor;cam.backgroundColor=new Color(.15f,.19f,.16f);
+ var lg=new GameObject("Preview sun");UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(lg,scene);var light=lg.AddComponent<Light>();light.type=LightType.Directional;light.intensity=1.3f;lg.transform.rotation=Quaternion.Euler(45,-35,0);
+ foreach(var species in new[]{"Chicken","Cow"}) {
+  var go=UnityEngine.Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_Game/Resources/FarmContent/"+species+"Visual.prefab"));UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(go,scene);
+  var rig=go.GetComponent<MyLittleFarm.Gameplay.Animals.AnimalVisualRig>();
+  foreach(var state in new[]{"Idle","Walk","Eat"}) {
+   var clip=AssetDatabase.LoadAssetAtPath<AnimationClip>(MyLittleFarm.Editor.AnimalFinalSetup.Root+"/Animations/"+species+"_"+state+".anim");clip.SampleAnimation(rig.Animator.gameObject,state=="Walk"?clip.length*.25f:clip.length*.5f);
+   var skins=go.GetComponentsInChildren<SkinnedMeshRenderer>();var frozen=new List<GameObject>();var bakedMeshes=new List<Mesh>();
+   foreach(var skin in skins){var baked=new Mesh();skin.BakeMesh(baked,true);bakedMeshes.Add(baked);var proxy=new GameObject("Frozen skinned pose");proxy.transform.SetParent(skin.transform,false);proxy.AddComponent<MeshFilter>().sharedMesh=baked;proxy.AddComponent<MeshRenderer>().sharedMaterials=skin.sharedMaterials;skin.enabled=false;frozen.Add(proxy);}
+   var bounds=rig.PickBounds;cam.orthographicSize=species=="Chicken"?.47f:1.05f;var center=go.transform.TransformPoint(bounds.center);cam.transform.position=center+new Vector3(1,.65f,1.5f).normalized*10;cam.transform.LookAt(center);
+   var rt=RenderTexture.GetTemporary(640,640,24);var previous=RenderTexture.active;var picture=new Texture2D(640,640,TextureFormat.RGB24,false);
+   try {cam.targetTexture=rt;cam.Render();RenderTexture.active=rt;picture.ReadPixels(new Rect(0,0,640,640),0,0);picture.Apply();System.IO.File.WriteAllBytes("Verification/U1-4/"+species+"_"+state+".png",picture.EncodeToPNG());}
+   finally{cam.targetTexture=null;RenderTexture.active=previous;RenderTexture.ReleaseTemporary(rt);UnityEngine.Object.DestroyImmediate(picture);foreach(var proxy in frozen)UnityEngine.Object.DestroyImmediate(proxy);foreach(var mesh in bakedMeshes)UnityEngine.Object.DestroyImmediate(mesh);foreach(var skin in skins)skin.enabled=true;}
+  }
+  UnityEngine.Object.DestroyImmediate(go);
+ }
+ return "Six fixed visual poses captured; no gameplay or tests.";
+}finally{UnityEditor.SceneManagement.EditorSceneManager.ClosePreviewScene(scene);}

@@ -32,6 +32,7 @@ namespace MyLittleFarm.Core
         public bool LoadPressed { get; private set; }
         public bool PlantTreePressed { get; private set; }
         public bool BuildTogglePressed { get; private set; }
+        public bool RotateFieldPressed {get;private set;}
         public bool RotateBuildingPressed { get; private set; }
         public bool MoveBuildingPressed { get; private set; }
         public bool DeleteBuildingPressed { get; private set; }
@@ -86,6 +87,7 @@ namespace MyLittleFarm.Core
             MarketPressed = farm && Pressed(Command.Market);
             JournalPressed = farm && Pressed(Command.Guide);
             BuildTogglePressed = !modal && Pressed(Command.Build);
+            RotateFieldPressed = farm && CanRotateField && Pressed(Command.Rotate);
             RotateBuildingPressed = build && (Pressed(Command.Rotate) || Pressed(Command.RotateAlternate));
             MoveBuildingPressed = build && Pressed(Command.MoveBuilding);
             DeleteBuildingPressed = build && Pressed(Command.DeleteBuilding);

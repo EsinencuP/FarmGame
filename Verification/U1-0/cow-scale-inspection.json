@@ -1,0 +1,28 @@
+{
+  "meta": null,
+  "content": [
+    {
+      "type": "text",
+      "text": "{\"success\":true,\"message\":\"Code executed successfully.\",\"data\":{\"result\":{\"geo\":\"Center: (0.00, 0.00, 0.00), Extents: (0.00, 0.00, 0.00)\",\"scaleRoot\":\"(0.002622, 0.002622, 0.002622)\",\"skinScale\":\"(0.262246, 0.262246, 0.262246)\",\"skinBounds\":\"Center: (0.00, 0.01, 0.00), Extents: (0.00, 0.01, 0.01)\",\"meshBounds\":\"Center: (0.00, -0.01, 0.03), Extents: (0.01, 0.05, 0.03)\",\"bakeFalse\":\"Center: (0.00, 0.00, 0.01), Extents: (0.00, 0.01, 0.01)\",\"bakeTrue\":\"Center: (0.00, -0.01, 0.03), Extents: (0.01, 0.05, 0.03)\"},\"compiler\":\"codedom\"}}",
+      "annotations": null,
+      "meta": null
+    }
+  ],
+  "structuredContent": {
+    "success": true,
+    "message": "Code executed successfully.",
+    "data": {
+      "result": {
+        "geo": "Center: (0.00, 0.00, 0.00), Extents: (0.00, 0.00, 0.00)",
+        "scaleRoot": "(0.002622, 0.002622, 0.002622)",
+        "skinScale": "(0.262246, 0.262246, 0.262246)",
+        "skinBounds": "Center: (0.00, 0.01, 0.00), Extents: (0.00, 0.01, 0.01)",
+        "meshBounds": "Center: (0.00, -0.01, 0.03), Extents: (0.01, 0.05, 0.03)",
+        "bakeFalse": "Center: (0.00, 0.00, 0.01), Extents: (0.00, 0.01, 0.01)",
+        "bakeTrue": "Center: (0.00, -0.01, 0.03), Extents: (0.01, 0.05, 0.03)"
+      },
+      "compiler": "codedom"
+    }
+  },
+  "isError": false
+}

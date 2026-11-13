@@ -17,6 +17,7 @@ namespace MyLittleFarm.Core.Grid
         // Earned active-session rain bonus, restored from the crop snapshot (not offline rain).
         public float weatherGrowthBonusSeconds;
         public int stageCount;
+        public bool isRegrowing;
         // Уровни нужны следующим механикам и не меняют существующий цикл роста.
         public byte moisture;
         public byte fertilizer;

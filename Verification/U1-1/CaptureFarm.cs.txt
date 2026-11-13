@@ -1,0 +1,16 @@
+var farm=UnityEngine.Object.FindAnyObjectByType<MyLittleFarm.Core.GameBootstrap>();
+var camera=farm.GetComponentInChildren<Camera>();
+farm.GetComponentInChildren<MyLittleFarm.Gameplay.World.IsometricCameraController>().enabled=false;
+var barn=farm.GetComponentInChildren<MyLittleFarm.Gameplay.Building.BuildSystem>().FindFirstView("barn");
+var center=barn.transform.position+Vector3.up;
+camera.transform.position=center+new Vector3(-9,12,-11);
+camera.transform.LookAt(center);
+var target=RenderTexture.GetTemporary(1600,900,24,RenderTextureFormat.ARGB32);
+var previous=RenderTexture.active;
+var image=new Texture2D(1600,900,TextureFormat.RGB24,false);
+try {
+ camera.targetTexture=target;camera.aspect=1600f/900;camera.Render();RenderTexture.active=target;
+ image.ReadPixels(new Rect(0,0,1600,900),0,0);image.Apply();
+ System.IO.File.WriteAllBytes("Verification/U1-1/farm-cow.png",image.EncodeToPNG());
+} finally {camera.targetTexture=null;RenderTexture.active=previous;RenderTexture.ReleaseTemporary(target);UnityEngine.Object.DestroyImmediate(image);}
+return "Saved actual Play Mode farm camera frame.";

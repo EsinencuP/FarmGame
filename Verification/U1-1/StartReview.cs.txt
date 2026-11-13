@@ -1,0 +1,8 @@
+var scene=UnityEngine.SceneManagement.SceneManager.GetActiveScene();
+if(EditorApplication.isPlaying || scene.isDirty || scene.path!="Assets/_Game/Scenes/Prototype.unity")
+    throw new InvalidOperationException("Review requires the clean authored Prototype in Edit Mode.");
+var copy="Assets/_Recovery/U1-1Review.unity";
+if(System.IO.File.Exists(copy)) throw new InvalidOperationException("Review copy already exists; do not overwrite it.");
+AssetDatabase.CopyAsset(scene.path,copy);
+UnityEditor.SceneManagement.EditorSceneManager.OpenScene(copy);
+return new {scene=copy,persistence="GameBootstrap only calls StartPersistence in a scene named Prototype; this copy does not start slot persistence."};

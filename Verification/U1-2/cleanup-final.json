@@ -1,0 +1,29 @@
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "{\"success\":true,\"message\":\"Code executed successfully.\",\"data\":{\"result\":{\"scene\":\"Assets/_Game/Scenes/Prototype.unity\",\"dirtyBefore\":true,\"dirtyNow\":true,\"roots\":[{\"name\":\"My Little Farm — Stage 2\",\"activeSelf\":true}],\"sourceSnapshot\":\"Assets/_Recovery/U1-2SourceBackup.unity\",\"reviewClosed\":true},\"compiler\":\"codedom\"}}"
+    }
+  ],
+  "structuredContent": {
+    "success": true,
+    "message": "Code executed successfully.",
+    "data": {
+      "result": {
+        "scene": "Assets/_Game/Scenes/Prototype.unity",
+        "dirtyBefore": true,
+        "dirtyNow": true,
+        "roots": [
+          {
+            "name": "My Little Farm — Stage 2",
+            "activeSelf": true
+          }
+        ],
+        "sourceSnapshot": "Assets/_Recovery/U1-2SourceBackup.unity",
+        "reviewClosed": true
+      },
+      "compiler": "codedom"
+    }
+  },
+  "isError": false
+}

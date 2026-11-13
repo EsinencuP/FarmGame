@@ -25,7 +25,7 @@ namespace MyLittleFarm.Gameplay.Farming
             view._readyColor = definition.FruitReadyColor;
             if (definition.VisualPrefab != null)
             {
-                var treeVisual = VisualPrefab.Create(definition.VisualPrefab, root.transform, new Vector3(1.8f, 2.6f, 1.8f));
+                var treeVisual = VisualPrefab.Create(definition.VisualPrefab, root.transform, definition.VisualSize);
                 VisualPrefab.TryGetBounds(treeVisual, out var treeBounds);
                 var fruitGroup = new GameObject("Ready Fruit");
                 fruitGroup.transform.SetParent(root.transform, false);
@@ -40,12 +40,13 @@ namespace MyLittleFarm.Gameplay.Farming
                     foreach (var fruitPosition in positions)
                     {
                         var fruit = VisualPrefab.Create(definition.FruitPrefab, fruitGroup.transform,
-                            Vector3.one * 0.28f);
+                            Vector3.one * definition.FruitSize);
                         fruit.transform.localPosition += root.transform.InverseTransformPoint(
                             new Vector3(treeBounds.center.x, treeBounds.min.y, treeBounds.center.z))
                             + Vector3.Scale(fruitPosition, treeBounds.size);
-                        foreach (var renderer in fruit.GetComponentsInChildren<Renderer>())
-                            RuntimeMaterials.Paint(renderer, view._readyColor);
+                        if (!definition.PreserveFruitMaterials)
+                            foreach (var renderer in fruit.GetComponentsInChildren<Renderer>())
+                                RuntimeMaterials.Paint(renderer, view._readyColor);
                     }
                 }
                 else

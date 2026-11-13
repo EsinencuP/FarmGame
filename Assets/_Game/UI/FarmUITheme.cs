@@ -21,7 +21,10 @@ namespace MyLittleFarm.UI
         }
         public static string ItemIcon(string id)
         {
+            if (id == "milk" || id == "flour" || id == "cheese") return id;
+            if (id.EndsWith("_sapling")) return id == "pear_sapling" ? "sapling_pear" : "sapling";
             if (id == "egg" || id == "apple") return id == "egg" ? "egg" : "crop_apple";
+            if(id=="strawberry_seed"||id=="pumpkin_seed")return "crop_"+id.Substring(0,id.Length-5);
             if (id.EndsWith("_seed"))
             {
                 var crop = id.Substring(0, id.Length - 5);

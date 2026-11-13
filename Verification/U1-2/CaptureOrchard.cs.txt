@@ -1,0 +1,15 @@
+var farm=UnityEngine.Object.FindAnyObjectByType<MyLittleFarm.Core.GameBootstrap>();
+var camera=farm.GetComponentInChildren<Camera>();
+farm.GetComponentInChildren<MyLittleFarm.Gameplay.World.IsometricCameraController>().enabled=false;
+var center=new Vector3(5f,1.35f,2.5f);
+camera.transform.position=center+new Vector3(4.5f,5.5f,-10f);camera.transform.LookAt(center);
+var target=RenderTexture.GetTemporary(1600,900,24,RenderTextureFormat.ARGB32);var previous=RenderTexture.active;
+var image=new Texture2D(1600,900,TextureFormat.RGB24,false);
+try{
+ camera.targetTexture=target;camera.aspect=1600f/900;camera.Render();RenderTexture.active=target;
+ image.ReadPixels(new Rect(0,0,1600,900),0,0);image.Apply();
+ System.IO.File.WriteAllBytes("Verification/U1-2/orchard-ready.png",image.EncodeToPNG());
+}finally{camera.targetTexture=null;RenderTexture.active=previous;RenderTexture.ReleaseTemporary(target);UnityEngine.Object.DestroyImmediate(image);}
+var orchard=farm.GetComponentInChildren<MyLittleFarm.Gameplay.Farming.OrchardSystem>();
+var now=DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+return new{apple=orchard.HarvestPrompt(new Vector2Int(3,2),now),pear=orchard.HarvestPrompt(new Vector2Int(6,2),now)};

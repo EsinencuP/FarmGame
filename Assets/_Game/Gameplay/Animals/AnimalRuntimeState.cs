@@ -16,6 +16,9 @@ namespace MyLittleFarm.Gameplay.Animals
         public long lastFedAtUnixMs;
         public long nextProductAtUnixMs;
         public int readyProductCount;
+        // Optional for legacy chickens; mandatory for cows in v13 and later.
+        public string homeBuildingId;
+        public int homeSlot;
 
         /// <summary>Возвращает клетку загона из сериализованных координат.</summary>
         public Vector2Int Position => new Vector2Int(x, z);

@@ -11,6 +11,8 @@ namespace MyLittleFarm.Gameplay.Farming
         [SerializeField] private string seedItemId;
         [SerializeField] private string harvestItemId;
         [SerializeField, Min(0.1f)] private float growDurationSeconds = 8f;
+        [SerializeField, Min(0)] private float regrowSeconds;
+        public float RegrowSeconds=>regrowSeconds;
         [SerializeField, Min(1)] private int yieldAmount = 2;
         [SerializeField, Min(2)] private int stageCount = 3;
         [SerializeField] private Color matureColor = new Color(0.95f, 0.42f, 0.08f);
@@ -57,6 +59,7 @@ namespace MyLittleFarm.Gameplay.Farming
         public void ConfigurePlaceholder(string id, string title, float seconds, int amount, Color color)
         {
             cropId = id;
+            regrowSeconds=id=="tomato"?45:id=="strawberry"?30:0;
             displayName = title;
             seedItemId = id + "_seed";
             harvestItemId = id;

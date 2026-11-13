@@ -1,0 +1,760 @@
+{
+  "u14Setup": {
+    "success": true,
+    "message": "Code executed successfully.",
+    "data": {
+      "result": {
+        "loaded": true,
+        "added": [
+          {
+            "cell": "(0, 3)",
+            "added": true
+          },
+          {
+            "cell": "(1, 3)",
+            "added": true
+          },
+          {
+            "cell": "(2, 3)",
+            "added": true
+          },
+          {
+            "cell": "(3, 3)",
+            "added": true
+          }
+        ],
+        "bought": true,
+        "reason": "Животные доставлены",
+        "animals": [
+          {
+            "animalId": "cow_f7555bcacaca4967b3d880d3e34b8680",
+            "definitionId": "cow",
+            "x": -2,
+            "z": -1,
+            "lastFedAtUnixMs": 1794516984541,
+            "nextProductAtUnixMs": 1794517044541,
+            "readyProductCount": 1,
+            "homeBuildingId": "0c31141908c04787bd8586e3bc7d25f5",
+            "homeSlot": 0,
+            "Position": {
+              "x": -2,
+              "y": -1,
+              "magnitude": 2.236068,
+              "sqrMagnitude": 5
+            }
+          },
+          {
+            "animalId": "chicken_1",
+            "definitionId": "chicken",
+            "x": 0,
+            "z": 3,
+            "lastFedAtUnixMs": 0,
+            "nextProductAtUnixMs": 0,
+            "readyProductCount": 0,
+            "homeBuildingId": null,
+            "homeSlot": 0,
+            "Position": {
+              "x": 0,
+              "y": 3,
+              "magnitude": 3,
+              "sqrMagnitude": 9
+            }
+          },
+          {
+            "animalId": "chicken_2",
+            "definitionId": "chicken",
+            "x": 1,
+            "z": 3,
+            "lastFedAtUnixMs": 0,
+            "nextProductAtUnixMs": 0,
+            "readyProductCount": 0,
+            "homeBuildingId": null,
+            "homeSlot": 0,
+            "Position": {
+              "x": 1,
+              "y": 3,
+              "magnitude": 3.1622777,
+              "sqrMagnitude": 10
+            }
+          },
+          {
+            "animalId": "chicken_3",
+            "definitionId": "chicken",
+            "x": 2,
+            "z": 3,
+            "lastFedAtUnixMs": 0,
+            "nextProductAtUnixMs": 0,
+            "readyProductCount": 0,
+            "homeBuildingId": null,
+            "homeSlot": 0,
+            "Position": {
+              "x": 2,
+              "y": 3,
+              "magnitude": 3.60555124,
+              "sqrMagnitude": 13
+            }
+          },
+          {
+            "animalId": "chicken_4",
+            "definitionId": "chicken",
+            "x": 3,
+            "z": 3,
+            "lastFedAtUnixMs": 0,
+            "nextProductAtUnixMs": 0,
+            "readyProductCount": 0,
+            "homeBuildingId": null,
+            "homeSlot": 0,
+            "Position": {
+              "x": 3,
+              "y": 3,
+              "magnitude": 4.2426405,
+              "sqrMagnitude": 18
+            }
+          },
+          {
+            "animalId": "cow_22c20699848d4770b333a0dcfe7b17e0",
+            "definitionId": "cow",
+            "x": -5,
+            "z": -1,
+            "lastFedAtUnixMs": 0,
+            "nextProductAtUnixMs": 0,
+            "readyProductCount": 0,
+            "homeBuildingId": "0c31141908c04787bd8586e3bc7d25f5",
+            "homeSlot": 1,
+            "Position": {
+              "x": -5,
+              "y": -1,
+              "magnitude": 5.09901953,
+              "sqrMagnitude": 26
+            }
+          }
+        ],
+        "views": [
+          {
+            "AnimalId": "cow_f7555bcacaca4967b3d880d3e34b8680",
+            "home": "(-1.55, 0.00, -1.03)",
+            "bounds": "Center: (-1.55, 0.67, -1.03), Extents: (1.33, 0.69, 0.43)",
+            "speed": 0
+          },
+          {
+            "AnimalId": "chicken_1",
+            "home": "(0.50, 0.00, 3.50)",
+            "bounds": "Center: (0.48, 0.28, 3.55), Extents: (0.29, 0.29, 0.38)",
+            "speed": 0
+          },
+          {
+            "AnimalId": "chicken_2",
+            "home": "(1.50, 0.00, 3.50)",
+            "bounds": "Center: (1.45, 0.28, 3.50), Extents: (0.34, 0.29, 0.21)",
+            "speed": 0
+          },
+          {
+            "AnimalId": "chicken_3",
+            "home": "(2.50, 0.00, 3.50)",
+            "bounds": "Center: (2.45, 0.28, 3.52), Extents: (0.38, 0.29, 0.29)",
+            "speed": 0
+          },
+          {
+            "AnimalId": "chicken_4",
+            "home": "(3.50, 0.00, 3.50)",
+            "bounds": "Center: (3.55, 0.28, 3.50), Extents: (0.34, 0.29, 0.20)",
+            "speed": 0
+          },
+          {
+            "AnimalId": "cow_22c20699848d4770b333a0dcfe7b17e0",
+            "home": "(-4.45, 0.00, -1.03)",
+            "bounds": "Center: (-4.45, 0.67, -1.03), Extents: (1.34, 0.69, 0.85)",
+            "speed": 0
+          }
+        ],
+        "activeFarm": false
+      },
+      "compiler": "codedom"
+    }
+  },
+  "u14FeedChicken": {
+    "success": true,
+    "message": "Code executed successfully.",
+    "data": {
+      "result": {
+        "feed1": true,
+        "feed2": true,
+        "states": [
+          {
+            "animalId": "cow_f7555bcacaca4967b3d880d3e34b8680",
+            "definitionId": "cow",
+            "x": -2,
+            "z": -1,
+            "lastFedAtUnixMs": 1794516984541,
+            "nextProductAtUnixMs": 1794517044541,
+            "readyProductCount": 1,
+            "homeBuildingId": "0c31141908c04787bd8586e3bc7d25f5",
+            "homeSlot": 0,
+            "Position": {
+              "x": -2,
+              "y": -1,
+              "magnitude": 2.236068,
+              "sqrMagnitude": 5
+            }
+          },
+          {
+            "animalId": "chicken_1",
+            "definitionId": "chicken",
+            "x": 0,
+            "z": 3,
+            "lastFedAtUnixMs": 1794522721797,
+            "nextProductAtUnixMs": 1794522761797,
+            "readyProductCount": 0,
+            "homeBuildingId": null,
+            "homeSlot": 0,
+            "Position": {
+              "x": 0,
+              "y": 3,
+              "magnitude": 3,
+              "sqrMagnitude": 9
+            }
+          },
+          {
+            "animalId": "chicken_2",
+            "definitionId": "chicken",
+            "x": 1,
+            "z": 3,
+            "lastFedAtUnixMs": 1794522721797,
+            "nextProductAtUnixMs": 1794522761797,
+            "readyProductCount": 0,
+            "homeBuildingId": null,
+            "homeSlot": 0,
+            "Position": {
+              "x": 1,
+              "y": 3,
+              "magnitude": 3.1622777,
+              "sqrMagnitude": 10
+            }
+          },
+          {
+            "animalId": "chicken_3",
+            "definitionId": "chicken",
+            "x": 2,
+            "z": 3,
+            "lastFedAtUnixMs": 0,
+            "nextProductAtUnixMs": 0,
+            "readyProductCount": 0,
+            "homeBuildingId": null,
+            "homeSlot": 0,
+            "Position": {
+              "x": 2,
+              "y": 3,
+              "magnitude": 3.60555124,
+              "sqrMagnitude": 13
+            }
+          },
+          {
+            "animalId": "chicken_4",
+            "definitionId": "chicken",
+            "x": 3,
+            "z": 3,
+            "lastFedAtUnixMs": 1794522680797,
+            "nextProductAtUnixMs": 1794522720797,
+            "readyProductCount": 1,
+            "homeBuildingId": null,
+            "homeSlot": 0,
+            "Position": {
+              "x": 3,
+              "y": 3,
+              "magnitude": 4.2426405,
+              "sqrMagnitude": 18
+            }
+          },
+          {
+            "animalId": "cow_22c20699848d4770b333a0dcfe7b17e0",
+            "definitionId": "cow",
+            "x": -5,
+            "z": -1,
+            "lastFedAtUnixMs": 0,
+            "nextProductAtUnixMs": 0,
+            "readyProductCount": 0,
+            "homeBuildingId": "0c31141908c04787bd8586e3bc7d25f5",
+            "homeSlot": 1,
+            "Position": {
+              "x": -5,
+              "y": -1,
+              "magnitude": 5.09901953,
+              "sqrMagnitude": 26
+            }
+          }
+        ],
+        "views": [
+          {
+            "AnimalId": "chicken_1",
+            "IsEating": true,
+            "Producing": false,
+            "ProductReady": false,
+            "ActualSpeed": 0
+          },
+          {
+            "AnimalId": "chicken_2",
+            "IsEating": true,
+            "Producing": false,
+            "ProductReady": false,
+            "ActualSpeed": 0
+          },
+          {
+            "AnimalId": "chicken_3",
+            "IsEating": false,
+            "Producing": false,
+            "ProductReady": false,
+            "ActualSpeed": 0
+          },
+          {
+            "AnimalId": "chicken_4",
+            "IsEating": false,
+            "Producing": false,
+            "ProductReady": true,
+            "ActualSpeed": 0
+          }
+        ]
+      },
+      "compiler": "codedom"
+    }
+  },
+  "u14CowFeed": {
+    "success": true,
+    "message": "Code executed successfully.",
+    "data": {
+      "result": {
+        "loaded": true,
+        "fed": true,
+        "now": 1794522890564,
+        "cow": "cow_22c20699848d4770b333a0dcfe7b17e0",
+        "deadline": 1794522950564,
+        "saved": true,
+        "screen": [
+          1920,
+          1080
+        ]
+      },
+      "compiler": "codedom"
+    }
+  },
+  "u14CowEating": {
+    "success": true,
+    "message": "Code executed successfully.",
+    "data": {
+      "result": {
+        "collected": true,
+        "amount": 1,
+        "fed": true,
+        "scheduled": "Full eating pose after 0.7 seconds",
+        "states": [
+          {
+            "animalId": "cow_f7555bcacaca4967b3d880d3e34b8680",
+            "definitionId": "cow",
+            "x": -2,
+            "z": -1,
+            "lastFedAtUnixMs": 1794522915900,
+            "nextProductAtUnixMs": 1794522975900,
+            "readyProductCount": 0,
+            "homeBuildingId": "0c31141908c04787bd8586e3bc7d25f5",
+            "homeSlot": 0,
+            "Position": {
+              "x": -2,
+              "y": -1,
+              "magnitude": 2.236068,
+              "sqrMagnitude": 5
+            }
+          },
+          {
+            "animalId": "cow_22c20699848d4770b333a0dcfe7b17e0",
+            "definitionId": "cow",
+            "x": -5,
+            "z": -1,
+            "lastFedAtUnixMs": 1794522890564,
+            "nextProductAtUnixMs": 1794522950564,
+            "readyProductCount": 0,
+            "homeBuildingId": "0c31141908c04787bd8586e3bc7d25f5",
+            "homeSlot": 1,
+            "Position": {
+              "x": -5,
+              "y": -1,
+              "magnitude": 5.09901953,
+              "sqrMagnitude": 26
+            }
+          }
+        ]
+      },
+      "compiler": "codedom"
+    }
+  },
+  "u14MotionOutline": {
+    "success": true,
+    "message": "Code executed successfully.",
+    "data": {
+      "result": {
+        "picked": "cow_22c20699848d4770b333a0dcfe7b17e0",
+        "expected": "cow_22c20699848d4770b333a0dcfe7b17e0",
+        "outline": "Center: (-4.47, 0.67, -1.22), Extents: (0.35, 0.69, 1.31)",
+        "motion": [
+          {
+            "AnimalId": "cow_f7555bcacaca4967b3d880d3e34b8680",
+            "ActualSpeed": 0,
+            "parameter": 0,
+            "strideRate": 0.05,
+            "walking": false,
+            "ymin": -0.00218135677,
+            "IsEating": false
+          },
+          {
+            "AnimalId": "cow_22c20699848d4770b333a0dcfe7b17e0",
+            "ActualSpeed": 0.319997579,
+            "parameter": 0.319997579,
+            "strideRate": 0.432429165,
+            "walking": true,
+            "ymin": -0.00187974051,
+            "IsEating": false
+          }
+        ]
+      },
+      "compiler": "codedom"
+    }
+  },
+  "u14ReliefSetup": {
+    "success": true,
+    "message": "Code executed successfully.",
+    "data": {
+      "result": {
+        "previewOnly": true,
+        "root": "U1-4 relief visual preview",
+        "cowPosition": "(27.50, 1.52, 20.50)",
+        "chickenPosition": "(29.50, 1.81, 21.50)",
+        "cowTilt": 11.3226681,
+        "chickenTilt": 3.856001
+      },
+      "compiler": "codedom"
+    }
+  },
+  "u14ReliefContact": {
+    "success": true,
+    "message": "Code executed successfully.",
+    "data": {
+      "result": [
+        {
+          "AnimalId": "relief_cow",
+          "tilt": 11.3226681,
+          "minimumVertexGroundGap": -0.00262057781,
+          "feet": [
+            "0,0450",
+            "0,0450",
+            "0,0450",
+            "0,0450",
+            "0,0450",
+            "0,0450",
+            "0,0450",
+            "0,0450"
+          ]
+        },
+        {
+          "AnimalId": "relief_chicken",
+          "tilt": 3.856001,
+          "minimumVertexGroundGap": -0.0000412464142,
+          "feet": [
+            "0,0029",
+            "0,0029"
+          ]
+        }
+      ],
+      "compiler": "codedom"
+    }
+  },
+  "u14CollectMove": {
+    "success": true,
+    "message": "Code executed successfully.",
+    "data": {
+      "result": {
+        "egg": true,
+        "eggs": 1,
+        "milk": true,
+        "milkAmount": 1,
+        "moved": true,
+        "reason": "Постройка перенесена",
+        "animals": [
+          {
+            "animalId": "cow_f7555bcacaca4967b3d880d3e34b8680",
+            "definitionId": "cow",
+            "x": -5,
+            "z": -7,
+            "lastFedAtUnixMs": 1794522915900,
+            "nextProductAtUnixMs": 1794522975900,
+            "readyProductCount": 1,
+            "homeBuildingId": "0c31141908c04787bd8586e3bc7d25f5",
+            "homeSlot": 0,
+            "Position": {
+              "x": -5,
+              "y": -7,
+              "magnitude": 8.602325,
+              "sqrMagnitude": 74
+            }
+          },
+          {
+            "animalId": "chicken_1",
+            "definitionId": "chicken",
+            "x": 0,
+            "z": 3,
+            "lastFedAtUnixMs": 1794522721797,
+            "nextProductAtUnixMs": 0,
+            "readyProductCount": 0,
+            "homeBuildingId": "",
+            "homeSlot": 0,
+            "Position": {
+              "x": 0,
+              "y": 3,
+              "magnitude": 3,
+              "sqrMagnitude": 9
+            }
+          },
+          {
+            "animalId": "chicken_2",
+            "definitionId": "chicken",
+            "x": 1,
+            "z": 3,
+            "lastFedAtUnixMs": 1794522721797,
+            "nextProductAtUnixMs": 1794522761797,
+            "readyProductCount": 1,
+            "homeBuildingId": "",
+            "homeSlot": 0,
+            "Position": {
+              "x": 1,
+              "y": 3,
+              "magnitude": 3.1622777,
+              "sqrMagnitude": 10
+            }
+          },
+          {
+            "animalId": "chicken_3",
+            "definitionId": "chicken",
+            "x": 2,
+            "z": 3,
+            "lastFedAtUnixMs": 1794523035621,
+            "nextProductAtUnixMs": 1794523075621,
+            "readyProductCount": 1,
+            "homeBuildingId": "",
+            "homeSlot": 0,
+            "Position": {
+              "x": 2,
+              "y": 3,
+              "magnitude": 3.60555124,
+              "sqrMagnitude": 13
+            }
+          },
+          {
+            "animalId": "chicken_4",
+            "definitionId": "chicken",
+            "x": 3,
+            "z": 3,
+            "lastFedAtUnixMs": 1794522680797,
+            "nextProductAtUnixMs": 1794522720797,
+            "readyProductCount": 1,
+            "homeBuildingId": "",
+            "homeSlot": 0,
+            "Position": {
+              "x": 3,
+              "y": 3,
+              "magnitude": 4.2426405,
+              "sqrMagnitude": 18
+            }
+          },
+          {
+            "animalId": "cow_22c20699848d4770b333a0dcfe7b17e0",
+            "definitionId": "cow",
+            "x": -2,
+            "z": -7,
+            "lastFedAtUnixMs": 1794522890564,
+            "nextProductAtUnixMs": 0,
+            "readyProductCount": 0,
+            "homeBuildingId": "0c31141908c04787bd8586e3bc7d25f5",
+            "homeSlot": 1,
+            "Position": {
+              "x": -2,
+              "y": -7,
+              "magnitude": 7.28011,
+              "sqrMagnitude": 53
+            }
+          }
+        ],
+        "saved": true
+      },
+      "compiler": "codedom"
+    }
+  },
+  "u14ReloadFinal": {
+    "success": true,
+    "message": "Code executed successfully.",
+    "data": {
+      "result": {
+        "loaded": true,
+        "records": [
+          "cow_f7555bcacaca4967b3d880d3e34b8680 ready=True home margin=0,0713",
+          "chicken_1 ready=False home margin=0,0547",
+          "chicken_2 ready=True home margin=0,0867",
+          "chicken_3 ready=True home margin=0,0550",
+          "chicken_4 ready=True home margin=0,0892",
+          "cow_22c20699848d4770b333a0dcfe7b17e0 ready=False home margin=0,0609"
+        ],
+        "states": [
+          {
+            "animalId": "cow_f7555bcacaca4967b3d880d3e34b8680",
+            "definitionId": "cow",
+            "x": -5,
+            "z": -7,
+            "lastFedAtUnixMs": 1794522915900,
+            "nextProductAtUnixMs": 1794522975900,
+            "readyProductCount": 1,
+            "homeBuildingId": "0c31141908c04787bd8586e3bc7d25f5",
+            "homeSlot": 0,
+            "Position": {
+              "x": -5,
+              "y": -7,
+              "magnitude": 8.602325,
+              "sqrMagnitude": 74
+            }
+          },
+          {
+            "animalId": "chicken_1",
+            "definitionId": "chicken",
+            "x": 0,
+            "z": 3,
+            "lastFedAtUnixMs": 1794522721797,
+            "nextProductAtUnixMs": 0,
+            "readyProductCount": 0,
+            "homeBuildingId": "",
+            "homeSlot": 0,
+            "Position": {
+              "x": 0,
+              "y": 3,
+              "magnitude": 3,
+              "sqrMagnitude": 9
+            }
+          },
+          {
+            "animalId": "chicken_2",
+            "definitionId": "chicken",
+            "x": 1,
+            "z": 3,
+            "lastFedAtUnixMs": 1794522721797,
+            "nextProductAtUnixMs": 1794522761797,
+            "readyProductCount": 1,
+            "homeBuildingId": "",
+            "homeSlot": 0,
+            "Position": {
+              "x": 1,
+              "y": 3,
+              "magnitude": 3.1622777,
+              "sqrMagnitude": 10
+            }
+          },
+          {
+            "animalId": "chicken_3",
+            "definitionId": "chicken",
+            "x": 2,
+            "z": 3,
+            "lastFedAtUnixMs": 1794523035621,
+            "nextProductAtUnixMs": 1794523075621,
+            "readyProductCount": 1,
+            "homeBuildingId": "",
+            "homeSlot": 0,
+            "Position": {
+              "x": 2,
+              "y": 3,
+              "magnitude": 3.60555124,
+              "sqrMagnitude": 13
+            }
+          },
+          {
+            "animalId": "chicken_4",
+            "definitionId": "chicken",
+            "x": 3,
+            "z": 3,
+            "lastFedAtUnixMs": 1794522680797,
+            "nextProductAtUnixMs": 1794522720797,
+            "readyProductCount": 1,
+            "homeBuildingId": "",
+            "homeSlot": 0,
+            "Position": {
+              "x": 3,
+              "y": 3,
+              "magnitude": 4.2426405,
+              "sqrMagnitude": 18
+            }
+          },
+          {
+            "animalId": "cow_22c20699848d4770b333a0dcfe7b17e0",
+            "definitionId": "cow",
+            "x": -2,
+            "z": -7,
+            "lastFedAtUnixMs": 1794522890564,
+            "nextProductAtUnixMs": 0,
+            "readyProductCount": 0,
+            "homeBuildingId": "0c31141908c04787bd8586e3bc7d25f5",
+            "homeSlot": 1,
+            "Position": {
+              "x": -2,
+              "y": -7,
+              "magnitude": 7.28011,
+              "sqrMagnitude": 53
+            }
+          }
+        ],
+        "inventory": [
+          {
+            "itemId": "carrot_seed",
+            "amount": 8
+          },
+          {
+            "itemId": "wheat",
+            "amount": 8
+          },
+          {
+            "itemId": "milk",
+            "amount": 2
+          },
+          {
+            "itemId": "egg",
+            "amount": 1
+          }
+        ],
+        "version": 15
+      },
+      "compiler": "codedom"
+    }
+  },
+  "u14FinalEat": {
+    "success": true,
+    "message": "Code executed successfully.",
+    "data": {
+      "result": {
+        "paused": true,
+        "IsEating": true,
+        "ActualSpeed": 0,
+        "Eating": true,
+        "stateEat": true,
+        "headMinimumHeight": 0.2911502,
+        "headAngles": "(302.55, 111.76, 244.76)"
+      },
+      "compiler": "codedom"
+    }
+  },
+  "u14Cleanup": {
+    "success": true,
+    "message": "Code executed successfully.",
+    "data": {
+      "result": {
+        "scene": "Assets/_Game/Scenes/Prototype.unity",
+        "dirtyBefore": true,
+        "dirtyNow": true,
+        "enabled": true,
+        "instance": true,
+        "gameViewRestored": true
+      },
+      "compiler": "codedom"
+    }
+  }
+}

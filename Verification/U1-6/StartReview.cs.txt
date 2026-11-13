@@ -1,0 +1,13 @@
+var source=UnityEngine.SceneManagement.SceneManager.GetActiveScene();
+if(EditorApplication.isPlaying || source.path!="Assets/_Game/Scenes/Prototype.unity") throw new InvalidOperationException("Need source Edit Mode.");
+var copy="Assets/_Recovery/U1-6Review.unity";
+var backup="Assets/_Recovery/U1-6SourceBackup.unity";
+if(System.IO.File.Exists(copy)||System.IO.File.Exists(backup)) throw new InvalidOperationException("Do not overwrite recovery files.");
+if(!UnityEditor.SceneManagement.EditorSceneManager.SaveScene(source,backup,true)) throw new InvalidOperationException("Could not snapshot source.");
+SessionState.SetString("Farm.U1-6.SourceRoots",string.Join("\n",source.GetRootGameObjects().Select(g=>Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(g.name))+":"+(g.activeSelf?"1":"0"))));
+SessionState.SetBool("Farm.U1-6.SourceWasDirty",source.isDirty);
+if(!AssetDatabase.CopyAsset(source.path,copy)) throw new InvalidOperationException("Could not copy review scene.");
+foreach(var root in source.GetRootGameObjects()) root.SetActive(false);
+var review=UnityEditor.SceneManagement.EditorSceneManager.OpenScene(copy,UnityEditor.SceneManagement.OpenSceneMode.Additive);
+UnityEngine.SceneManagement.SceneManager.SetActiveScene(review);
+return new {scene=review.path,sourceSnapshot=backup,originalLoaded=true,persistence="Review is not Prototype; original roots disabled."};

@@ -16,6 +16,10 @@ namespace MyLittleFarm.Gameplay.Farming
         [SerializeField] private Color fruitReadyColor = new Color(0.82f, 0.16f, 0.08f);
         [SerializeField] private GameObject visualPrefab;
         [SerializeField] private GameObject fruitPrefab;
+        [SerializeField] private string saplingItemId = "apple_sapling";
+        [SerializeField] private Vector3 visualSize = new Vector3(1.8f, 2.6f, 1.8f);
+        [SerializeField, Min(.05f)] private float fruitSize = .28f;
+        [SerializeField] private bool preserveFruitMaterials;
 
         // Стабильные идентификаторы и параметры можно изменять в Inspector без отдельного кода дерева.
         public string TreeId => treeId;
@@ -28,6 +32,10 @@ namespace MyLittleFarm.Gameplay.Farming
         public Color FruitReadyColor => fruitReadyColor;
         public GameObject VisualPrefab => visualPrefab;
         public GameObject FruitPrefab => fruitPrefab;
+        public string SaplingItemId => saplingItemId;
+        public Vector3 VisualSize => visualSize;
+        public float FruitSize => fruitSize;
+        public bool PreserveFruitMaterials => preserveFruitMaterials;
 
         /// <summary>Заполняет временное определение яблони для прототипа без .asset-файла.</summary>
         public void ConfigurePlaceholder(string id, string title, float firstHarvest, float regrow,

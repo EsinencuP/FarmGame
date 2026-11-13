@@ -58,9 +58,10 @@ namespace MyLittleFarm.Gameplay.Farming
         private readonly List<CropDefinition> _orderedCrops = new List<CropDefinition>();
 
         public IReadOnlyList<CropDefinition> Crops => _orderedCrops;
-        internal static readonly string[] FarmProductIds = { ApplePresses.FruitId, "egg", ApplePresses.JuiceId };
+        internal static readonly string[] FarmProductIds = { ApplePresses.FruitId, "egg", ApplePresses.JuiceId, "milk", "pear", "flour", "cheese" };
+        internal static readonly string[] SaplingIds = { "apple_sapling", "pear_sapling" };
 
-        /// <summary>Собирает шесть игровых культур и заменяет их назначенными ассетами.</summary>
+        /// <summary>Собирает восемь игровых культур и заменяет их назначенными ассетами.</summary>
         public void Configure()
         {
             ClearPlaceholders();
@@ -73,8 +74,17 @@ namespace MyLittleFarm.Gameplay.Farming
             AddPlaceholder("tomato", tomato);
             AddPlaceholder("corn", corn);
             AddPlaceholder("cucumber", cucumber);
+            AddPlaceholder("strawberry",new PlaceholderCropSettings("Клубника",30,3,8,7,new Color(.8f,.1f,.15f)));
+            AddPlaceholder("pumpkin",new PlaceholderCropSettings("Тыква",35,2,10,16,new Color(1f,.5f,.1f)));
             AddItemPlaceholder("apple", "Яблоко", 0, 18, false);
             AddItemPlaceholder("egg", "Яйцо", 0, 14, false);
+            AddItemPlaceholder("milk", "Молоко", 0, 28, false);
+            AddItemPlaceholder("flour", "Мука", 0, ProductionRecipe.Mill.SellPrice, false);
+            AddItemPlaceholder("cheese", "Сыр", 0, ProductionRecipe.Dairy.SellPrice, false);
+            AddItemPlaceholder("pear", "Груша", 0, 24, false);
+            AddItemPlaceholder("pear_sapling", "Саженец груши", 30, 0, true);
+            // A virtual selector keeps the original unlimited free apple planting available in inventory.
+            AddItemPlaceholder("apple_sapling", "Саженец яблони", 0, 0, false);
             AddItemPlaceholder(ApplePresses.JuiceId, FarmText.Get("press.juice"), 0, ApplePresses.JuicePrice, false);
             if (cropAssets != null)
                 foreach (var crop in cropAssets)
@@ -82,6 +92,18 @@ namespace MyLittleFarm.Gameplay.Farming
             if (itemAssets != null)
                 foreach (var item in itemAssets)
                     if (item != null && !string.IsNullOrWhiteSpace(item.ItemId)) _items[item.ItemId] = item;
+            foreach (var resource in new[] { "Milk", "PearFruit", "PearSapling", "Flour", "Cheese" })
+            {
+                var item = Resources.Load<ItemDefinition>("FarmContent/" + resource);
+                if (item != null && (itemAssets == null || !Array.Exists(itemAssets, i => i != null && i.ItemId == item.ItemId)))
+                    _items[item.ItemId] = item;
+            }
+            foreach(var id in new[]{"strawberry","pumpkin"})
+            {
+                var definition=Resources.Load<CropDefinition>("FarmContent/"+id);
+                if(definition!=null && (cropAssets==null || !Array.Exists(cropAssets,c=>c!=null && c.CropId==id)))_crops[id]=definition;
+            }
+            ApplyDemoPrices();
             var usedItemIds = new HashSet<string>(StringComparer.Ordinal);
             foreach (var id in CropIds)
             {
@@ -103,7 +125,7 @@ namespace MyLittleFarm.Gameplay.Farming
 
         /// <summary>Стабильный порядок культур используется быстрыми слотами и UI.</summary>
         public static readonly string[] CropIds =
-            { "carrot", "potato", "wheat", "tomato", "corn", "cucumber" };
+            { "carrot", "potato", "wheat", "tomato", "corn", "cucumber", "strawberry", "pumpkin" };
 
         /// <summary>Возвращает культуру, если ID присутствует в текущем каталоге.</summary>
         public bool TryGetCrop(string id, out CropDefinition crop) => _crops.TryGetValue(id ?? string.Empty, out crop);
@@ -140,6 +162,20 @@ namespace MyLittleFarm.Gameplay.Farming
             _placeholders.Add(item);
         }
 
+        // Runtime copies keep scene-assigned assets intact while all economy consumers use one tuning.
+        private void ApplyDemoPrices()
+        {
+            var seedPrices=new[]{2,3,4,5,6,7,8,10};var salePrices=new[]{3,4,3,5,6,5,7,16};
+            for(var i=0;i<CropIds.Length;i++)
+            {
+                var crop=_crops[CropIds[i]];
+                foreach(var pair in new[]{(crop.SeedItemId,seedPrices[i],0),(crop.HarvestItemId,0,salePrices[i])})
+                {
+                    var copy=Instantiate(_items[pair.Item1]);copy.SetPrices(pair.Item2,pair.Item3);
+                    _items[pair.Item1]=copy;_placeholders.Add(copy);
+                }
+            }
+        }
         private void OnDestroy() => ClearPlaceholders();
 
         private void ClearPlaceholders()

@@ -1,0 +1,27 @@
+{
+  "meta": null,
+  "content": [
+    {
+      "type": "text",
+      "text": "{\"success\":true,\"message\":\"Code executed successfully.\",\"data\":{\"result\":{\"bought\":true,\"reason\":\"Оплачено · −60 монет\",\"coins\":40,\"saplings\":2,\"persistence\":false,\"scene\":\"Assets/_Recovery/U1-2Review.unity\"},\"compiler\":\"codedom\"}}",
+      "annotations": null,
+      "meta": null
+    }
+  ],
+  "structuredContent": {
+    "success": true,
+    "message": "Code executed successfully.",
+    "data": {
+      "result": {
+        "bought": true,
+        "reason": "Оплачено · −60 монет",
+        "coins": 40,
+        "saplings": 2,
+        "persistence": false,
+        "scene": "Assets/_Recovery/U1-2Review.unity"
+      },
+      "compiler": "codedom"
+    }
+  },
+  "isError": false
+}

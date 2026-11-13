@@ -1,0 +1,41 @@
+{
+  "meta": null,
+  "content": [
+    {
+      "type": "text",
+      "text": "{\"success\":true,\"message\":\"Code executed successfully.\",\"data\":{\"result\":[{\"name\":\"Small_Barn\",\"size\":\"(5.146, 4.200, 5.311)\",\"min\":\"(-2.573, 0.000, -2.656)\"},{\"name\":\"Small_Barn_Door\",\"size\":\"(1.230, 1.435, 0.142)\",\"min\":\"(-0.322, 0.170, 2.164)\"},{\"name\":\"SmallBarn_Window\",\"size\":\"(0.482, 0.914, 0.098)\",\"min\":\"(-0.937, 2.164, 2.338)\"},{\"name\":\"SmallBarn_Window2\",\"size\":\"(0.473, 0.914, 0.106)\",\"min\":\"(0.359, 2.164, 2.342)\"}],\"compiler\":\"codedom\"}}",
+      "annotations": null,
+      "meta": null
+    }
+  ],
+  "structuredContent": {
+    "success": true,
+    "message": "Code executed successfully.",
+    "data": {
+      "result": [
+        {
+          "name": "Small_Barn",
+          "size": "(5.146, 4.200, 5.311)",
+          "min": "(-2.573, 0.000, -2.656)"
+        },
+        {
+          "name": "Small_Barn_Door",
+          "size": "(1.230, 1.435, 0.142)",
+          "min": "(-0.322, 0.170, 2.164)"
+        },
+        {
+          "name": "SmallBarn_Window",
+          "size": "(0.482, 0.914, 0.098)",
+          "min": "(-0.937, 2.164, 2.338)"
+        },
+        {
+          "name": "SmallBarn_Window2",
+          "size": "(0.473, 0.914, 0.106)",
+          "min": "(0.359, 2.164, 2.342)"
+        }
+      ],
+      "compiler": "codedom"
+    }
+  },
+  "isError": false
+}

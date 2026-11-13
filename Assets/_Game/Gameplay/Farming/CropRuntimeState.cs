@@ -16,6 +16,7 @@ namespace MyLittleFarm.Gameplay.Farming
         public float growDurationSeconds;
         public float weatherGrowthBonusSeconds;
         public int stageCount;
+        public bool isRegrowing;
 
         /// <summary>Возвращает клеточную позицию в формате, принятом GridSystem.</summary>
         public Vector2Int Position => new Vector2Int(x, z);
@@ -35,6 +36,7 @@ namespace MyLittleFarm.Gameplay.Farming
                 return safeStageCount - 1;
             }
 
+            if(isRegrowing)return Mathf.Min(1,safeStageCount-1);
             return Mathf.Clamp(
                 Mathf.FloorToInt(GetGrowthRatio(nowUnixMs) * Mathf.Max(1, safeStageCount - 1)),
                 0,

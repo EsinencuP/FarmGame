@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using MyLittleFarm.Core;
-using MyLittleFarm.Core.Grid;
 using MyLittleFarm.Gameplay.Economy;
+using MyLittleFarm.Core.Grid;
 using MyLittleFarm.Gameplay.Farming;
 using MyLittleFarm.UI;
 using UnityEngine;
@@ -62,6 +62,7 @@ namespace MyLittleFarm.Gameplay.Building
         private WalletSystem _wallet;
         private InputReader _input;
         private Camera _camera;
+        private MyLittleFarm.Gameplay.Animals.AnimalSystem _animals;
         // Preview — временная геометрия, а два материала обозначают допустимое и запрещённое место.
         private GameObject _preview;
         private GameObject _previewModel;
@@ -90,7 +91,11 @@ namespace MyLittleFarm.Gameplay.Building
         public string CurrentPrompt { get; private set; } = string.Empty;
         public int Count => _layout?.Count ?? 0;
         internal ApplePresses Presses { get; private set; }
+        internal ProductionBatches Production { get; private set; }
+        public FeederStore Feeders {get;private set;}
+        public WarehouseStore Warehouses { get; private set; }
         public BuildingDefinition SelectedDefinition => BuildingDefinition.Catalog[_selected];
+        public void BindAnimals(MyLittleFarm.Gameplay.Animals.AnimalSystem animals) => _animals = animals;
 
         /// <summary>Подключает зависимости, создаёт пустой layout и объект предпросмотра.</summary>
         public void Configure(
@@ -103,7 +108,10 @@ namespace MyLittleFarm.Gameplay.Building
             InventorySystem inventory = null)
         {
             _input = input; _grid = grid; _crops = crops; _wallet = wallet; _camera = camera;
-            Presses = inventory == null ? null : new ApplePresses(inventory);
+            Feeders=inventory==null?null:new FeederStore(this,inventory);
+            Warehouses = inventory == null ? null : new WarehouseStore(inventory,this);
+            Production = inventory == null ? null : new ProductionBatches(inventory);
+            Presses = Production == null ? null : new ApplePresses(Production);
             if (_previewModel != null)
             {
                 _previewModel.SetActive(false);
@@ -158,6 +166,10 @@ namespace MyLittleFarm.Gameplay.Building
 
         private GameObject VisualFor(string definitionId,int level=0)
         {
+            if(definitionId=="feeder")return Resources.Load<GameObject>("FarmContent/Feeder");
+            if (definitionId == "mill") return Resources.Load<GameObject>("FarmContent/Mill");
+            if (definitionId == "cheese_dairy") return Resources.Load<GameObject>("FarmContent/Dairy");
+            if (definitionId == BarnHabitat.BuildingId) return Resources.Load<GameObject>(BarnHabitat.PrefabResource);
             if(definitionId=="house"&&level>=0&&level<houseLevelPrefabs.Length&&houseLevelPrefabs[level]!=null)
                 return houseLevelPrefabs[level];
             if (visualPrefabs == null) return null;
@@ -184,7 +196,35 @@ namespace MyLittleFarm.Gameplay.Building
         /// <summary>Создаёт отделённый снимок всех построек для сохранения.</summary>
         public List<BuildingRuntimeState> Capture() => _layout.Capture();
         public BuildingRuntimeState GetBuilding(string id)=>_layout==null?null:_layout.Get(id);
+        public ProductionRecipe RecipeFor(string id) => Production == null ? null : ProductionRecipe.ForBuilding(_layout?.Get(id)?.definitionId);
         internal bool IsApplePress(string id) => Presses != null && _layout?.Get(id)?.definitionId == ApplePresses.BuildingId;
+        public bool TryStartProduction(string id,long now,out string message)
+        {
+            var recipe=RecipeFor(id); message="Постройка не найдена.";
+            return recipe!=null && Production.TryStart(id,recipe,now,out message);
+        }
+        public bool TryCollectProduction(string id,long now,out string message)
+        {
+            message="Постройка не найдена.";
+            return RecipeFor(id)!=null && Production.TryCollect(id,now,out message);
+        }
+        public bool ProductionInReach(string id, Vector3 player, float reach=2.4f)
+        {
+            if(RecipeFor(id)==null) return false;
+            return BuildingInReach(id,player,reach);
+        }
+        public bool IsFeeder(string id)=>Feeders!=null && _layout?.Get(id)?.definitionId=="feeder";
+        public bool FeederInReach(string id,Vector3 player)=>IsFeeder(id) && BuildingInReach(id,player,2.4f);
+        public bool FeederCovers(string id,Vector3 position)=>IsFeeder(id) && BuildingInReach(id,position,FeederStore.Radius);
+        public bool IsWarehouse(string id)=>Warehouses!=null && _layout?.Get(id)?.definitionId=="storage";
+        public bool WarehouseInReach(string id,Vector3 player)=>IsWarehouse(id) && BuildingInReach(id,player,2.4f);
+        private bool BuildingInReach(string id,Vector3 player,float reach)
+        {
+            if(id==null || !_views.TryGetValue(id,out var view))return false;
+            var collider=view.GetComponent<Collider>();
+            var nearest=collider==null ? view.transform.position : collider.ClosestPoint(player);
+            var delta=nearest-player;delta.y=0;return delta.sqrMagnitude<=reach*reach;
+        }
         public BuildingView FindFirstView(string definitionId)
         {
             foreach (var view in _views.Values)
@@ -198,7 +238,8 @@ namespace MyLittleFarm.Gameplay.Building
             var prefab = VisualFor(definition.Id,state.appearanceLevel);
             if (prefab != null && (prefab.GetComponent<BuildingArtMetrics>() != null
                 || prefab.GetComponent<DecorationArtMetrics>() != null)
-                && VisualPrefab.TryGetLocalBounds(prefab,prefab.transform,out var local))
+                && VisualPrefab.TryGetLocalBounds(definition.Id == BarnHabitat.BuildingId ? BarnHabitat.SolidModel(prefab) : prefab,
+                    prefab.transform,out var local))
             {
                 var matrix = Matrix4x4.TRS(center,Quaternion.Euler(0,state.quarterTurns*90f,0),Vector3.one)
                     * Matrix4x4.TRS(prefab.transform.localPosition,prefab.transform.localRotation,prefab.transform.localScale);
@@ -289,8 +330,10 @@ namespace MyLittleFarm.Gameplay.Building
                 }
                 else if (hovered != null && _input.DeleteBuildingPressed)
                 {
-                    if (Presses?.IsOccupied(hovered.id) == true)
-                        GameEvents.RaiseStatusChanged(FarmText.Get("press.cannotRemove"));
+                    if (Production?.IsOccupied(hovered.id) == true)
+                        GameEvents.RaiseStatusChanged(Production.RemovalHint);
+                    else if(hovered.definitionId=="storage" && Warehouses?.HasContents(hovered.id)==true)
+                        GameEvents.RaiseStatusChanged("Сначала освободите склад. Внутри остаются предметы.");
                     else
                     {
                         _deleteId = hovered.id;
@@ -442,6 +485,19 @@ namespace MyLittleFarm.Gameplay.Building
             if (!_layout.CanPlace(definitionId, cell.x, cell.y, turns,
                     (x, z) => IsTerrainBlocked(x, z, ignoreId), ignoreId, out reason)) return false;
             var definition = _layout.Definition(definitionId);
+            if (_animals != null && (_animals.IsChanging || _animals.BlocksFootprint(cell,
+                definition.RotatedWidth(turns), definition.RotatedDepth(turns), ignoreId)))
+            { reason = "В области постройки находятся животные"; return false; }
+            if (definitionId == BarnHabitat.BuildingId)
+            {
+                var candidate = new BuildingRuntimeState { id = ignoreId, definitionId = definitionId, x = cell.x, z = cell.y, quarterTurns = turns };
+                if (_animals != null && !_animals.CanMoveBarn(candidate, out reason)) return false;
+                var baseY = _grid.GridToWorld(cell).y;
+                for (var x = 0; x < definition.RotatedWidth(turns); x++)
+                    for (var z = 0; z < definition.RotatedDepth(turns); z++)
+                        if (Mathf.Abs(_grid.GridToWorld(cell + new Vector2Int(x,z)).y - baseY) > .12f)
+                        { reason = "Для коровника и загона нужен ровный участок"; return false; }
+            }
             var center = BuildingView.Center(cell.x, cell.y, turns, definition, _grid);
             // Учитываем игрока и объекты сцены, но игнорируем переносимую постройку.
             Physics.SyncTransforms();
@@ -500,6 +556,7 @@ namespace MyLittleFarm.Gameplay.Building
             _grid.OccupyWithBuilding(cell,
                 new Vector2Int(definition.RotatedWidth(turns), definition.RotatedDepth(turns)), id);
             _views[id].Apply(_layout.Get(id), _layout.Definition(state.definitionId), _grid);
+            if (state.definitionId == BarnHabitat.BuildingId) _animals?.ApplyBarnMove(_layout.Get(id));
             reason = "Постройка перенесена";
             MyLittleFarm.Audio.FarmAudio.Play(MyLittleFarm.Audio.SoundId.BuildMove, _grid.CellToWorld(cell));
             return true;
@@ -510,9 +567,16 @@ namespace MyLittleFarm.Gameplay.Building
         {
             var state = _layout.Get(id);
             if (state == null) { reason = "Постройка не найдена"; return false; }
-            if (Presses?.IsOccupied(id) == true) { reason = FarmText.Get("press.cannotRemove"); return false; }
+            if (state.definitionId == BarnHabitat.BuildingId && (_animals?.IsChanging == true || _animals?.HasResidents(id) == true))
+            { reason = "В коровнике живут коровы — удаление запрещено. Перенесите коровник вместе с животными"; return false; }
+            if(state.definitionId=="feeder" && (Feeders?.IsChanging==true || Feeders?.Amount(id)>0)){reason="Сначала заберите пшеницу из кормушки.";return false;}
+            if(state.definitionId=="storage" && (Warehouses?.IsChanging==true || Warehouses?.HasContents(id)==true))
+            {reason="Сначала освободите склад. Внутри остаются предметы.";return false;}
+            if (Production?.IsOccupied(id) == true) { reason = Production.RemovalHint; return false; }
             var refund = state.Refund;
             if ((long)_wallet.Coins + refund > int.MaxValue) { reason = "Кошелёк заполнен"; return false; }
+            if(state.definitionId=="storage") Warehouses?.ForgetEmpty(id);
+            if(state.definitionId=="feeder")Feeders?.ForgetEmpty(id);
             _layout.TryRemove(id, out _);
             var definition = _layout.Definition(state.definitionId);
             _grid.FreeBuilding(new Vector2Int(state.x, state.z),

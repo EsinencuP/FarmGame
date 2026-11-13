@@ -1,0 +1,24 @@
+var root = MyLittleFarm.Editor.UniversityArtPreparation.Root;
+var scene = UnityEngine.SceneManagement.SceneManager.GetActiveScene();
+var preview = UnityEditor.SceneManagement.EditorSceneManager.NewPreviewScene();
+var records = new List<object>();
+try {
+ foreach (var guid in AssetDatabase.FindAssets("t:Prefab", new[]{root})) {
+  var path = AssetDatabase.GUIDToAssetPath(guid);
+  var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+  var g = UnityEngine.Object.Instantiate(prefab);
+  UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(g,preview);
+  try {
+   var animator = g.GetComponentInChildren<Animator>();
+   if (animator != null) AssetDatabase.LoadAssetAtPath<AnimationClip>(root+"/Animations/Cow_Idle.anim").SampleAnimation(animator.gameObject,0);
+   var b=(Bounds)typeof(MyLittleFarm.Editor.UniversityArtPreparation).GetMethod("Geometry",BindingFlags.NonPublic|BindingFlags.Static).Invoke(null,new object[]{g});
+   records.Add(new {path, guid, size=new[]{b.size.x,b.size.y,b.size.z}, bottom=b.min.y,
+    renderers=g.GetComponentsInChildren<Renderer>(true).Length,
+    colliders=g.GetComponentsInChildren<Collider>(true).Length,
+    materials=g.GetComponentsInChildren<Renderer>(true).SelectMany(r=>r.sharedMaterials).Where(m=>m!=null).Select(m=>m.name+" / "+m.shader.name).Distinct().ToArray(),
+    controller=animator==null?null:AssetDatabase.GetAssetPath(animator.runtimeAnimatorController)});
+  } finally { UnityEngine.Object.DestroyImmediate(g); }
+ }
+} finally { UnityEditor.SceneManagement.EditorSceneManager.ClosePreviewScene(preview); }
+var clips=AssetDatabase.FindAssets("t:AnimationClip",new[]{root}).Select(id=>AssetDatabase.LoadAssetAtPath<AnimationClip>(AssetDatabase.GUIDToAssetPath(id))).Select(c=>new{c.name,c.length,c.isLooping}).ToArray();
+return new {scene=scene.path, sceneDirty=scene.isDirty, playing=EditorApplication.isPlaying, prefabs=records, clips};

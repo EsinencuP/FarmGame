@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections.Generic;
 using MyLittleFarm.Core;
 
 namespace MyLittleFarm.Gameplay.Farming
@@ -19,6 +20,7 @@ namespace MyLittleFarm.Gameplay.Farming
         private CropDefinition _definition;
         private GameObject _stageObject;
         private GameObject _placeholder;
+        private readonly List<Material> _swayMaterials=new List<Material>();
 
         public static CropView Create(Vector3 position, CropDefinition definition = null, Transform parent = null)
         {
@@ -43,6 +45,7 @@ namespace MyLittleFarm.Gameplay.Farming
                 return;
             }
 
+            ReleaseSway();
             _currentStage = stage;
             // Hide immediately: Destroy is deferred in Play Mode and otherwise both stages render this frame.
             if (_stageObject != null)
@@ -59,6 +62,7 @@ namespace MyLittleFarm.Gameplay.Farming
                 _stageObject = VisualPrefab.Create(prefab, transform, _definition.StageSize(stage));
                 _stageObject.name = "Stage " + stage + " - " + prefab.name;
                 _placeholder.SetActive(false);
+                AddSway(_stageObject);
                 return;
             }
             _placeholder.SetActive(true);
@@ -90,6 +94,30 @@ namespace MyLittleFarm.Gameplay.Farming
                     new Vector3(0.38f, 0.07f, 0.38f), Vector3.one * 0.13f,
                     _definition == null ? StageColors[2] : _definition.MatureColor);
         }
+
+        private void AddSway(GameObject stage)
+        {
+            if(!Application.isPlaying)return;
+            var shader=Resources.Load<Shader>("FarmContent/CropSway");if(shader==null)return;
+            var block=new MaterialPropertyBlock();block.SetFloat("_FarmCropBaseY",transform.position.y);
+            foreach(var renderer in stage.GetComponentsInChildren<MeshRenderer>())
+            {
+                var materials=renderer.sharedMaterials;
+                for(var i=0;i<materials.Length;i++)
+                {
+                    var source=materials[i];var material=new Material(shader){name=source.name+" (Crop sway)",enableInstancing=true};
+                    material.SetFloat("_UseVertexColor",source.shader.name.Contains("Crop Vertex Color")?1:0);
+                    if(source.HasProperty("_Color"))material.color=source.color;
+                    if(source.HasProperty("_MainTex"))material.mainTexture=source.mainTexture;
+                    materials[i]=material;_swayMaterials.Add(material);
+                }
+                renderer.sharedMaterials=materials;block.SetFloat("_FarmCropHeight",Mathf.Max(.1f,renderer.bounds.max.y-transform.position.y));renderer.SetPropertyBlock(block);
+                var bounds=renderer.localBounds;var scale=renderer.transform.lossyScale;
+                bounds.Expand(new Vector3(.08f/Mathf.Max(.001f,Mathf.Abs(scale.x)),.08f/Mathf.Max(.001f,Mathf.Abs(scale.y)),.08f/Mathf.Max(.001f,Mathf.Abs(scale.z))));renderer.localBounds=bounds;
+            }
+        }
+        private void ReleaseSway(){foreach(var material in _swayMaterials)if(material!=null)Destroy(material);_swayMaterials.Clear();}
+        private void OnDestroy()=>ReleaseSway();
 
         private GameObject SeedlingPart(string name, PrimitiveType shape, Vector3 position, Vector3 scale, Color color)
         {

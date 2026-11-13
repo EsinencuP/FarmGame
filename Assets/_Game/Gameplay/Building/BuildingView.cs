@@ -49,7 +49,8 @@ namespace MyLittleFarm.Gameplay.Building
             var collider = root.AddComponent<BoxCollider>();
             collider.center = Vector3.up * height * 0.5f;
             collider.size = new Vector3(width, height, depth);
-            if (VisualPrefab.TryGetLocalBounds(root, root.transform, out var bounds))
+            if (VisualPrefab.TryGetLocalBounds(definition.Id == BarnHabitat.BuildingId ? BarnHabitat.SolidModel(root) : root,
+                root.transform, out var bounds))
             {
                 collider.center = bounds.center;
                 collider.size = bounds.size;

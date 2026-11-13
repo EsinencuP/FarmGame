@@ -1,0 +1,337 @@
+{
+  "date": "2026-11-13",
+  "scope": "U1-5 targeted manual component/UI observations; no test runner or assertions executed",
+  "observations": {
+    "setup": {
+      "placed": true,
+      "reason": "Постройка размещена",
+      "id": "637824e62b0f4baaa42591548aab3203",
+      "inReach": true,
+      "empty": []
+    },
+    "drag": {
+      "carried": 0,
+      "once": 2,
+      "duplicate": 2,
+      "deleteBlocked": true,
+      "reason": "Сначала освободите склад. Внутри остаются предметы."
+    },
+    "cancelReturn": {
+      "before": 8,
+      "afterCancel": 8,
+      "oneStored": 1,
+      "returned": 1,
+      "carriedWheat": 7,
+      "stored": [
+        {
+          "itemId": "milk",
+          "amount": 1
+        },
+        {
+          "itemId": "wheat",
+          "amount": 1
+        }
+      ],
+      "assignments": [
+        "carrot_seed",
+        "potato_seed",
+        "wheat_seed",
+        "tomato_seed",
+        "corn_seed",
+        "cucumber_seed"
+      ]
+    },
+    "refs": {
+      "targets": 6,
+      "assignments": [
+        "corn_seed",
+        "potato_seed",
+        "wheat_seed",
+        "tomato_seed",
+        "wheat",
+        "cucumber_seed"
+      ],
+      "beforeStock": "{\"buildingId\":\"\",\"items\":[{\"itemId\":\"carrot_seed\",\"amount\":8},{\"itemId\":\"wheat\",\"amount\":7},{\"itemId\":\"milk\",\"amount\":1},{\"itemId\":\"egg\",\"amount\":1}]}",
+      "afterStock": "{\"buildingId\":\"\",\"items\":[{\"itemId\":\"carrot_seed\",\"amount\":8},{\"itemId\":\"wheat\",\"amount\":7},{\"itemId\":\"milk\",\"amount\":1},{\"itemId\":\"egg\",\"amount\":1}]}",
+      "saved": true,
+      "version": 16
+    },
+    "roundtrip": {
+      "loaded": true,
+      "stock": [
+        {
+          "itemId": "carrot_seed",
+          "amount": 8
+        },
+        {
+          "itemId": "wheat",
+          "amount": 7
+        },
+        {
+          "itemId": "milk",
+          "amount": 1
+        },
+        {
+          "itemId": "egg",
+          "amount": 1
+        }
+      ],
+      "stored": [
+        {
+          "itemId": "milk",
+          "amount": 1
+        },
+        {
+          "itemId": "wheat",
+          "amount": 1
+        }
+      ],
+      "assignments": [
+        "corn_seed",
+        "potato_seed",
+        "wheat_seed",
+        "tomato_seed",
+        "wheat",
+        "cucumber_seed"
+      ],
+      "activeFarm": false,
+      "version": 16
+    },
+    "bulkMove": {
+      "afterBulk": [
+        {
+          "itemId": "carrot_seed",
+          "amount": 0
+        },
+        {
+          "itemId": "wheat",
+          "amount": 0
+        },
+        {
+          "itemId": "milk",
+          "amount": 0
+        },
+        {
+          "itemId": "egg",
+          "amount": 0
+        }
+      ],
+      "stored": [
+        {
+          "itemId": "milk",
+          "amount": 2
+        },
+        {
+          "itemId": "wheat",
+          "amount": 8
+        },
+        {
+          "itemId": "carrot_seed",
+          "amount": 8
+        },
+        {
+          "itemId": "egg",
+          "amount": 1
+        }
+      ],
+      "moved": true,
+      "reason": "Постройка перенесена",
+      "afterMove": [
+        {
+          "itemId": "milk",
+          "amount": 2
+        },
+        {
+          "itemId": "wheat",
+          "amount": 8
+        },
+        {
+          "itemId": "carrot_seed",
+          "amount": 8
+        },
+        {
+          "itemId": "egg",
+          "amount": 1
+        }
+      ],
+      "saved": true,
+      "building": {
+        "id": "637824e62b0f4baaa42591548aab3203",
+        "definitionId": "storage",
+        "x": 10,
+        "z": -6,
+        "quarterTurns": 1,
+        "paidCost": 12,
+        "appearanceLevel": 0,
+        "customText": "",
+        "Refund": 6
+      }
+    },
+    "reject": {
+      "invalidDropStored": [
+        {
+          "itemId": "milk",
+          "amount": 2
+        },
+        {
+          "itemId": "wheat",
+          "amount": 8
+        },
+        {
+          "itemId": "carrot_seed",
+          "amount": 8
+        },
+        {
+          "itemId": "egg",
+          "amount": 1
+        }
+      ],
+      "overflowStock": [
+        {
+          "itemId": "carrot_seed",
+          "amount": 1
+        },
+        {
+          "itemId": "wheat",
+          "amount": 2147483647
+        },
+        {
+          "itemId": "milk",
+          "amount": 0
+        },
+        {
+          "itemId": "egg",
+          "amount": 0
+        }
+      ],
+      "overflowStored": [
+        {
+          "itemId": "milk",
+          "amount": 2
+        },
+        {
+          "itemId": "wheat",
+          "amount": 8
+        },
+        {
+          "itemId": "carrot_seed",
+          "amount": 8
+        },
+        {
+          "itemId": "egg",
+          "amount": 1
+        }
+      ],
+      "invalidQuantityCarried": 0,
+      "invalidQuantityStored": 8,
+      "screen": "1366x768"
+    },
+    "quantity": {
+      "before": 8,
+      "carried": 0,
+      "stored": 8,
+      "messages": [
+        "Введите целое положительное количество."
+      ]
+    },
+    "legacyDelete": {
+      "legacyLoaded": true,
+      "oldInventory": [
+        {
+          "itemId": "carrot_seed",
+          "amount": 8
+        },
+        {
+          "itemId": "wheat",
+          "amount": 7
+        },
+        {
+          "itemId": "milk",
+          "amount": 1
+        },
+        {
+          "itemId": "egg",
+          "amount": 1
+        }
+      ],
+      "oldAssignments": [
+        "carrot_seed",
+        "potato_seed",
+        "wheat_seed",
+        "tomato_seed",
+        "corn_seed",
+        "cucumber_seed"
+      ],
+      "oldStorage": [],
+      "emptyLegacyRemoved": true,
+      "reason": "Постройка удалена. Возврат: 6 монет",
+      "emptiedRemoved": true,
+      "emptyReason": "Постройка удалена. Возврат: 6 монет",
+      "returnedStock": [
+        {
+          "itemId": "carrot_seed",
+          "amount": 8
+        },
+        {
+          "itemId": "wheat",
+          "amount": 8
+        },
+        {
+          "itemId": "milk",
+          "amount": 2
+        },
+        {
+          "itemId": "egg",
+          "amount": 1
+        }
+      ]
+    },
+    "emptyFinal": {
+      "loaded": true,
+      "emptySlotIsNull": true,
+      "mode": "Hoe",
+      "activeFarm": false,
+      "slotPersistence": 1
+    },
+    "two": {
+      "placed": true,
+      "reason": "Постройка размещена",
+      "transferred": true,
+      "message": "Перемещено: 2 шт.",
+      "firstStore": [
+        {
+          "itemId": "milk",
+          "amount": 1
+        },
+        {
+          "itemId": "wheat",
+          "amount": 1
+        }
+      ],
+      "secondStore": [
+        {
+          "itemId": "wheat",
+          "amount": 2
+        }
+      ],
+      "inventory": [
+        {
+          "itemId": "carrot_seed",
+          "amount": 8
+        },
+        {
+          "itemId": "wheat",
+          "amount": 5
+        },
+        {
+          "itemId": "milk",
+          "amount": 1
+        },
+        {
+          "itemId": "egg",
+          "amount": 1
+        }
+      ]
+    }
+  }
+}

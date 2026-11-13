@@ -153,7 +153,8 @@ namespace MyLittleFarm.UI
                 : "P: купить семена";
             lines.Append("ЯБЛОКИ ").Append(_inventory.GetAmount("apple"))
                 .Append("   ЯЙЦА ").Append(_inventory.GetAmount("egg"));
-            if (_animals != null) lines.Append("   КУРЫ ").Append(_animals.Count).Append('/').Append(_animals.MaxAnimals);
+            if (_animals != null) lines.Append("   КУРЫ ").Append(_animals.ChickenCount).Append('/').Append(_animals.MaxAnimals)
+                .Append("   КОРОВЫ ").Append(_animals.CowCount);
             lines.Append('\n').Append(shopHint);
             _statsText.text = lines.ToString();
             RefreshIcons();

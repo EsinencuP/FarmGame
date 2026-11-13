@@ -33,14 +33,23 @@ namespace MyLittleFarm.Core
         public List<CropRuntimeState> crops = new List<CropRuntimeState>();
         // Этап 2 хранит яблони отдельно от культур и построек.
         public List<TreeRuntimeState> trees = new List<TreeRuntimeState>();
+        public string selectedTreeId;
         // Животные сохраняются отдельным списком, потому что они двигаются и не занимают terrain-клетку.
         public List<AnimalRuntimeState> animals = new List<AnimalRuntimeState>();
         public List<BuildingRuntimeState> buildings = new List<BuildingRuntimeState>();
+        public List<ProductionBatchData> productionBatches = new List<ProductionBatchData>();
+        // Read-only legacy field for pre-v15 press migration; new captures leave it empty.
         public List<ApplePressBatchData> applePressBatches = new List<ApplePressBatchData>();
         // Версия 4 сохраняет прогресс; версия 5 сравнивает клетки с базовой картой сцены.
         public int selectedQuickSlot;
+        public int selectedQuickMode;
+        public List<string> quickSlotItems = new List<string>();
+        public MarketOrdersData marketOrders;
+        public List<FeederData> feeders=new List<FeederData>();
+        public List<WarehouseData> warehouses = new List<WarehouseData>();
         public bool sectorUnlocked;
         public int toolUpgradeLevel;
+        public bool baseHoeGranted;
         // Номер шага короткого онбординга сохраняется вместе с остальным прогрессом.
         public int onboardingStep;
         // Schema 1 has five goals; schema 0 is the legacy six-action tutorial.
@@ -55,6 +64,30 @@ namespace MyLittleFarm.Core
         public float worldHour;
         // Optional in older saves. The weather clock pauses while the game is closed.
         public WeatherSaveData weather;
+    }
+
+    [Serializable]
+    public sealed class FeederData {public string buildingId;public int wheat;}
+    [Serializable]
+    public sealed class MarketOrdersData
+    {public int seed,day;public double elapsedSeconds;public List<MarketOrderData> orders=new List<MarketOrderData>();}
+    [Serializable]
+    public sealed class MarketOrderData
+    {public string id,itemId;public int amount,unitPrice,bonus;public bool completed;}
+
+    [Serializable]
+    public sealed class WarehouseData
+    {
+        public string buildingId;
+        public List<InventoryEntryData> items = new List<InventoryEntryData>();
+    }
+
+    [Serializable]
+    public sealed class ProductionBatchData
+    {
+        public string buildingId, recipeId, outputItemId;
+        public int outputAmount;
+        public long startedAtUnixMs, readyAtUnixMs;
     }
 
     [Serializable]

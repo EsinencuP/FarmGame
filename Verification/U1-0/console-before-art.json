@@ -1,0 +1,17 @@
+{
+  "meta": null,
+  "content": [
+    {
+      "type": "text",
+      "text": "{\"success\":true,\"message\":\"Retrieved 0 log entries.\",\"data\":[]}",
+      "annotations": null,
+      "meta": null
+    }
+  ],
+  "structuredContent": {
+    "success": true,
+    "message": "Retrieved 0 log entries.",
+    "data": []
+  },
+  "isError": false
+}

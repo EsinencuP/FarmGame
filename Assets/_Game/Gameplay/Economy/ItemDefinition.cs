@@ -20,6 +20,7 @@ namespace MyLittleFarm.Gameplay.Economy
         public int SellPrice => sellPrice;
         public bool CanBuy => canBuy;
         public Sprite Icon => icon;
+        internal void SetPrices(int purchase,int sale){buyPrice=purchase;sellPrice=sale;}
 
         /// <summary>Создаёт характеристики временного предмета до появления арт-ассетов.</summary>
         public void ConfigurePlaceholder(string id, string title, int purchase, int sale, bool availableInShop)

@@ -49,7 +49,7 @@ namespace MyLittleFarm.UI
 
         private void Show(string action, Vector3 position, string item, int amount)
         {
-            var ground = action == "plant";
+            var ground = action == "plant" || action == "till";
             if (!Application.isPlaying || _active.Count >= maxVisibleMarkers || (!ground && (item == null || amount == 0))) return;
             var marker = _pool.Count > 0 ? _pool.Pop() : CreateMarker();
             marker.Ground = ground;

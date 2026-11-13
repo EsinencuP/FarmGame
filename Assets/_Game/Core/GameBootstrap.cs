@@ -122,7 +122,7 @@ namespace MyLittleFarm.Core
             var selling = CreateSystem<SellingSystem>("Selling System");
             selling.Configure(inventory, wallet, catalog);
             var slots = CreateSystem<QuickSlotSystem>("Quick Slots");
-            slots.Configure(input, catalog);
+            slots.Configure(input, catalog, inventory);
             var shop = CreateSystem<SeedShopSystem>("Seed Shop");
             var sector = CreateSystem<SectorSystem>("Sector System");
             sector.Configure(input, grid, wallet, extraChunk);
@@ -149,6 +149,7 @@ namespace MyLittleFarm.Core
 
             var buildings = CreateSystem<BuildSystem>("Building System");
             buildings.Configure(input, grid, crops, wallet, cameraController.GetComponent<Camera>(), true, inventory);
+            animals.BindBuildings(buildings);
 
             var selector = CreateSystem<CellSelector>("Cell Selector");
             selector.Configure(grid, player.transform, input, cameraController.GetComponent<Camera>());
@@ -389,9 +390,9 @@ namespace MyLittleFarm.Core
             SetRect(stats.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(38f, -34f), new Vector2(420f, 410f));
 
             // Временные значки сохраняются в сцене при bake и позже принимают настоящие Sprite из каталога.
-            var seedIcons = new Image[catalog.Crops.Count];
-            var harvestIcons = new Image[catalog.Crops.Count];
-            for (var index = 0; index < catalog.Crops.Count; index++)
+            var seedIcons = new Image[QuickSlotSystem.ItemSlotCount];
+            var harvestIcons = new Image[QuickSlotSystem.ItemSlotCount];
+            for (var index = 0; index < seedIcons.Length; index++)
             {
                 var crop = catalog.Crops[index];
                 seedIcons[index] = CreateIcon(canvasObject.transform, $"Seed Icon {index + 1}",
@@ -521,7 +522,7 @@ namespace MyLittleFarm.Core
             var selling = RequireChild<SellingSystem>();
             selling.Configure(inventory, wallet, catalog);
             var slots = RequireChild<QuickSlotSystem>();
-            slots.Configure(input, catalog);
+            slots.Configure(input, catalog, inventory);
             var shop = RequireChild<SeedShopSystem>();
             var sector = RequireChild<SectorSystem>();
             sector.Configure(input, grid, wallet,
@@ -550,6 +551,7 @@ namespace MyLittleFarm.Core
 
             var buildings = RequireChild<BuildSystem>();
             buildings.Configure(input, grid, crops, wallet, cameraController.GetComponent<Camera>(), inventory: inventory);
+            animals.BindBuildings(buildings);
             var selector = RequireChild<CellSelector>();
             selector.Configure(grid, player.transform, input, cameraController.GetComponent<Camera>());
             var saleCrate = FindNamedTransform("Sale Crate");
@@ -569,9 +571,9 @@ namespace MyLittleFarm.Core
             RequireChild<ActionFeedbackSystem>();
 
             var hud = RequireChild<HUDController>();
-            var seedIcons = new Image[catalog.Crops.Count];
-            var harvestIcons = new Image[catalog.Crops.Count];
-            for (var index = 0; index < catalog.Crops.Count; index++)
+            var seedIcons = new Image[QuickSlotSystem.ItemSlotCount];
+            var harvestIcons = new Image[QuickSlotSystem.ItemSlotCount];
+            for (var index = 0; index < seedIcons.Length; index++)
             {
                 seedIcons[index] = FindNamedComponent<Image>($"Seed Icon {index + 1}");
                 harvestIcons[index] = FindNamedComponent<Image>($"Harvest Icon {index + 1}");

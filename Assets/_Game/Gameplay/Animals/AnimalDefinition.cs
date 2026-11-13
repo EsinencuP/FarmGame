@@ -13,6 +13,8 @@ namespace MyLittleFarm.Gameplay.Animals
         [SerializeField, Min(0.1f)] private float productIntervalSeconds = 40f;
         [SerializeField, Min(1)] private int productYield = 1;
         [SerializeField] private Color bodyColor = new Color(0.92f, 0.9f, 0.76f);
+        [SerializeField, Min(0)] private int purchasePrice = 40;
+        [SerializeField] private GameObject visualPrefab;
 
         // Поля доступны системам и могут быть заменены Inspector-ассетом без правки логики.
         public string AnimalId => animalId;
@@ -22,6 +24,8 @@ namespace MyLittleFarm.Gameplay.Animals
         public float ProductIntervalSeconds => productIntervalSeconds;
         public int ProductYield => productYield;
         public Color BodyColor => bodyColor;
+        public int PurchasePrice => purchasePrice;
+        public GameObject VisualPrefab => visualPrefab;
 
         /// <summary>Заполняет временное описание курицы для тестовой сцены без импорта модели.</summary>
         public void ConfigurePlaceholder(string id, string title, string feedId, string productId,

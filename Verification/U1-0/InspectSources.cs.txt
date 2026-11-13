@@ -1,0 +1,25 @@
+var paths = new[] {
+ "Assets/moreAssets/Farm Animals by @Quaternius/FBX/Cow.fbx",
+ "Assets/moreAssets/Farm Animals by @Quaternius/FBX/Chicken.fbx",
+ "Assets/moreAssets/Farm Buildings - Sept 2018/FBX/Windmill.fbx",
+ "Assets/moreAssets/Farm Buildings - Sept 2018/FBX/SmallBarn.fbx",
+ "Assets/Pandazole_Ultimate_Pack/Pandazole Farm Ranch Pack/Prefabs/Bld_FarmMill_01.prefab",
+ "Assets/LowPolyFarmLite/Prefabs/Tree_04.prefab",
+ "Assets/LowPolyFoodLite/Prefabs/Pear.prefab",
+ "Assets/LowPolyFoodLite/Prefabs/Pumpkin.prefab",
+ "Assets/moreAssets/Farm Animals by @Quaternius/Models/FBX format/strawberry.fbx"
+};
+var items = new List<object>();
+foreach (var path in paths) {
+ var asset = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+ if (asset == null) { items.Add(new { path, missing = true }); continue; }
+ var clips = AssetDatabase.LoadAllAssetsAtPath(path).OfType<AnimationClip>().Where(c => !c.name.StartsWith("__preview__")).Select(c => new {c.name,c.length,c.isLooping}).ToArray();
+ var rs = asset.GetComponentsInChildren<Renderer>(true);
+ var bounds = rs.Length == 0 ? new Bounds() : rs[0].bounds;
+ foreach (var r in rs) bounds.Encapsulate(r.bounds);
+ items.Add(new {path, size = bounds.size.ToString("F3"), clips,
+   materials = rs.SelectMany(r => r.sharedMaterials).Where(m => m != null).Select(m => m.name + " / " + (m.shader == null ? "MISSING" : m.shader.name)).Distinct().ToArray(),
+   transforms = asset.GetComponentsInChildren<Transform>(true).Select(t => t.name).Take(45).ToArray()});
+}
+var scene = UnityEngine.SceneManagement.SceneManager.GetActiveScene();
+return new {scene = scene.path, dirty = scene.isDirty, playing = EditorApplication.isPlaying, sources = items};

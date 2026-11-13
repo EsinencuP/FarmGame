@@ -54,6 +54,7 @@ namespace MyLittleFarm.Gameplay.World
         /// <summary>Высота прыжка, установленная в Inspector.</summary>
         public float JumpHeight => jumpHeight;
         public float SprintSpeed => sprintSpeed;
+        public bool HoldingHoe {get;internal set;}
         public Transform VisualRoot => transform.Find("Character Visual") ?? transform.Find("Nolant Visual");
 
         private void OnValidate()
@@ -181,7 +182,7 @@ namespace MyLittleFarm.Gameplay.World
                     _animator.SetTrigger("Gesture");
                 if (speed >= 0.08f || _input.BuildModeActive) _animator.ResetTrigger("Gesture");
                 if (_input.InteractPressed && !_input.BuildModeActive) _gripUntil = Time.time + 0.35f;
-                var pose = fastSprint && speed > 0.1f ? 2 : Time.time < _gripUntil ? 1 : 0;
+                var pose = fastSprint && speed > 0.1f ? 2 : HoldingHoe || Time.time < _gripUntil ? 1 : 0;
                 _animator.SetInteger("HandPose", pose);
                 _animator.SetLayerWeight(1, Mathf.MoveTowards(_animator.GetLayerWeight(1), pose == 0 ? 0f : 1f, Time.deltaTime * 8f));
                 return;

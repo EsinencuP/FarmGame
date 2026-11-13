@@ -1,0 +1,639 @@
+{
+  "schema": 1,
+  "date": "2026-11-12",
+  "purpose": "University demonstration asset preparation and U1 integration",
+  "renderer": "Built-in",
+  "worldUnitsPerCell": 1,
+  "referencePlayerHeight": 1.8,
+  "assets": [
+    {
+      "assetId": "barn",
+      "prefab": "Assets/_Game/Content/Art/UniversityDemo/barn.prefab",
+      "guid": "84d350f9f27353743b573f13f5c3866f",
+      "source": [
+        "Assets/moreAssets/Farm Buildings - Sept 2018/FBX/SmallBarn.fbx"
+      ],
+      "icon": "Assets/_Game/Resources/FarmUI/Icons/b_barn.png",
+      "animations": [],
+      "metricSizeXYZ": [
+        5.14614868,
+        4.2,
+        5.311374
+      ],
+      "pivot": "base of model",
+      "collisionOwner": "future gameplay system; prefab has no colliders",
+      "status": "prepared_alternative_not_selected_for_U1-1",
+      "provenance": "CC0: local Farm Buildings License.txt"
+    },
+    {
+      "assetId": "cheese_dairy",
+      "prefab": "Assets/_Game/Content/Art/UniversityDemo/cheese_dairy.prefab",
+      "guid": "5bf503e5446674c43aee745355fe2db6",
+      "source": [
+        "Assets/moreAssets/Farm Buildings - Sept 2018/FBX/SmallBarn.fbx",
+        "project-authored table/churn/cheese detail"
+      ],
+      "icon": "Assets/_Game/Resources/FarmUI/Icons/b_cheese_dairy.png",
+      "animations": [],
+      "metricSizeXYZ": [
+        3.920875,
+        3.19999981,
+        4.75176144
+      ],
+      "pivot": "base of model",
+      "collisionOwner": "future gameplay system; prefab has no colliders",
+      "status": "integrated_U1-3_source_or_icon",
+      "provenance": "CC0 base and project-authored details"
+    },
+    {
+      "assetId": "cheese_product",
+      "prefab": "Assets/_Game/Content/Art/UniversityDemo/cheese_product.prefab",
+      "guid": "a1ab4feaf30c21748a2d2ff1c024a0de",
+      "source": [
+        "Assets/moreAssets/Farm Animals by @Quaternius/Models/FBX format/cheese.fbx"
+      ],
+      "icon": "Assets/_Game/Resources/FarmUI/Icons/cheese.png",
+      "animations": [],
+      "metricSizeXYZ": [
+        0.6800001,
+        0.22,
+        0.6800002
+      ],
+      "pivot": "base of model",
+      "collisionOwner": "future gameplay system; prefab has no colliders",
+      "status": "integrated_U1-3_source_or_icon",
+      "provenance": "food subpack provenance unresolved; animal CC0 not assumed to cover it"
+    },
+    {
+      "assetId": "cow",
+      "prefab": "Assets/_Game/Content/Art/UniversityDemo/cow.prefab",
+      "guid": "49eb302d2c643324585180dd86381493",
+      "source": [
+        "Assets/moreAssets/Farm Animals by @Quaternius/FBX/Cow.fbx"
+      ],
+      "icon": "Assets/_Game/Resources/FarmUI/Icons/cow.png",
+      "animations": [
+        "Idle",
+        "Walk",
+        "Eat"
+      ],
+      "metricSizeXYZ": [
+        0.5945147,
+        1.3499999,
+        2.40553379
+      ],
+      "pivot": "base of model",
+      "collisionOwner": "future gameplay system; prefab has no colliders",
+      "status": "source_for_finished_U1-4_variant",
+      "provenance": "CC0: local Farm Animals License.txt; Eat is project-authored"
+    },
+    {
+      "assetId": "feeder",
+      "prefab": "Assets/_Game/Content/Art/UniversityDemo/feeder.prefab",
+      "guid": "3f83e61e720b8704886c22e1630f5c4f",
+      "source": [
+        "project-authored timber trough"
+      ],
+      "icon": "Assets/_Game/Resources/FarmUI/Icons/b_feeder.png",
+      "animations": [],
+      "metricSizeXYZ": [
+        0.82,
+        0.31,
+        0.51
+      ],
+      "pivot": "base of model",
+      "collisionOwner": "future gameplay system; prefab has no colliders",
+      "status": "prepared_not_integrated",
+      "provenance": "project-authored"
+    },
+    {
+      "assetId": "flour_product",
+      "prefab": "Assets/_Game/Content/Art/UniversityDemo/flour_product.prefab",
+      "guid": "bf3d63076c8cbae46b133444661c8ade",
+      "source": [
+        "project-authored sack and flour geometry"
+      ],
+      "icon": "Assets/_Game/Resources/FarmUI/Icons/flour.png",
+      "animations": [],
+      "metricSizeXYZ": [
+        0.25000003,
+        0.339999974,
+        0.25000006
+      ],
+      "pivot": "base of model",
+      "collisionOwner": "future gameplay system; prefab has no colliders",
+      "status": "integrated_U1-3_source_or_icon",
+      "provenance": "project-authored"
+    },
+    {
+      "assetId": "mill",
+      "prefab": "Assets/_Game/Content/Art/UniversityDemo/mill.prefab",
+      "guid": "eb9ff4d0768db39499e56eec3bef3372",
+      "source": [
+        "Assets/moreAssets/Farm Buildings - Sept 2018/FBX/TowerWindmill.fbx"
+      ],
+      "icon": "Assets/_Game/Resources/FarmUI/Icons/b_mill.png",
+      "animations": [],
+      "metricSizeXYZ": [
+        4.02665424,
+        5.8,
+        2.53612423
+      ],
+      "pivot": "base of model",
+      "collisionOwner": "future gameplay system; prefab has no colliders",
+      "status": "integrated_U1-3_source_or_icon",
+      "provenance": "CC0: local Farm Buildings License.txt"
+    },
+    {
+      "assetId": "pear_fruit",
+      "prefab": "Assets/_Game/Content/Art/UniversityDemo/pear_fruit.prefab",
+      "guid": "8b77f74a1afb0884f83154c582f9cfe6",
+      "source": [
+        "Assets/LowPolyFoodLite/Prefabs/Pear.prefab"
+      ],
+      "icon": "Assets/_Game/Resources/FarmUI/Icons/crop_pear.png",
+      "animations": [],
+      "metricSizeXYZ": [
+        0.1476194,
+        0.26,
+        0.145117611
+      ],
+      "pivot": "base of model",
+      "collisionOwner": "future gameplay system; prefab has no colliders",
+      "status": "source_for_integrated_U1-2_variant",
+      "provenance": "existing supplied pack; no separate terms located in this step"
+    },
+    {
+      "assetId": "pear_tree",
+      "prefab": "Assets/_Game/Content/Art/UniversityDemo/pear_tree.prefab",
+      "guid": "b39a64dd0a277f744961a6962d6b881c",
+      "source": [
+        "Assets/LowPolyFarmLite/Prefabs/Tree_04.prefab"
+      ],
+      "icon": "Assets/_Game/Resources/FarmUI/Icons/sapling.png",
+      "animations": [],
+      "metricSizeXYZ": [
+        1.98552334,
+        2.6,
+        1.64606166
+      ],
+      "pivot": "base of model",
+      "collisionOwner": "future gameplay system; prefab has no colliders",
+      "status": "source_for_integrated_U1-2_variant",
+      "provenance": "existing supplied pack; no separate terms located in this step"
+    },
+    {
+      "assetId": "pumpkin_fruit",
+      "prefab": "Assets/_Game/Content/Art/UniversityDemo/pumpkin_fruit.prefab",
+      "guid": "2847f36e7d7927f43987f917f1e010dc",
+      "source": [
+        "Assets/LowPolyFoodLite/Prefabs/Pumpkin.prefab"
+      ],
+      "icon": "Assets/_Game/Resources/FarmUI/Icons/crop_pumpkin.png",
+      "animations": [],
+      "metricSizeXYZ": [
+        0.481332719,
+        0.360000044,
+        0.489408463
+      ],
+      "pivot": "base of model",
+      "collisionOwner": "future gameplay system; prefab has no colliders",
+      "status": "prepared_not_integrated",
+      "provenance": "existing supplied pack; no separate terms located in this step"
+    },
+    {
+      "assetId": "pumpkin_Growing",
+      "prefab": "Assets/_Game/Content/Art/UniversityDemo/pumpkin_Growing.prefab",
+      "guid": "58e74d50063257e41af2581a673a99cc",
+      "source": [
+        "project-authored static foliage meshes"
+      ],
+      "icon": "Assets/_Game/Resources/FarmUI/Icons/crop_pumpkin.png",
+      "animations": [],
+      "metricSizeXYZ": [
+        0.5400001,
+        0.2554899,
+        0.467653751
+      ],
+      "pivot": "base of model",
+      "collisionOwner": "future gameplay system; prefab has no colliders",
+      "status": "prepared_not_integrated",
+      "provenance": "project foliage; imported mature fruit uses provenance of fruit entry"
+    },
+    {
+      "assetId": "pumpkin_Mature",
+      "prefab": "Assets/_Game/Content/Art/UniversityDemo/pumpkin_Mature.prefab",
+      "guid": "cde876299c1ab36409ac1d276ee66d10",
+      "source": [
+        "project-authored static foliage meshes",
+        "Assets/LowPolyFoodLite/Prefabs/Pumpkin.prefab"
+      ],
+      "icon": "Assets/_Game/Resources/FarmUI/Icons/crop_pumpkin.png",
+      "animations": [],
+      "metricSizeXYZ": [
+        0.680000067,
+        0.320000023,
+        0.5888972
+      ],
+      "pivot": "base of model",
+      "collisionOwner": "future gameplay system; prefab has no colliders",
+      "status": "prepared_not_integrated",
+      "provenance": "project foliage; imported mature fruit uses provenance of fruit entry"
+    },
+    {
+      "assetId": "pumpkin_Sprout",
+      "prefab": "Assets/_Game/Content/Art/UniversityDemo/pumpkin_Sprout.prefab",
+      "guid": "22469ebf7bbf83b40989174e4ea35a7d",
+      "source": [
+        "project-authored static foliage meshes"
+      ],
+      "icon": "Assets/_Game/Resources/FarmUI/Icons/crop_pumpkin.png",
+      "animations": [],
+      "metricSizeXYZ": [
+        0.212741017,
+        0.126311481,
+        0.2251666
+      ],
+      "pivot": "base of model",
+      "collisionOwner": "future gameplay system; prefab has no colliders",
+      "status": "prepared_not_integrated",
+      "provenance": "project foliage; imported mature fruit uses provenance of fruit entry"
+    },
+    {
+      "assetId": "strawberry_fruit",
+      "prefab": "Assets/_Game/Content/Art/UniversityDemo/strawberry_fruit.prefab",
+      "guid": "1ffe412a367d092418b7dee80247c11f",
+      "source": [
+        "Assets/moreAssets/Farm Animals by @Quaternius/Models/FBX format/strawberry.fbx"
+      ],
+      "icon": "Assets/_Game/Resources/FarmUI/Icons/crop_strawberry.png",
+      "animations": [],
+      "metricSizeXYZ": [
+        0.09863738,
+        0.15,
+        0.09863738
+      ],
+      "pivot": "base of model",
+      "collisionOwner": "future gameplay system; prefab has no colliders",
+      "status": "prepared_not_integrated",
+      "provenance": "food subpack provenance unresolved; animal CC0 not assumed to cover it"
+    },
+    {
+      "assetId": "strawberry_Growing",
+      "prefab": "Assets/_Game/Content/Art/UniversityDemo/strawberry_Growing.prefab",
+      "guid": "3c69bed08576c924984743a01b1bb2b4",
+      "source": [
+        "project-authored static foliage meshes"
+      ],
+      "icon": "Assets/_Game/Resources/FarmUI/Icons/crop_strawberry.png",
+      "animations": [],
+      "metricSizeXYZ": [
+        0.523717046,
+        0.2554899,
+        0.5317962
+      ],
+      "pivot": "base of model",
+      "collisionOwner": "future gameplay system; prefab has no colliders",
+      "status": "prepared_not_integrated",
+      "provenance": "project foliage; imported mature fruit uses provenance of fruit entry"
+    },
+    {
+      "assetId": "strawberry_Mature",
+      "prefab": "Assets/_Game/Content/Art/UniversityDemo/strawberry_Mature.prefab",
+      "guid": "7e0b0dec5cabc0844a84f03221e1b652",
+      "source": [
+        "project-authored static foliage meshes",
+        "Assets/moreAssets/Farm Animals by @Quaternius/Models/FBX format/strawberry.fbx"
+      ],
+      "icon": "Assets/_Game/Resources/FarmUI/Icons/crop_strawberry.png",
+      "animations": [],
+      "metricSizeXYZ": [
+        0.6594956,
+        0.255979,
+        0.6696694
+      ],
+      "pivot": "base of model",
+      "collisionOwner": "future gameplay system; prefab has no colliders",
+      "status": "prepared_not_integrated",
+      "provenance": "project foliage; imported mature fruit uses provenance of fruit entry"
+    },
+    {
+      "assetId": "strawberry_Sprout",
+      "prefab": "Assets/_Game/Content/Art/UniversityDemo/strawberry_Sprout.prefab",
+      "guid": "a8ea83fee1c740d4393bd52c6da9a680",
+      "source": [
+        "project-authored static foliage meshes"
+      ],
+      "icon": "Assets/_Game/Resources/FarmUI/Icons/crop_strawberry.png",
+      "animations": [],
+      "metricSizeXYZ": [
+        0.212741017,
+        0.126311481,
+        0.2251666
+      ],
+      "pivot": "base of model",
+      "collisionOwner": "future gameplay system; prefab has no colliders",
+      "status": "prepared_not_integrated",
+      "provenance": "project foliage; imported mature fruit uses provenance of fruit entry"
+    },
+    {
+      "assetId": "tool_hoe_0",
+      "prefab": "Assets/_Game/Content/Art/UniversityDemo/tool_hoe_0.prefab",
+      "guid": "4486943346a30f3468e8d3618e94d16e",
+      "source": [
+        "Assets/Pandazole_Ultimate_Pack/Pandazole Farm Ranch Pack/Prefabs/Prop_BigFarmingTool_06.prefab",
+        "project-authored upgrade bands"
+      ],
+      "icon": "Assets/_Game/Resources/FarmUI/Icons/tool_hoe.png",
+      "animations": [],
+      "metricSizeXYZ": [
+        0.177368239,
+        1.45000017,
+        0.351783574
+      ],
+      "pivot": "hand grip, .35m above shaft bottom",
+      "collisionOwner": "future gameplay system; prefab has no colliders",
+      "status": "prepared_not_integrated",
+      "provenance": "existing supplied pack; no separate terms located in this step"
+    },
+    {
+      "assetId": "tool_hoe_1",
+      "prefab": "Assets/_Game/Content/Art/UniversityDemo/tool_hoe_1.prefab",
+      "guid": "45e9c6b5378106343ac8d82f5e2dc069",
+      "source": [
+        "Assets/Pandazole_Ultimate_Pack/Pandazole Farm Ranch Pack/Prefabs/Prop_BigFarmingTool_06.prefab",
+        "project-authored upgrade bands"
+      ],
+      "icon": "Assets/_Game/Resources/FarmUI/Icons/tool_hoe.png",
+      "animations": [],
+      "metricSizeXYZ": [
+        0.177368239,
+        1.45000017,
+        0.351783574
+      ],
+      "pivot": "hand grip, .35m above shaft bottom",
+      "collisionOwner": "future gameplay system; prefab has no colliders",
+      "status": "prepared_not_integrated",
+      "provenance": "existing supplied pack; no separate terms located in this step"
+    },
+    {
+      "assetId": "tool_hoe_2",
+      "prefab": "Assets/_Game/Content/Art/UniversityDemo/tool_hoe_2.prefab",
+      "guid": "fd69a069a9fab3e459b1dcf2f55a5d75",
+      "source": [
+        "Assets/Pandazole_Ultimate_Pack/Pandazole Farm Ranch Pack/Prefabs/Prop_BigFarmingTool_06.prefab",
+        "project-authored upgrade bands"
+      ],
+      "icon": "Assets/_Game/Resources/FarmUI/Icons/tool_hoe.png",
+      "animations": [],
+      "metricSizeXYZ": [
+        0.177368239,
+        1.45000017,
+        0.351783574
+      ],
+      "pivot": "hand grip, .35m above shaft bottom",
+      "collisionOwner": "future gameplay system; prefab has no colliders",
+      "status": "prepared_not_integrated",
+      "provenance": "existing supplied pack; no separate terms located in this step"
+    }
+  ],
+  "reservedIds": {
+    "animal": [
+      "cow"
+    ],
+    "tree": [
+      "pear"
+    ],
+    "crop": [
+      "strawberry",
+      "pumpkin"
+    ],
+    "item": [
+      "milk",
+      "pear",
+      "pear_sapling",
+      "apple_sapling",
+      "flour",
+      "cheese",
+      "strawberry_seed",
+      "strawberry",
+      "pumpkin_seed",
+      "pumpkin",
+      "hoe"
+    ],
+    "building": [
+      "barn",
+      "mill",
+      "cheese_dairy",
+      "feeder"
+    ],
+    "recipe": [
+      "wheat_to_flour",
+      "milk_to_cheese",
+      "apple_to_juice"
+    ]
+  },
+  "reuse": {
+    "feedItem": "wheat",
+    "seedIcon": "seeds_rare",
+    "saplingIcon": "sapling",
+    "toolLevelField": "toolUpgradeLevel",
+    "existingCropOrder": [
+      "carrot",
+      "potato",
+      "wheat",
+      "tomato",
+      "corn",
+      "cucumber"
+    ]
+  },
+  "newIcons": [
+    "b_barn",
+    "b_mill",
+    "b_cheese_dairy",
+    "b_feeder",
+    "crop_pear",
+    "crop_strawberry",
+    "flour",
+    "cheese",
+    "sapling_pear"
+  ],
+  "deferred": [
+    "Remaining runtime integration and save changes U1-5 through U1-7",
+    "Gameplay motion, door clearances, hand socket and icon readability at game scale",
+    "Additional v12 fixtures with crops, chickens and active press before phase-end migration run"
+  ],
+  "evidence": "Verification/U1-0/prepared-inventory.json",
+  "U1-1": {
+    "date": "2026-11-12",
+    "cowDefinition": "Assets/_Game/Resources/FarmContent/Cow.asset",
+    "milkDefinition": "Assets/_Game/Resources/FarmContent/Milk.asset",
+    "barnPrefab": "Assets/_Game/Resources/FarmContent/Barn.prefab",
+    "barnArtSource": "Assets/_Game/Content/Art/Buildings/storage.prefab",
+    "footprint": [
+      9,
+      6
+    ],
+    "doorHeight": 1.98,
+    "capacity": 2,
+    "saveVersion": 13,
+    "report": "Verification/U1-1/report.md"
+  },
+  "U1-2": {
+    "date": "2026-11-12",
+    "treeDefinition": "Assets/_Game/Resources/FarmContent/Pear.asset",
+    "fruitDefinition": "Assets/_Game/Resources/FarmContent/PearFruit.asset",
+    "saplingDefinition": "Assets/_Game/Resources/FarmContent/PearSapling.asset",
+    "treePrefab": "Assets/_Game/Content/Art/UniversityDemo/pear_orchard.prefab",
+    "fruitPrefab": "Assets/_Game/Content/Art/UniversityDemo/pear_ripe.prefab",
+    "saplingIcon": "Assets/_Game/Resources/FarmUI/Icons/sapling_pear.png",
+    "visualSizeXYZ": [
+      1.6,
+      3,
+      1.6
+    ],
+    "fruitSize": 0.36,
+    "saveVersion": 14,
+    "report": "Verification/U1-2/report.md"
+  },
+  "U1-3": {
+    "completed": "2026-11-13",
+    "millPrefab": "Assets/_Game/Resources/FarmContent/Mill.prefab",
+    "dairyPrefab": "Assets/_Game/Resources/FarmContent/Dairy.prefab",
+    "millFootprint": [
+      5,
+      4
+    ],
+    "dairyFootprint": [
+      5,
+      6
+    ],
+    "doorHeight": 1.98,
+    "millMetricSizeXYZ": [
+      4.03,
+      5.8,
+      2.65
+    ],
+    "dairyMetricSizeXYZ": [
+      3.92,
+      3.2,
+      4.75
+    ],
+    "items": [
+      "Assets/_Game/Resources/FarmContent/Flour.asset",
+      "Assets/_Game/Resources/FarmContent/Cheese.asset"
+    ],
+    "sourcePrefabsUnchanged": true,
+    "saveVersion": 15,
+    "report": "Verification/U1-3/report.md"
+  },
+  "U1-4": {
+    "completed": "2026-11-13",
+    "chickenPrefab": "Assets/_Game/Resources/FarmContent/ChickenVisual.prefab",
+    "cowPrefab": "Assets/_Game/Resources/FarmContent/CowVisual.prefab",
+    "authoring": "Assets/_Game/Editor/AnimalFinalSetup.cs",
+    "meshAnimationFolder": "Assets/_Game/Content/Art/Animals",
+    "visualDirection": "Built-in, flat-shaded low-poly, ivory/red/orange chicken and existing black-white cow; metres, ground pivot, +Z forward",
+    "chickenHeight": 0.57,
+    "cowHeight": 1.35,
+    "chickenRenderers": 6,
+    "cowSkinnedRenderers": 1,
+    "states": [
+      "Idle",
+      "Walk",
+      "Eat"
+    ],
+    "walkReferenceMetresPerSecond": {
+      "chicken": 0.4,
+      "cow": 0.74
+    },
+    "actualWalkMetresPerSecond": {
+      "chicken": 0.18,
+      "cow": 0.32
+    },
+    "badgePixels": 30,
+    "chickenProvenance": "Project-authored saved mesh topology, hierarchy and clips; existing project vertex-color shader",
+    "cowProvenance": "Existing CC0 Quaternius Cow.fbx and prepared U1-0 wrapper; copied/trimmed clips and project-authored anatomical Eat",
+    "sourceImportsChanged": false,
+    "saveVersion": 15,
+    "report": "Verification/U1-4/report.md"
+  },
+  "U1-6": {
+    "date": "2026-11-13",
+    "purpose": "Held area hoes for permanent tool levels 0/1/2",
+    "authoring": "Assets/_Game/Editor/AreaToolSetup.cs",
+    "menu": "Tools/My Little Farm/University/Prepare U1-6 Tools",
+    "runtimePrefabs": [
+      {
+        "level": 0,
+        "area": "1 cell",
+        "prefab": "Assets/_Game/Resources/FarmContent/Hoe0.prefab",
+        "guid": "6d0ec11601321494b8b2741c9d02733e",
+        "source": "Assets/_Game/Content/Art/UniversityDemo/tool_hoe_0.prefab",
+        "bladeWidthScale": 1
+      },
+      {
+        "level": 1,
+        "area": "1x3",
+        "prefab": "Assets/_Game/Resources/FarmContent/Hoe1.prefab",
+        "guid": "6ff931acd082f644bb59ffb81d97cfe8",
+        "source": "Assets/_Game/Content/Art/UniversityDemo/tool_hoe_1.prefab",
+        "bladeWidthScale": 1.4
+      },
+      {
+        "level": 2,
+        "area": "3x3",
+        "prefab": "Assets/_Game/Resources/FarmContent/Hoe2.prefab",
+        "guid": "3fe17c60506e5ab4b96d25ab1cacd67e",
+        "source": "Assets/_Game/Content/Art/UniversityDemo/tool_hoe_2.prefab",
+        "bladeWidthScale": 1.9
+      }
+    ],
+    "grip": "Source flips 180 degrees; .5m re-grip, shaft offset corrected, metre-scale world hand follow avoids imported bone scaling.",
+    "physics": "No collider, interaction target or gameplay movement from cosmetic stroke.",
+    "evidence": "Verification/U1-6/report.md"
+  },
+  "U1-7": {
+    "date": "2026-11-13",
+    "authoring": "Assets/_Game/Editor/ExtraFarmContentSetup.cs",
+    "menu": "Tools/My Little Farm/University/Prepare U1-7 Content",
+    "definitions": [
+      {
+        "id": "strawberry",
+        "path": "Assets/_Game/Resources/FarmContent/strawberry.asset",
+        "guid": "42141b516a6c1aa428fcf10eef409c2d",
+        "stages": [
+          "Assets/_Game/Content/Art/UniversityDemo/strawberry_Sprout.prefab",
+          "Assets/_Game/Content/Art/UniversityDemo/strawberry_Growing.prefab",
+          "Assets/_Game/Content/Art/UniversityDemo/strawberry_Mature.prefab"
+        ],
+        "seedItemId": "strawberry_seed",
+        "harvestItemId": "strawberry",
+        "icon": "Assets/_Game/Resources/FarmUI/Icons/crop_strawberry.png"
+      },
+      {
+        "id": "pumpkin",
+        "path": "Assets/_Game/Resources/FarmContent/pumpkin.asset",
+        "guid": "7c15a0c644e97504ca21d6c2bc0015ec",
+        "stages": [
+          "Assets/_Game/Content/Art/UniversityDemo/pumpkin_Sprout.prefab",
+          "Assets/_Game/Content/Art/UniversityDemo/pumpkin_Growing.prefab",
+          "Assets/_Game/Content/Art/UniversityDemo/pumpkin_Mature.prefab"
+        ],
+        "seedItemId": "pumpkin_seed",
+        "harvestItemId": "pumpkin",
+        "icon": "Assets/_Game/Resources/FarmUI/Icons/crop_pumpkin.png"
+      }
+    ],
+    "feeder": {
+      "path": "Assets/_Game/Resources/FarmContent/Feeder.prefab",
+      "source": "Assets/_Game/Content/Art/UniversityDemo/feeder.prefab",
+      "footprint": "1x1",
+      "capacity": 12,
+      "radiusMetres": 6
+    },
+    "sway": "Assets/_Game/Resources/FarmContent/CropSway.shader; crop-only material copies, grounded quadratic vertex weight, environment wind unchanged",
+    "evidence": "Verification/U1-7/report.md",
+    "balance": "Docs/Balance/U1-7.md"
+  }
+}

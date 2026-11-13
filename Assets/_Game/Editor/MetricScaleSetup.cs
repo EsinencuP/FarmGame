@@ -44,6 +44,9 @@ namespace MyLittleFarm.Editor
 
         public static GameObject GetOrCreate(string id, bool rebuild = false)
         {
+            if (id == "mill") return Resources.Load<GameObject>("FarmContent/Mill");
+            if (id == "cheese_dairy") return Resources.Load<GameObject>("FarmContent/Dairy");
+            if (id == "barn") return Resources.Load<GameObject>(MyLittleFarm.Gameplay.Building.BarnHabitat.PrefabResource);
             if (id == "apple_press") return null; // BuildingView creates the press model.
             EnsureFolder(Folder);
             var path = Folder + "/" + id + ".prefab";

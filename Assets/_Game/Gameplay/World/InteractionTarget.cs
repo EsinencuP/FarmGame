@@ -34,6 +34,13 @@ namespace MyLittleFarm.Gameplay.World
 
         private void OnEnable() => ApplyPickLayer();
 
+        public void SetPickBounds(Bounds bounds)
+        {
+            if (pickVolume == null) pickVolume = gameObject.AddComponent<BoxCollider>();
+            pickVolume.isTrigger = true; pickVolume.center = bounds.center; pickVolume.size = bounds.size;
+            ApplyPickLayer();
+        }
+
         /// <summary>Both authored and dynamically spawned targets use the same raycast layer; physics rules are unchanged.</summary>
         public void ApplyPickLayer()
         {
@@ -44,6 +51,11 @@ namespace MyLittleFarm.Gameplay.World
                 if (collider.GetComponentInParent<InteractionTarget>() == this) collider.gameObject.layer = layer;
         }
 
-        public bool TryGetBounds(out Bounds bounds) => VisualPrefab.TryGetBounds(gameObject, out bounds);
+        public bool TryGetBounds(out Bounds bounds)
+        {
+            if (kind == InteractionTargetKind.Animal && pickVolume != null)
+            { bounds = pickVolume.bounds; return true; }
+            return VisualPrefab.TryGetBounds(gameObject, out bounds);
+        }
     }
 }

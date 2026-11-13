@@ -1,0 +1,585 @@
+{
+  "date": "2026-11-13",
+  "scope": "U1-7 targeted manual component/UI observations. No assertions, Test Runner or automated verification suites executed.",
+  "notes": [
+    "setup contains initial catalog facts before the six-slot HUD correction; see report.",
+    "Clock transitions were manually advanced through the service. Targeted review observations used persistence=false and workspace snapshots.",
+    "cowFeeder records an initial refused location and one inventory-fed cow; cowSupply is the successful stock-fed cow observation."
+  ],
+  "observations": {
+    "setup": {
+      "loaded": true,
+      "version": 18,
+      "crops": [
+        {
+          "CropId": "carrot",
+          "RegrowSeconds": 0,
+          "GrowDurationSeconds": 8,
+          "stages": 3,
+          "seed": 2,
+          "sale": 3
+        },
+        {
+          "CropId": "potato",
+          "RegrowSeconds": 0,
+          "GrowDurationSeconds": 16,
+          "stages": 3,
+          "seed": 3,
+          "sale": 4
+        },
+        {
+          "CropId": "wheat",
+          "RegrowSeconds": 0,
+          "GrowDurationSeconds": 12,
+          "stages": 3,
+          "seed": 4,
+          "sale": 3
+        },
+        {
+          "CropId": "tomato",
+          "RegrowSeconds": 45,
+          "GrowDurationSeconds": 24,
+          "stages": 3,
+          "seed": 5,
+          "sale": 5
+        },
+        {
+          "CropId": "corn",
+          "RegrowSeconds": 0,
+          "GrowDurationSeconds": 18,
+          "stages": 3,
+          "seed": 6,
+          "sale": 6
+        },
+        {
+          "CropId": "cucumber",
+          "RegrowSeconds": 0,
+          "GrowDurationSeconds": 10,
+          "stages": 3,
+          "seed": 7,
+          "sale": 5
+        },
+        {
+          "CropId": "strawberry",
+          "RegrowSeconds": 30,
+          "GrowDurationSeconds": 30,
+          "stages": 3,
+          "seed": 8,
+          "sale": 7
+        },
+        {
+          "CropId": "pumpkin",
+          "RegrowSeconds": 0,
+          "GrowDurationSeconds": 35,
+          "stages": 3,
+          "seed": 10,
+          "sale": 16
+        }
+      ],
+      "orders": {
+        "seed": 1824148395,
+        "day": 0,
+        "elapsedSeconds": 0,
+        "orders": [
+          {
+            "id": "day:0:0",
+            "itemId": "potato",
+            "amount": 4,
+            "unitPrice": 4,
+            "bonus": 4,
+            "completed": false
+          }
+        ]
+      },
+      "persistence": false
+    },
+    "purchase": {
+      "loaded": true,
+      "bought": true,
+      "message": "Оплачено · −23 монеты",
+      "before": 438,
+      "after": 415,
+      "prepared": true,
+      "cropCount": 8,
+      "orders": {
+        "seed": 1824148395,
+        "day": 0,
+        "elapsedSeconds": 0,
+        "orders": [
+          {
+            "id": "day:0:0",
+            "itemId": "potato",
+            "amount": 4,
+            "unitPrice": 4,
+            "bonus": 4,
+            "completed": false
+          }
+        ]
+      }
+    },
+    "plant": {
+      "berry": true,
+      "pumpkin": true,
+      "tomato": true,
+      "seedAmounts": [
+        0,
+        0,
+        0
+      ],
+      "feeder": true,
+      "reason": "Постройка размещена",
+      "planted": [
+        {
+          "x": 6,
+          "z": -6,
+          "cropId": "tomato",
+          "plantedAtUnixMs": 1794549562635,
+          "growDurationSeconds": 24,
+          "weatherGrowthBonusSeconds": 0,
+          "stageCount": 3,
+          "isRegrowing": false,
+          "Position": {
+            "x": 6,
+            "y": -6,
+            "magnitude": 8.485281,
+            "sqrMagnitude": 72
+          }
+        },
+        {
+          "x": 7,
+          "z": -6,
+          "cropId": "strawberry",
+          "plantedAtUnixMs": 1794549562635,
+          "growDurationSeconds": 30,
+          "weatherGrowthBonusSeconds": 0,
+          "stageCount": 3,
+          "isRegrowing": false,
+          "Position": {
+            "x": 7,
+            "y": -6,
+            "magnitude": 9.219544,
+            "sqrMagnitude": 85
+          }
+        },
+        {
+          "x": 8,
+          "z": -6,
+          "cropId": "pumpkin",
+          "plantedAtUnixMs": 1794549562635,
+          "growDurationSeconds": 35,
+          "weatherGrowthBonusSeconds": 0,
+          "stageCount": 3,
+          "isRegrowing": false,
+          "Position": {
+            "x": 8,
+            "y": -6,
+            "magnitude": 10,
+            "sqrMagnitude": 100
+          }
+        }
+      ],
+      "animals": [
+        {
+          "animalId": "cow_f7555bcacaca4967b3d880d3e34b8680",
+          "definitionId": "cow",
+          "x": -5,
+          "z": -7,
+          "lastFedAtUnixMs": 1794522915900,
+          "nextProductAtUnixMs": 1794522975900,
+          "readyProductCount": 1,
+          "homeBuildingId": "0c31141908c04787bd8586e3bc7d25f5",
+          "homeSlot": 0,
+          "Position": {
+            "x": -5,
+            "y": -7,
+            "magnitude": 8.602325,
+            "sqrMagnitude": 74
+          }
+        },
+        {
+          "animalId": "chicken_1",
+          "definitionId": "chicken",
+          "x": 0,
+          "z": 3,
+          "lastFedAtUnixMs": 1794522721797,
+          "nextProductAtUnixMs": 0,
+          "readyProductCount": 0,
+          "homeBuildingId": "",
+          "homeSlot": 0,
+          "Position": {
+            "x": 0,
+            "y": 3,
+            "magnitude": 3,
+            "sqrMagnitude": 9
+          }
+        },
+        {
+          "animalId": "chicken_2",
+          "definitionId": "chicken",
+          "x": 1,
+          "z": 3,
+          "lastFedAtUnixMs": 1794522721797,
+          "nextProductAtUnixMs": 1794522761797,
+          "readyProductCount": 1,
+          "homeBuildingId": "",
+          "homeSlot": 0,
+          "Position": {
+            "x": 1,
+            "y": 3,
+            "magnitude": 3.1622777,
+            "sqrMagnitude": 10
+          }
+        },
+        {
+          "animalId": "chicken_3",
+          "definitionId": "chicken",
+          "x": 2,
+          "z": 3,
+          "lastFedAtUnixMs": 1794523035621,
+          "nextProductAtUnixMs": 1794523075621,
+          "readyProductCount": 1,
+          "homeBuildingId": "",
+          "homeSlot": 0,
+          "Position": {
+            "x": 2,
+            "y": 3,
+            "magnitude": 3.60555124,
+            "sqrMagnitude": 13
+          }
+        },
+        {
+          "animalId": "chicken_4",
+          "definitionId": "chicken",
+          "x": 3,
+          "z": 3,
+          "lastFedAtUnixMs": 1794522680797,
+          "nextProductAtUnixMs": 1794522720797,
+          "readyProductCount": 1,
+          "homeBuildingId": "",
+          "homeSlot": 0,
+          "Position": {
+            "x": 3,
+            "y": 3,
+            "magnitude": 4.2426405,
+            "sqrMagnitude": 18
+          }
+        },
+        {
+          "animalId": "cow_22c20699848d4770b333a0dcfe7b17e0",
+          "definitionId": "cow",
+          "x": -2,
+          "z": -7,
+          "lastFedAtUnixMs": 1794522890564,
+          "nextProductAtUnixMs": 0,
+          "readyProductCount": 0,
+          "homeBuildingId": "0c31141908c04787bd8586e3bc7d25f5",
+          "homeSlot": 1,
+          "Position": {
+            "x": -2,
+            "y": -7,
+            "magnitude": 7.28011,
+            "sqrMagnitude": 53
+          }
+        }
+      ]
+    },
+    "feeder": {
+      "diagnosticWheatAdded": 5,
+      "unrelatedSeedPurchase": true,
+      "initialStored": 12,
+      "inventoryBefore": 0,
+      "fed": true,
+      "once": 11,
+      "repeat": false,
+      "twice": 11,
+      "afterPastor": 8,
+      "inventoryAfter": 0,
+      "deleteBlocked": true,
+      "reason": "Сначала заберите пшеницу из кормушки.",
+      "moved": true,
+      "moveMessage": "Постройка перенесена",
+      "storedAfterMove": 8
+    },
+    "harvest": {
+      "berry": true,
+      "berryRepeat": false,
+      "tomato": true,
+      "tomatoRepeat": false,
+      "pumpkin": true,
+      "states": [
+        {
+          "cropId": "tomato",
+          "isRegrowing": true,
+          "plantedAtUnixMs": 1794549832328,
+          "growDurationSeconds": 45,
+          "stage": 1
+        },
+        {
+          "cropId": "strawberry",
+          "isRegrowing": true,
+          "plantedAtUnixMs": 1794549832328,
+          "growDurationSeconds": 30,
+          "stage": 1
+        }
+      ],
+      "pumpkinCell": "Tilled",
+      "stock": {
+        "berry": 3,
+        "tomato": 7,
+        "pumpkin": 2
+      },
+      "saved": true,
+      "feeders": [
+        {
+          "buildingId": "b353d5c8e1d84c11877fdb91e5547be5",
+          "wheat": 8
+        }
+      ]
+    },
+    "recoveryLoad": {
+      "loaded": true,
+      "states": [
+        {
+          "cropId": "tomato",
+          "isRegrowing": true,
+          "plantedAtUnixMs": 1794549832328,
+          "growDurationSeconds": 45,
+          "mature": false
+        },
+        {
+          "cropId": "strawberry",
+          "isRegrowing": true,
+          "plantedAtUnixMs": 1794549832328,
+          "growDurationSeconds": 30,
+          "mature": true
+        }
+      ],
+      "feeders": [
+        {
+          "buildingId": "b353d5c8e1d84c11877fdb91e5547be5",
+          "wheat": 8
+        }
+      ],
+      "orders": {
+        "seed": 1824148395,
+        "day": 0,
+        "elapsedSeconds": 0,
+        "orders": [
+          {
+            "id": "day:0:0",
+            "itemId": "potato",
+            "amount": 4,
+            "unitPrice": 4,
+            "bonus": 4,
+            "completed": false
+          }
+        ]
+      }
+    },
+    "repeatHarvest": {
+      "before": [
+        3,
+        7
+      ],
+      "berry": true,
+      "tomato": true,
+      "repeat": false,
+      "after": [
+        6,
+        12
+      ],
+      "oldPotato": true,
+      "potato": 3,
+      "seeds": [
+        0,
+        0
+      ]
+    },
+    "orderReward": {
+      "harvested": true,
+      "beforeBalance": 390,
+      "afterBalance": 410,
+      "beforeStock": 6,
+      "afterStock": 2,
+      "repeat": false,
+      "reason": "Заказ уже выполнен или сменился день.",
+      "saved": true,
+      "orders": {
+        "seed": 1824148395,
+        "day": 0,
+        "elapsedSeconds": 0,
+        "orders": [
+          {
+            "id": "day:0:0",
+            "itemId": "potato",
+            "amount": 4,
+            "unitPrice": 4,
+            "bonus": 4,
+            "completed": true
+          }
+        ]
+      }
+    },
+    "orderClock": {
+      "visualUnchanged": true,
+      "loaded": true,
+      "repeat": false,
+      "reason": "Заказ уже выполнен или сменился день.",
+      "partial": {
+        "seed": 1824148395,
+        "day": 0,
+        "elapsedSeconds": 839,
+        "orders": [
+          {
+            "id": "day:0:0",
+            "itemId": "potato",
+            "amount": 4,
+            "unitPrice": 4,
+            "bonus": 4,
+            "completed": true
+          }
+        ]
+      },
+      "saved": true,
+      "next": {
+        "seed": 1824148395,
+        "day": 1,
+        "elapsedSeconds": 0,
+        "orders": [
+          {
+            "id": "day:1:0",
+            "itemId": "apple",
+            "amount": 1,
+            "unitPrice": 18,
+            "bonus": 5,
+            "completed": false
+          }
+        ]
+      },
+      "reloaded": true,
+      "nextAgain": {
+        "seed": 1824148395,
+        "day": 1,
+        "elapsedSeconds": 0,
+        "orders": [
+          {
+            "id": "day:1:0",
+            "itemId": "apple",
+            "amount": 1,
+            "unitPrice": 18,
+            "bonus": 5,
+            "completed": false
+          }
+        ]
+      },
+      "balance": 410
+    },
+    "cowFeeder": {
+      "returned": 8,
+      "removed": true,
+      "removedReason": "Постройка удалена. Возврат: 9 монет",
+      "placed": false,
+      "placedReason": "Клетка занята",
+      "deposited": false,
+      "transferMessage": "",
+      "before": 0,
+      "fed": true,
+      "repeat": false,
+      "remaining": 0,
+      "inventory": 7
+    },
+    "cowSupply": {
+      "placed": true,
+      "reason": "Постройка размещена",
+      "filled": true,
+      "transfer": "Пшеница: 7 / 12",
+      "collected": true,
+      "milk": 1,
+      "covered": true,
+      "before": 7,
+      "fed": true,
+      "repeat": false,
+      "after": 6,
+      "inventory": 0
+    },
+    "atomicSale": {
+      "overflow": {
+        "success": false,
+        "reason": "Кошелёк не вмещает награду. Товар не списан.",
+        "stock": 1,
+        "afterStock": 1,
+        "completed": false
+      },
+      "sold": true,
+      "saleMessage": "Продано · +134 монеты",
+      "before": 401,
+      "after": 535,
+      "saved": true,
+      "feeders": [
+        {
+          "buildingId": "a3bef0b431354d7789eb6afa145018af",
+          "wheat": 6
+        }
+      ]
+    },
+    "finalLoad": {
+      "loaded": true,
+      "version": 18,
+      "balance": 535,
+      "feeders": [
+        {
+          "buildingId": "a3bef0b431354d7789eb6afa145018af",
+          "wheat": 6
+        }
+      ],
+      "orders": {
+        "seed": 1824148395,
+        "day": 1,
+        "elapsedSeconds": 0,
+        "orders": [
+          {
+            "id": "day:1:0",
+            "itemId": "apple",
+            "amount": 1,
+            "unitPrice": 18,
+            "bonus": 5,
+            "completed": false
+          }
+        ]
+      },
+      "repeatPlants": [
+        {
+          "cropId": "tomato",
+          "plantedAtUnixMs": 1794549999711,
+          "growDurationSeconds": 45,
+          "isRegrowing": true
+        },
+        {
+          "cropId": "strawberry",
+          "plantedAtUnixMs": 1794549999711,
+          "growDurationSeconds": 30,
+          "isRegrowing": true
+        }
+      ],
+      "shaderErrors": []
+    },
+    "futureOrders": {
+      "board": {
+        "seed": 1824148395,
+        "day": 2,
+        "elapsedSeconds": 0,
+        "orders": [
+          {
+            "id": "day:2:0",
+            "itemId": "tomato",
+            "amount": 3,
+            "unitPrice": 5,
+            "bonus": 4,
+            "completed": false
+          }
+        ]
+      },
+      "balance": 535
+    }
+  }
+}

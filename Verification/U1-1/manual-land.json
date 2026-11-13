@@ -1,0 +1,46 @@
+{
+  "meta": null,
+  "content": [
+    {
+      "type": "text",
+      "text": "{\"success\":true,\"message\":\"Code executed successfully.\",\"data\":{\"result\":[{\"cell\":\"(-10, -8)\",\"type\":\"Grass\",\"build\":true},{\"cell\":\"(-1, -8)\",\"type\":\"Grass\",\"build\":true},{\"cell\":\"(0, -8)\",\"type\":\"Grass\",\"build\":true},{\"cell\":\"(10, 3)\",\"type\":\"Rock\",\"build\":false},{\"cell\":\"(0, 10)\",\"type\":\"Grass\",\"build\":true}],\"compiler\":\"codedom\"}}",
+      "annotations": null,
+      "meta": null
+    }
+  ],
+  "structuredContent": {
+    "success": true,
+    "message": "Code executed successfully.",
+    "data": {
+      "result": [
+        {
+          "cell": "(-10, -8)",
+          "type": "Grass",
+          "build": true
+        },
+        {
+          "cell": "(-1, -8)",
+          "type": "Grass",
+          "build": true
+        },
+        {
+          "cell": "(0, -8)",
+          "type": "Grass",
+          "build": true
+        },
+        {
+          "cell": "(10, 3)",
+          "type": "Rock",
+          "build": false
+        },
+        {
+          "cell": "(0, 10)",
+          "type": "Grass",
+          "build": true
+        }
+      ],
+      "compiler": "codedom"
+    }
+  },
+  "isError": false
+}

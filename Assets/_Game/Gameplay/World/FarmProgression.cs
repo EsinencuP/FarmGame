@@ -66,6 +66,7 @@ namespace MyLittleFarm.Gameplay.World
         }
         public int TreeCount=>_orchard==null?0:_orchard.Capture().Count;
         public int AnimalCount=>_animals==null?0:_animals.Count;
+        public int ChickenCount=>_animals==null?0:_animals.ChickenCount;
         public bool AllSectorsOpen=>_sectors!=null&&_sectors.IsUnlocked;
         public int DiscoveredCaches=>_data.caches.FindAll(c=>c.discovered).Count;
         public string FavouriteCrop
@@ -91,8 +92,12 @@ namespace MyLittleFarm.Gameplay.World
             if (_buildings.Presses?.HasBatches == true)
                 return FarmText.Get("press.goal.collect", InputReader.ActionHint);
             if (_inventory.GetAmount(ApplePresses.FruitId) < ApplePresses.AppleCost)
+            {
+                if (_orchard.SelectedDefinition != null && _orchard.SelectedDefinition.FruitItemId != ApplePresses.FruitId)
+                    return "Для сока нужны яблоки. Выберите бесплатную яблоню в инвентаре · " + InputReader.KeyLabel(InputReader.Command.Inventory);
                 return FarmText.Get("press.goal.apples", ApplePresses.AppleCost,
                     InputReader.KeyLabel(InputReader.Command.Apple), InputReader.ActionHint);
+            }
             if (!HasBuilding(ApplePresses.BuildingId))
                 return FarmText.Get("press.goal.build", FarmText.Coins(ApplePresses.BuildingPrice),
                     InputReader.KeyLabel(InputReader.Command.Build), InputReader.KeyLabel(InputReader.Command.Catalogue));
@@ -217,7 +222,7 @@ namespace MyLittleFarm.Gameplay.World
             if(data==null)return true; // v1–10 have no historical counters.
             foreach(var value in new[]{data.revenue,data.expenses,data.refunds,data.plantings,data.harvests,data.harvestedUnits,data.apples,data.eggs,data.bonusHarvests,data.rareSeeds})
                 if(value<0||value>CounterLimit)return false;
-            if(data.highestBalance<0||data.crops==null||data.crops.Count>6||data.achievements==null||data.achievements.Count>20
+            if(data.highestBalance<0||data.crops==null||data.crops.Count>FarmCatalog.CropIds.Length||data.achievements==null||data.achievements.Count>20
                 ||data.decorations==null||data.decorations.Count>35||data.caches==null||data.caches.Count>3)return false;
             var ids=new HashSet<string>();
             foreach(var c in data.crops)if(c==null||Array.IndexOf(FarmCatalog.CropIds,c.cropId)<0||c.planted<=0||c.planted>CounterLimit||!ids.Add(c.cropId))return false;

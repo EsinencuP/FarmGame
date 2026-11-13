@@ -26,7 +26,7 @@ namespace MyLittleFarm.Editor
             foreach (var id in FarmCatalog.CropIds)
             {
                 BuildStages(id, true);
-                var definition = AssetDatabase.LoadAssetAtPath<CropDefinition>("Assets/_Game/Content/Crops/" + id + ".asset");
+                var definition = AssetDatabase.LoadAssetAtPath<CropDefinition>((id=="strawberry"||id=="pumpkin"?"Assets/_Game/Resources/FarmContent/":"Assets/_Game/Content/Crops/") + id + ".asset");
                 if (definition == null) continue;
                 var properties = new SerializedObject(definition);
                 AssignStages(properties, id);
@@ -34,17 +34,19 @@ namespace MyLittleFarm.Editor
                 EditorUtility.SetDirty(definition);
             }
             AssetDatabase.SaveAssets();
-            Debug.Log("Crop art: rebuilt 18 stage prefabs and updated the six existing crop definitions.");
+            Debug.Log("Crop art: rebuilt six legacy crops; retained prepared strawberry/pumpkin stages and updated definitions.");
         }
 
         [MenuItem("Tools/My Little Farm/Rebuild Crop Stage Art", true)]
         private static bool CanRebuild() => !EditorApplication.isPlayingOrWillChangePlaymode;
 
-        public static string PrefabPath(string id, int stage) => Root + "/" + id + "/" + id + "_" + StageNames[stage] + ".prefab";
+        public static string PrefabPath(string id, int stage) => (id=="strawberry"||id=="pumpkin"?UniversityArtPreparation.Root+"/":Root+"/"+id+"/")+id+"_"+StageNames[stage]+".prefab";
 
         /// <summary>Stage envelopes preserve the existing mature tomato height and keep seedlings proportionally small.</summary>
         public static Vector3 StageSize(string id, int stage)
         {
+            if(id=="strawberry")return new Vector3(.25f+stage*.15f,.12f+stage*.12f,.25f+stage*.15f);
+            if(id=="pumpkin")return new Vector3(.24f+stage*.24f,.12f+stage*.18f,.24f+stage*.24f);
             var height = id == "corn" ? 1.45f : id == "wheat" ? 0.95f : id == "tomato" ? 0.85f
                 : id == "carrot" ? 0.35f : id == "potato" ? 0.5f : 0.45f;
             return stage == 0 ? new Vector3(0.24f, 0.14f, 0.24f)
@@ -70,6 +72,12 @@ namespace MyLittleFarm.Editor
         private static GameObject[] BuildStages(string id, bool overwrite)
         {
             if (Array.IndexOf(FarmCatalog.CropIds, id) < 0) throw new ArgumentException("Unknown crop: " + id);
+            if(id=="strawberry"||id=="pumpkin")
+            {
+                var prepared=new GameObject[3];
+                for(var i=0;i<3;i++)prepared[i]=AssetDatabase.LoadAssetAtPath<GameObject>(PrefabPath(id,i))??throw new MissingReferenceException("Prepare U1-0 crop art first.");
+                return prepared;
+            }
             EnsureFolder(Root + "/" + id);
             var result = new GameObject[3];
             for (var stage = 0; stage < 3; stage++)
@@ -293,7 +301,7 @@ namespace MyLittleFarm.Editor
         }
 
         /// <summary>Builds closed, flat-shaded colored geometry; no primitive GameObjects or runtime generation.</summary>
-        private sealed class MeshDraft
+        internal sealed class MeshDraft
         {
             private readonly List<Vector3> _vertices = new List<Vector3>();
             private readonly List<int> _triangles = new List<int>();

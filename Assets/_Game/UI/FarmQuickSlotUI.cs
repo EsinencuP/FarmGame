@@ -18,10 +18,15 @@ namespace MyLittleFarm.UI
         [SerializeField] private Image[] seedImages;
         private Text[] _keyLabels;
         private int _bindingRevision = -1;
+        private Button _hand,_hoe;
+        private MyLittleFarm.Gameplay.World.ToolUpgradeSystem _tools;
+        public bool HasTools=>_hand!=null;
         private void OnEnable()
         {
             if (!Application.isPlaying) return;
             RepairIconLayout();
+            if(buttons==null || slots==null)return;
+            EnsureTools();
             _keyLabels = new Text[buttons.Length];
             for (var i = 0; i < buttons.Length; i++)
                 foreach (var label in buttons[i].GetComponentsInChildren<Text>())
@@ -29,7 +34,16 @@ namespace MyLittleFarm.UI
             _bindingRevision = -1;
             RefreshKeyLabels();
             GameEvents.InventoryChanged += Refresh;
-            for (var i = 0; i < buttons.Length; i++) { var index = i; buttons[i].onClick.AddListener(() => Select(index)); }
+            for (var i = 0; i < buttons.Length; i++)
+            {
+                var index = i; buttons[i].onClick.AddListener(() => Select(index));
+                FarmItemDrag.Install(buttons[i].gameObject,()=>
+                {
+                    if(input.ModalInputActive || input.BuildModeActive)return null;
+                    input.SuppressGameplayThisFrame=true;
+                    var id=slots.ItemAt(index);return id==null?null:FarmItemDrag.Snapshot(FarmItemDrag.Source.QuickSlot,id,0,index,null,inventory,slots,null,Icon(id));
+                },p=>{if(!input.ModalInputActive&&!input.BuildModeActive){input.SuppressGameplayThisFrame=true;FarmItemDrag.DropOnSlot(p,index,inventory,slots);}});
+            }
             Refresh();
         }
         private void Update() => RefreshKeyLabels();
@@ -44,7 +58,7 @@ namespace MyLittleFarm.UI
         private void OnDisable()
         {
             if (!Application.isPlaying) return;
-            GameEvents.InventoryChanged -= Refresh; foreach (var button in buttons) button.onClick.RemoveAllListeners();
+            FarmItemDrag.Cancel();GameEvents.InventoryChanged -= Refresh; if(buttons!=null)foreach (var button in buttons) button.onClick.RemoveAllListeners();
         }
         private void Select(int index)
         {
@@ -53,19 +67,39 @@ namespace MyLittleFarm.UI
         }
         private void Refresh()
         {
-            if (catalog == null || inventory == null || catalog.Crops.Count == 0) return;
-            for (var i = 0; i < amounts.Length && i < catalog.Crops.Count; i++)
+            if (catalog == null || inventory == null || slots==null || amounts==null) return;
+            for (var i = 0; i < amounts.Length; i++)
             {
-                amounts[i].text = inventory.GetAmount(catalog.Crops[i].SeedItemId).ToString();
-                buttons[i].GetComponent<Image>().color = slots.SelectedIndex == i ? new Color(1, .87f, .43f) : Color.white;
+                var id=slots.ItemAt(i);
+                amounts[i].text = id==null?"—":id=="apple_sapling"?"∞":inventory.GetAmount(id).ToString();
+                buttons[i].GetComponent<Image>().color = slots.Mode==QuickSlotSystem.SelectionMode.Item && slots.SelectedIndex == i ? new Color(1, .87f, .43f) : Color.white;
                 if (seedImages != null && i < seedImages.Length && seedImages[i] != null)
                 {
-                    var id = catalog.Crops[i].SeedItemId;
-                    seedImages[i].sprite = catalog.TryGetItem(id, out var item) && item.Icon != null ? item.Icon : FarmUITheme.Sprite("Icons/" + FarmUITheme.ItemIcon(id));
+                    seedImages[i].enabled=id!=null;
+                    if(id!=null)seedImages[i].sprite=Icon(id);
                     seedImages[i].color = Color.white;
                 }
             }
+            if(_hand!=null)_hand.GetComponent<Image>().color=slots.Mode==QuickSlotSystem.SelectionMode.Hand?new Color(1,.87f,.43f):Color.white;
+            if(_hoe!=null && _tools!=null)_hoe.GetComponentInChildren<Text>().text="Мотыга\n"+(_tools.Level==0?"1×1":_tools.AreaLabel);
+            if(_hoe!=null)_hoe.GetComponent<Image>().color=slots.Mode==QuickSlotSystem.SelectionMode.Hoe?new Color(1,.87f,.43f):Color.white;
         }
+        private Sprite Icon(string id)=>catalog.TryGetItem(id,out var item)&&item.Icon!=null?item.Icon:FarmUITheme.Sprite("Icons/"+FarmUITheme.ItemIcon(id))??FarmUITheme.Sprite("Icons/inventory");
+        private void EnsureTools()
+        {
+            if(_hand!=null)return;
+            _tools=slots.GetComponentInParent<GameBootstrap>()?.GetComponentInChildren<MyLittleFarm.Gameplay.World.ToolUpgradeSystem>(true);
+            var font=amounts[0].font;
+            _hand=FarmUITheme.Button(transform,"Руки",font,null,"secondary");
+            _hoe=FarmUITheme.Button(transform,"Мотыга",font,null,"secondary");
+            _hand.transform.SetSiblingIndex(0);_hoe.transform.SetSiblingIndex(1);
+            foreach(var b in new[]{_hand,_hoe}){((RectTransform)b.transform).sizeDelta=new Vector2(76,78);FarmUITheme.FitCompactButton(b,17);var label=b.GetComponentInChildren<Text>();FarmUITheme.Stretch(label.rectTransform,2);label.resizeTextMinSize=12;}
+            _hand.onClick.AddListener(()=>Tool(QuickSlotSystem.SelectionMode.Hand));_hoe.onClick.AddListener(()=>Tool(QuickSlotSystem.SelectionMode.Hoe));
+            // Preserve the six authored item references and include the tools in the same pointer blocker.
+
+        }
+        private void Tool(QuickSlotSystem.SelectionMode mode)
+        {if(input.ModalInputActive || input.BuildModeActive)return;input.SuppressGameplayThisFrame=true;slots.SelectTool(mode);}
         public void RepairIconLayout()
         {
             if (buttons == null) return;
@@ -104,6 +138,7 @@ namespace MyLittleFarm.UI
                 ui.amounts[i] = FarmUITheme.Label(image.transform, "—", font, 19); ui.amounts[i].alignment = TextAnchor.LowerRight; FarmUITheme.Stretch(ui.amounts[i].rectTransform, 7);
             }
             ui.RepairIconLayout();
+            if(Application.isPlaying)ui.OnEnable();
         }
     }
 }

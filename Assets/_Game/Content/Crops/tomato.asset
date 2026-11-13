@@ -17,6 +17,7 @@ MonoBehaviour:
   seedItemId: tomato_seed
   harvestItemId: tomato
   growDurationSeconds: 24
+  regrowSeconds: 45
   yieldAmount: 5
   stageCount: 3
   matureColor: {r: 0.88, g: 0.16, b: 0.12, a: 1}

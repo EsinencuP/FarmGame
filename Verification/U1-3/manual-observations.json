@@ -1,0 +1,475 @@
+{
+  "manualPlace": {
+    "success": true,
+    "message": "Code executed successfully.",
+    "data": {
+      "result": {
+        "dairy": true,
+        "d": "Постройка размещена",
+        "press": true,
+        "p": "Постройка размещена",
+        "idle": true,
+        "buildings": [
+          {
+            "id": "37d3d9956c394042a7d7ca5e851bb5a8",
+            "definitionId": "mill",
+            "x": 2,
+            "z": 2,
+            "quarterTurns": 0,
+            "paidCost": 80,
+            "appearanceLevel": 0,
+            "customText": null,
+            "Refund": 40
+          },
+          {
+            "id": "61b35ef001a04e0c926bae99bff7716e",
+            "definitionId": "cheese_dairy",
+            "x": 14,
+            "z": 10,
+            "quarterTurns": 0,
+            "paidCost": 100,
+            "appearanceLevel": 0,
+            "customText": null,
+            "Refund": 50
+          },
+          {
+            "id": "8b153f149b8343428190c0b7f06defa4",
+            "definitionId": "apple_press",
+            "x": -2,
+            "z": 3,
+            "quarterTurns": 0,
+            "paidCost": 80,
+            "appearanceLevel": 0,
+            "customText": null,
+            "Refund": 40
+          }
+        ],
+        "activeFarm": false
+      },
+      "compiler": "codedom"
+    }
+  },
+  "manualStart": {
+    "success": true,
+    "message": "Code executed successfully.",
+    "data": {
+      "result": {
+        "log": [
+          "mill button=True",
+          "МЕЛЬНИЦА | Пшеница × 3\nВ инвентаре: 0 | Мука × 1\nПродажа: 22 монет | → | В работе · 0% · осталось 30 с | Партия запущена · 30 с | Запустить | Забрать | Закрыть",
+          "apple_press button=True",
+          "ЯБЛОЧНЫЙ ПРЕСС | Яблоко × 3\nВ инвентаре: 0 | Яблочный сок × 1\nПродажа: 65 монет | → | В работе · 0% · осталось 1 мин | Партия запущена · 1 мин | Запустить | Забрать | Закрыть",
+          "cheese_dairy button=True",
+          "СЫРОВАРНЯ | Молоко × 2\nВ инвентаре: 0 | Сыр × 1\nПродажа: 80 монет | → | В работе · 0% · осталось 1 мин 30 с | Партия запущена · 1 мин 30 с | Запустить | Забрать | Закрыть"
+        ],
+        "batches": [
+          {
+            "buildingId": "37d3d9956c394042a7d7ca5e851bb5a8",
+            "recipeId": "wheat_to_flour",
+            "outputItemId": "flour",
+            "outputAmount": 1,
+            "startedAtUnixMs": 1794520549357,
+            "readyAtUnixMs": 1794520579357
+          },
+          {
+            "buildingId": "8b153f149b8343428190c0b7f06defa4",
+            "recipeId": "apple_to_juice",
+            "outputItemId": "apple_juice",
+            "outputAmount": 1,
+            "startedAtUnixMs": 1794520549360,
+            "readyAtUnixMs": 1794520609360
+          },
+          {
+            "buildingId": "61b35ef001a04e0c926bae99bff7716e",
+            "recipeId": "milk_to_cheese",
+            "outputItemId": "cheese",
+            "outputAmount": 1,
+            "startedAtUnixMs": 1794520549361,
+            "readyAtUnixMs": 1794520639361
+          }
+        ],
+        "saved": true,
+        "inventory": [
+          {
+            "itemId": "carrot_seed",
+            "amount": 8
+          },
+          {
+            "itemId": "apple",
+            "amount": 0
+          },
+          {
+            "itemId": "wheat",
+            "amount": 0
+          },
+          {
+            "itemId": "milk",
+            "amount": 0
+          }
+        ]
+      },
+      "compiler": "codedom"
+    }
+  },
+  "manualReload": {
+    "success": true,
+    "message": "Code executed successfully.",
+    "data": {
+      "result": {
+        "loaded": true,
+        "now": 1794520577726,
+        "batches": [
+          {
+            "buildingId": "37d3d9956c394042a7d7ca5e851bb5a8",
+            "recipeId": "wheat_to_flour",
+            "outputItemId": "flour",
+            "outputAmount": 1,
+            "startedAtUnixMs": 1794520549357,
+            "readyAtUnixMs": 1794520579357
+          },
+          {
+            "buildingId": "8b153f149b8343428190c0b7f06defa4",
+            "recipeId": "apple_to_juice",
+            "outputItemId": "apple_juice",
+            "outputAmount": 1,
+            "startedAtUnixMs": 1794520549360,
+            "readyAtUnixMs": 1794520609360
+          },
+          {
+            "buildingId": "61b35ef001a04e0c926bae99bff7716e",
+            "recipeId": "milk_to_cheese",
+            "outputItemId": "cheese",
+            "outputAmount": 1,
+            "startedAtUnixMs": 1794520549361,
+            "readyAtUnixMs": 1794520639361
+          }
+        ],
+        "move": true,
+        "moveReason": "Постройка перенесена",
+        "remove": false,
+        "removeReason": "В постройке есть партия. Заберите продукт перед удалением.",
+        "saved": true,
+        "activeFarm": false
+      },
+      "compiler": "codedom"
+    }
+  },
+  "manualCapacity": {
+    "success": true,
+    "message": "Code executed successfully.",
+    "data": {
+      "result": {
+        "full": false,
+        "fullReason": "Инвентарь полон. Продукт остался в постройке.",
+        "batchesBeforeCollection": [
+          {
+            "buildingId": "37d3d9956c394042a7d7ca5e851bb5a8",
+            "recipeId": "wheat_to_flour",
+            "outputItemId": "flour",
+            "outputAmount": 1,
+            "startedAtUnixMs": 1794520549357,
+            "readyAtUnixMs": 1794520579357
+          },
+          {
+            "buildingId": "8b153f149b8343428190c0b7f06defa4",
+            "recipeId": "apple_to_juice",
+            "outputItemId": "apple_juice",
+            "outputAmount": 1,
+            "startedAtUnixMs": 1794520549360,
+            "readyAtUnixMs": 1794520609360
+          },
+          {
+            "buildingId": "61b35ef001a04e0c926bae99bff7716e",
+            "recipeId": "milk_to_cheese",
+            "outputItemId": "cheese",
+            "outputAmount": 1,
+            "startedAtUnixMs": 1794520549361,
+            "readyAtUnixMs": 1794520639361
+          }
+        ],
+        "collectEnabled": true,
+        "flour": 1,
+        "remaining": [
+          {
+            "buildingId": "8b153f149b8343428190c0b7f06defa4",
+            "recipeId": "apple_to_juice",
+            "outputItemId": "apple_juice",
+            "outputAmount": 1,
+            "startedAtUnixMs": 1794520549360,
+            "readyAtUnixMs": 1794520609360
+          },
+          {
+            "buildingId": "61b35ef001a04e0c926bae99bff7716e",
+            "recipeId": "milk_to_cheese",
+            "outputItemId": "cheese",
+            "outputAmount": 1,
+            "startedAtUnixMs": 1794520549361,
+            "readyAtUnixMs": 1794520639361
+          }
+        ]
+      },
+      "compiler": "codedom"
+    }
+  },
+  "manualCollect": {
+    "success": true,
+    "message": "Code executed successfully.",
+    "data": {
+      "result": {
+        "log": [
+          "apple_press collectEnabled=True",
+          "ЯБЛОЧНЫЙ ПРЕСС | Яблоко × 3\nВ инвентаре: 0 | Яблочный сок × 1\nПродажа: 65 монет | → | Нет партии · время: 1 мин\nНедостаточно сырья | Продукт получен · 1 шт. | Запустить | Забрать | Закрыть",
+          "cheese_dairy collectEnabled=False",
+          "СЫРОВАРНЯ | Молоко × 2\nВ инвентаре: 0 | Сыр × 1\nПродажа: 80 монет | → | В работе · 96% · осталось 4 с | Одна партия · следующая после сбора | Запустить | Забрать | Закрыть"
+        ],
+        "now": 1794520636352,
+        "batches": [
+          {
+            "buildingId": "61b35ef001a04e0c926bae99bff7716e",
+            "recipeId": "milk_to_cheese",
+            "outputItemId": "cheese",
+            "outputAmount": 1,
+            "startedAtUnixMs": 1794520549361,
+            "readyAtUnixMs": 1794520639361
+          }
+        ],
+        "inventory": [
+          {
+            "itemId": "carrot_seed",
+            "amount": 8
+          },
+          {
+            "itemId": "apple",
+            "amount": 0
+          },
+          {
+            "itemId": "wheat",
+            "amount": 0
+          },
+          {
+            "itemId": "milk",
+            "amount": 0
+          },
+          {
+            "itemId": "flour",
+            "amount": 1
+          },
+          {
+            "itemId": "apple_juice",
+            "amount": 1
+          }
+        ],
+        "saved": true
+      },
+      "compiler": "codedom"
+    }
+  },
+  "manualReady": {
+    "success": true,
+    "message": "Code executed successfully.",
+    "data": {
+      "result": {
+        "texts": [
+          "СЫРОВАРНЯ",
+          "Молоко × 2\nВ инвентаре: 0",
+          "Сыр × 1\nПродажа: 80 монет",
+          "→",
+          "Готово · Сыр × 1",
+          "Одна партия · следующая после сбора",
+          "Запустить",
+          "Забрать",
+          "Закрыть"
+        ],
+        "ready": true
+      },
+      "compiler": "codedom"
+    }
+  },
+  "manualSale": {
+    "success": true,
+    "message": "Code executed successfully.",
+    "data": {
+      "result": {
+        "moved": false,
+        "moveReason": "Мешает персонаж или объект",
+        "failedStart": false,
+        "shortage": "Недостаточно сырья: Молоко × 2",
+        "inventoryBeforeSale": [
+          {
+            "itemId": "carrot_seed",
+            "amount": 8
+          },
+          {
+            "itemId": "apple",
+            "amount": 0
+          },
+          {
+            "itemId": "wheat",
+            "amount": 0
+          },
+          {
+            "itemId": "milk",
+            "amount": 0
+          },
+          {
+            "itemId": "flour",
+            "amount": 1
+          },
+          {
+            "itemId": "apple_juice",
+            "amount": 1
+          },
+          {
+            "itemId": "cheese",
+            "amount": 1
+          }
+        ],
+        "batches": [],
+        "sold": true,
+        "reason": "Продано · +167 монет",
+        "coins": 407,
+        "saved": true
+      },
+      "compiler": "codedom"
+    }
+  },
+  "manualProfiles": {
+    "success": true,
+    "message": "Code executed successfully.",
+    "data": {
+      "result": {
+        "idle": true,
+        "idleCount": 0,
+        "active": true,
+        "activeCount": 3,
+        "moved": true,
+        "why": "Постройка перенесена",
+        "retained": [
+          {
+            "buildingId": "37d3d9956c394042a7d7ca5e851bb5a8",
+            "recipeId": "wheat_to_flour",
+            "outputItemId": "flour",
+            "outputAmount": 1,
+            "startedAtUnixMs": 1794520549357,
+            "readyAtUnixMs": 1794520579357
+          },
+          {
+            "buildingId": "8b153f149b8343428190c0b7f06defa4",
+            "recipeId": "apple_to_juice",
+            "outputItemId": "apple_juice",
+            "outputAmount": 1,
+            "startedAtUnixMs": 1794520549360,
+            "readyAtUnixMs": 1794520609360
+          },
+          {
+            "buildingId": "61b35ef001a04e0c926bae99bff7716e",
+            "recipeId": "milk_to_cheese",
+            "outputItemId": "cheese",
+            "outputAmount": 1,
+            "startedAtUnixMs": 1794520549361,
+            "readyAtUnixMs": 1794520639361
+          }
+        ],
+        "sold": true,
+        "afterSaleBatches": 0,
+        "afterSaleCoins": 407,
+        "legacyCreated": true,
+        "legacyBatches": [
+          {
+            "buildingId": "4942ce0ea1074244a1cca55c9f0ee4b6",
+            "readyAtUnixMs": 1794520703023
+          },
+          {
+            "buildingId": "b95281a8794d4c6fb70ecd5df908c174",
+            "readyAtUnixMs": 1794520719023
+          }
+        ]
+      },
+      "compiler": "codedom"
+    }
+  },
+  "manualV12Fixed": {
+    "success": true,
+    "message": "Code executed successfully.",
+    "data": {
+      "result": {
+        "loaded": true,
+        "now": 1794520787827,
+        "expected": [
+          {
+            "buildingId": "4942ce0ea1074244a1cca55c9f0ee4b6",
+            "readyAtUnixMs": 1794520703023
+          },
+          {
+            "buildingId": "b95281a8794d4c6fb70ecd5df908c174",
+            "readyAtUnixMs": 1794520807827
+          }
+        ],
+        "first": true,
+        "firstReason": "Продукт получен · 1 шт.",
+        "twice": false,
+        "early": false,
+        "earlyReason": "Партия ещё в работе.",
+        "version": 15,
+        "remaining": [
+          {
+            "buildingId": "b95281a8794d4c6fb70ecd5df908c174",
+            "recipeId": "apple_to_juice",
+            "outputItemId": "apple_juice",
+            "outputAmount": 1,
+            "startedAtUnixMs": 1794520747827,
+            "readyAtUnixMs": 1794520807827
+          }
+        ],
+        "legacyWritten": 0,
+        "inventory": [
+          {
+            "itemId": "carrot_seed",
+            "amount": 8
+          },
+          {
+            "itemId": "apple",
+            "amount": 0
+          },
+          {
+            "itemId": "apple_juice",
+            "amount": 1
+          }
+        ],
+        "saved": true
+      },
+      "compiler": "codedom"
+    }
+  },
+  "manualV12Collect": {
+    "success": true,
+    "message": "Code executed successfully.",
+    "data": {
+      "result": {
+        "now": 1794520822073,
+        "collected": true,
+        "message": "Продукт получен · 1 шт.",
+        "twice": false,
+        "juice": 2,
+        "remaining": 0,
+        "saved": true
+      },
+      "compiler": "codedom"
+    }
+  },
+  "cleanupU13": {
+    "success": true,
+    "message": "Code executed successfully.",
+    "data": {
+      "result": {
+        "scene": "Assets/_Game/Scenes/Prototype.unity",
+        "dirtyBefore": true,
+        "dirtyNow": true,
+        "enabled": true,
+        "instance": true,
+        "reviewClosed": true
+      },
+      "compiler": "codedom"
+    }
+  }
+}

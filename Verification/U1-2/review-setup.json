@@ -1,0 +1,25 @@
+{
+  "meta": null,
+  "content": [
+    {
+      "type": "text",
+      "text": "{\"success\":true,\"message\":\"Code executed successfully.\",\"data\":{\"result\":{\"scene\":\"Assets/_Recovery/U1-2Review.unity\",\"originalSceneKeptLoaded\":true,\"sourceBackup\":\"Assets/_Recovery/U1-2SourceBackup.unity\",\"persistence\":\"The review copy does not start slot persistence. Source roots are disabled. Use explicit files under Verification/U1-2 only.\"},\"compiler\":\"codedom\"}}",
+      "annotations": null,
+      "meta": null
+    }
+  ],
+  "structuredContent": {
+    "success": true,
+    "message": "Code executed successfully.",
+    "data": {
+      "result": {
+        "scene": "Assets/_Recovery/U1-2Review.unity",
+        "originalSceneKeptLoaded": true,
+        "sourceBackup": "Assets/_Recovery/U1-2SourceBackup.unity",
+        "persistence": "The review copy does not start slot persistence. Source roots are disabled. Use explicit files under Verification/U1-2 only."
+      },
+      "compiler": "codedom"
+    }
+  },
+  "isError": false
+}

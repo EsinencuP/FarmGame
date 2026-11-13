@@ -1,0 +1,31 @@
+{
+  "meta": null,
+  "content": [
+    {
+      "type": "text",
+      "text": "{\"success\":true,\"message\":\"Code executed successfully.\",\"data\":{\"result\":{\"cowPrice\":40,\"interval\":60.0,\"ProductItemId\":\"milk\",\"milkPrice\":28,\"footprint\":[9,6],\"door\":1.98,\"solidSize\":\"(4.212, 3.960, 5.696)\"},\"compiler\":\"codedom\"}}",
+      "annotations": null,
+      "meta": null
+    }
+  ],
+  "structuredContent": {
+    "success": true,
+    "message": "Code executed successfully.",
+    "data": {
+      "result": {
+        "cowPrice": 40,
+        "interval": 60.0,
+        "ProductItemId": "milk",
+        "milkPrice": 28,
+        "footprint": [
+          9,
+          6
+        ],
+        "door": 1.98,
+        "solidSize": "(4.212, 3.960, 5.696)"
+      },
+      "compiler": "codedom"
+    }
+  },
+  "isError": false
+}

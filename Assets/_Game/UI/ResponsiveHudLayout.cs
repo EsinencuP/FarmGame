@@ -112,7 +112,7 @@ namespace MyLittleFarm.UI
             }
             if (clockSpeedButton != null)
                 Place(clockSpeedButton, new Vector2(1, .5f), new Vector2(1, .5f), new Vector2(-8, 2), new Vector2(44, 48));
-            Place(quickSlots, new Vector2(.5f, 0), new Vector2(.5f, 0), new Vector2(center, bottom + 12), new Vector2(Mathf.Min(524, width - 24), 98));
+            Place(quickSlots, new Vector2(.5f, 0), new Vector2(.5f, 0), new Vector2(center, bottom + 12), new Vector2(Mathf.Min(Application.isPlaying ? 720 : 524, width - 24), 98));
             if (prompt != null)
             {
                 Place(prompt.rectTransform, new Vector2(.5f, 0), new Vector2(.5f, 0), new Vector2(center, bottom + 122), new Vector2(Mathf.Min(1100, width - 24), 56));

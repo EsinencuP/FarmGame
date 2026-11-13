@@ -1,0 +1,43 @@
+{
+  "meta": null,
+  "content": [
+    {
+      "type": "text",
+      "text": "{\"success\":true,\"message\":\"Code executed successfully.\",\"data\":{\"result\":{\"bought\":true,\"reason\":\"Оплачено · −40 монет\",\"coins\":400,\"animals\":[{\"animalId\":\"cow_f7555bcacaca4967b3d880d3e34b8680\",\"definitionId\":\"cow\",\"x\":-5,\"z\":-7,\"lastFedAtUnixMs\":0,\"nextProductAtUnixMs\":0,\"readyProductCount\":0,\"homeBuildingId\":\"0c31141908c04787bd8586e3bc7d25f5\",\"homeSlot\":0,\"Position\":{\"x\":-5,\"y\":-7,\"magnitude\":8.602325,\"sqrMagnitude\":74}}]},\"compiler\":\"codedom\"}}",
+      "annotations": null,
+      "meta": null
+    }
+  ],
+  "structuredContent": {
+    "success": true,
+    "message": "Code executed successfully.",
+    "data": {
+      "result": {
+        "bought": true,
+        "reason": "Оплачено · −40 монет",
+        "coins": 400,
+        "animals": [
+          {
+            "animalId": "cow_f7555bcacaca4967b3d880d3e34b8680",
+            "definitionId": "cow",
+            "x": -5,
+            "z": -7,
+            "lastFedAtUnixMs": 0,
+            "nextProductAtUnixMs": 0,
+            "readyProductCount": 0,
+            "homeBuildingId": "0c31141908c04787bd8586e3bc7d25f5",
+            "homeSlot": 0,
+            "Position": {
+              "x": -5,
+              "y": -7,
+              "magnitude": 8.602325,
+              "sqrMagnitude": 74
+            }
+          }
+        ]
+      },
+      "compiler": "codedom"
+    }
+  },
+  "isError": false
+}

@@ -142,6 +142,18 @@ namespace MyLittleFarm.Gameplay.Farming
 
             CropDefinition definition = null;
             if (_catalog != null && !_catalog.TryGetCrop(crop.cropId, out definition)) return false;
+            itemId = definition == null ? crop.cropId : definition.HarvestItemId;
+            yield = HarvestYield(crop.cropId);
+            if(definition!=null && definition.RegrowSeconds>0)
+            {
+                var recovering=_grid.GetFarmingCell(position);
+                recovering.plantedAtUnixMs=nowUnixMs;recovering.growDurationSeconds=definition.RegrowSeconds;
+                recovering.weatherGrowthBonusSeconds=0;recovering.isRegrowing=true;
+                _grid.SetFarmingCell(position,recovering);
+                _rainBaselines[position]=_weather==null?0:_weather.GrowthBonusSeconds;
+                if(_views.TryGetValue(position,out var retained))retained.SetStage(1,crop.stageCount);
+                return true;
+            }
             if (_views.TryGetValue(position, out var view))
             {
                 _views.Remove(position);
@@ -174,7 +186,7 @@ namespace MyLittleFarm.Gameplay.Farming
                     plantedAtUnixMs = crop.plantedAtUnixMs,
                     growDurationSeconds = crop.growDurationSeconds,
                     weatherGrowthBonusSeconds = crop.weatherGrowthBonusSeconds,
-                    stageCount = crop.stageCount
+                    stageCount = crop.stageCount, isRegrowing=crop.isRegrowing
                 });
             }
 
@@ -197,7 +209,7 @@ namespace MyLittleFarm.Gameplay.Farming
                 {
                     var copy = new CropRuntimeState { x = crop.x, z = crop.z, cropId = crop.cropId,
                         plantedAtUnixMs = crop.plantedAtUnixMs, growDurationSeconds = crop.growDurationSeconds,
-                        weatherGrowthBonusSeconds = crop.weatherGrowthBonusSeconds, stageCount = crop.stageCount };
+                        weatherGrowthBonusSeconds = crop.weatherGrowthBonusSeconds, stageCount = crop.stageCount, isRegrowing=crop.isRegrowing };
                     var existing = _grid.GetFarmingCell(crop.Position);
                     var restored = ToFarmingCell(copy);
                     restored.moisture = existing.moisture;
@@ -264,7 +276,7 @@ namespace MyLittleFarm.Gameplay.Farming
             plantedAtUnixMs = crop.plantedAtUnixMs,
             growDurationSeconds = crop.growDurationSeconds,
             weatherGrowthBonusSeconds = crop.weatherGrowthBonusSeconds,
-            stageCount = crop.stageCount
+            stageCount = crop.stageCount, isRegrowing=crop.isRegrowing
         };
 
         /// <summary>Возвращает совместимое DTO из источника истины для HUD и сохранения.</summary>
@@ -277,7 +289,7 @@ namespace MyLittleFarm.Gameplay.Farming
                 plantedAtUnixMs = farming.plantedAtUnixMs,
                 growDurationSeconds = farming.growDurationSeconds,
                 weatherGrowthBonusSeconds = farming.weatherGrowthBonusSeconds,
-                stageCount = farming.stageCount
+                stageCount = farming.stageCount, isRegrowing=farming.isRegrowing
             };
     }
 }

@@ -88,8 +88,13 @@ namespace MyLittleFarm.Tests.PlayMode
             // Посадка датируется прошлым, чтобы в том же тесте получить зрелый урожай.
             var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
             var position = selector.SelectedPosition;
+            var slots=Farm.GetComponentInChildren<QuickSlotSystem>();
+            slots.SelectTool(QuickSlotSystem.SelectionMode.Hoe);
             Assert.That(interaction.InteractWithCell(position, now - 9_000), Is.True, "Till soil");
+            yield return new WaitForSecondsRealtime(.2f);
+            slots.Select(0);
             Assert.That(interaction.InteractWithCell(position, now - 9_000), Is.True, "Plant seed");
+            yield return new WaitForSecondsRealtime(.2f);
             Assert.That(interaction.InteractWithCell(position, now), Is.True, "Harvest mature crop");
             Assert.That(inventory.GetAmount(InventorySystem.CarrotId), Is.EqualTo(crops.YieldAmount));
 

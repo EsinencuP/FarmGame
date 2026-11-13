@@ -37,8 +37,8 @@ namespace MyLittleFarm.Tests.PlayMode
             var player = UnityEngine.Object.FindFirstObjectByType<PlayerController>();
             var cells = new[] { new Vector2Int(2, 0), new Vector2Int(3, 0),
                 new Vector2Int(4, 0), new Vector2Int(2, 1), new Vector2Int(3, 1),
-                new Vector2Int(4, 1) };
-            Assert.That(catalog.Crops.Count, Is.EqualTo(6));
+                new Vector2Int(4, 1),new Vector2Int(2,2),new Vector2Int(4,2) };
+            Assert.That(catalog.Crops.Count, Is.EqualTo(8));
             var growthTimes = new HashSet<float>();
             var yields = new HashSet<int>();
             var prices = new HashSet<int>();
@@ -49,7 +49,7 @@ namespace MyLittleFarm.Tests.PlayMode
                 Assert.That(catalog.TryGetItem(crop.HarvestItemId, out var item), Is.True);
                 prices.Add(item.SellPrice);
             }
-            Assert.That(growthTimes.Count, Is.EqualTo(6));
+            Assert.That(growthTimes.Count, Is.EqualTo(8));
             Assert.That(yields.Count, Is.EqualTo(4));
             Assert.That(prices.Count, Is.EqualTo(6));
             wallet.SetCoins(250);
@@ -63,7 +63,8 @@ namespace MyLittleFarm.Tests.PlayMode
             for (var index = 0; index < catalog.Crops.Count; index++)
             {
                 Assert.That(slots.Select(index), Is.True);
-                Assert.That(shop.BuySelected(), Is.True);
+                if(catalog.IsRareSeed(catalog.Crops[index].SeedItemId))inventory.Add(catalog.Crops[index].SeedItemId,4);
+                else Assert.That(shop.BuySelected(), Is.True);
             }
             player.Teleport(grid.CellToWorld(new Vector2Int(3, 0)) + Vector3.up * 1.1f);
 
@@ -71,9 +72,13 @@ namespace MyLittleFarm.Tests.PlayMode
             {
                 // Для каждого вида цикл проходит вспашку, посадку и сбор.
                 var crop = catalog.Crops[index];
+                player.Teleport(grid.CellToWorld(cells[index])+Vector3.up*1.1f);
+                slots.SelectTool(QuickSlotSystem.SelectionMode.Hoe);
+                Assert.That(interaction.InteractWithCell(cells[index], now - 120_000), Is.True);
+                yield return new WaitForSecondsRealtime(.2f);
                 Assert.That(slots.Select(index), Is.True);
-                Assert.That(interaction.InteractWithCell(cells[index], now - 30_000), Is.True);
-                Assert.That(interaction.InteractWithCell(cells[index], now - 30_000), Is.True);
+                Assert.That(interaction.InteractWithCell(cells[index], now - 120_000), Is.True);
+                yield return new WaitForSecondsRealtime(.2f);
                 Assert.That(interaction.InteractWithCell(cells[index], now), Is.True);
                 Assert.That(inventory.GetAmount(crop.HarvestItemId), Is.EqualTo(crop.YieldAmount));
             }

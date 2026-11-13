@@ -1,0 +1,60 @@
+{
+  "created": "2026-11-12",
+  "sourceCommit": "9284cfb",
+  "userFarmsUsed": false,
+  "copiesAreByteIdentical": true,
+  "files": [
+    {
+      "file": "empty-farm-v12.json",
+      "origin": "isolated diagnostic profile USM-RC06-Review/slot-2/autosave.json",
+      "sha256": "499d4b6d341ea70c99b209746e4dfa09a1b84560eb8d7bea1e6031336903f1d2",
+      "bytes": 90129,
+      "saveVersion": 12,
+      "worldBaseHash": "3966892030404822408",
+      "coins": 50,
+      "counts": {
+        "crops": 0,
+        "trees": 0,
+        "animals": 0,
+        "buildings": 0,
+        "applePressBatches": 0
+      }
+    },
+    {
+      "file": "orchard-and-press-v12.json",
+      "origin": "isolated diagnostic profile USM-RC06-Review/slot-1/autosave.json",
+      "sha256": "5a07a47143cb920c56001d2837eac32b0997a4ceb42d97f00660b91d5db0d99c",
+      "bytes": 102831,
+      "saveVersion": 12,
+      "worldBaseHash": "3966892030404822408",
+      "coins": 9,
+      "counts": {
+        "crops": 0,
+        "trees": 1,
+        "animals": 0,
+        "buildings": 2,
+        "applePressBatches": 0
+      }
+    },
+    {
+      "file": "first-juice-sale-v12.json",
+      "origin": "isolated diagnostic profile USM-RC06-Review/slot-1/manual.json",
+      "sha256": "e161307dbaef0573e077a7d043e9e55ffebf8bae462841e368a45a1e8ebf4981",
+      "bytes": 100576,
+      "saveVersion": 12,
+      "worldBaseHash": "3966892030404822408",
+      "coins": 89,
+      "counts": {
+        "crops": 0,
+        "trees": 1,
+        "animals": 0,
+        "buildings": 1,
+        "applePressBatches": 0
+      }
+    }
+  ],
+  "limitations": [
+    "All three snapshots have no crops, no animals and no active press batch. Additional detached fixtures for these states must be prepared before the phase-end migration run.",
+    "No migration/load/assertion/test was executed during U1-0. Keep these originals immutable; run later migrations on disposable copies."
+  ]
+}

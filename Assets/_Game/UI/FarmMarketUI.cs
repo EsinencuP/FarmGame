@@ -20,7 +20,7 @@ namespace MyLittleFarm.UI
         [SerializeField] private Image portrait;
         [SerializeField] private InputField quantityInput;
         [SerializeField] private Button maximum;
-        private readonly Dictionary<string, int>[] _carts = { new Dictionary<string, int>(), new Dictionary<string, int>(), new Dictionary<string, int>(), new Dictionary<string, int>() };
+        private readonly Dictionary<string, int>[] _carts = { new Dictionary<string, int>(), new Dictionary<string, int>(), new Dictionary<string, int>(), new Dictionary<string, int>(),new Dictionary<string,int>() };
         private List<FarmMarket.Offer> _offers;
         private FarmMarket.Category _category;
         private string _selected;
@@ -52,11 +52,20 @@ namespace MyLittleFarm.UI
         public void Open(System.Action back = null)
         {
             if (!market.CanTrade) return;
+            EnsureOrdersTab();
             foreach (var cart in _carts) cart.Clear();
+            tabs[0].GetComponentInChildren<Text>().text = FarmText.Get("market.tabSeeds");
             tabs[1].GetComponentInChildren<Text>().text = FarmText.Get("market.tabSell");
             close.GetComponentInChildren<Text>().text = FarmText.Get("market.close");
             FarmUITheme.FitCompactButton(clear, 22);
             gameObject.SetActive(true); SelectCategory(0); FarmUIFocus.Show(panel, tabs[0], back);
+        }
+        private void EnsureOrdersTab()
+        {
+            if(tabs.Length>=5)return;
+            System.Array.Resize(ref tabs,5);
+            tabs[4]=FarmUITheme.Button(panel,"Заказы",font,"quest","ghost");
+            for(var i=0;i<5;i++)At((RectTransform)tabs[i].transform,40+i*274,78,264,64);
         }
         public void Hide() => gameObject.SetActive(false);
         public void Preview(int category = 0, bool sampleCart = false)
@@ -108,6 +117,7 @@ namespace MyLittleFarm.UI
             }
             if (Time.unscaledTime < _nextProximityCheck) return;
             _nextProximityCheck = Time.unscaledTime + .2f;
+            if(_category==FarmMarket.Category.Orders)Dirty();
             if (!market.CanTrade) { pay.interactable = false; add.interactable = false; status.text = FarmText.Get("market.approach"); }
         }
         private void SelectCategory(int index)
@@ -131,7 +141,7 @@ namespace MyLittleFarm.UI
         {
             var offer = Selected; if (offer == null) return;
             var limit = Remaining(offer);
-            if (_category != FarmMarket.Category.Sell && offer.Price > 0)
+            if (_category != FarmMarket.Category.Sell && _category!=FarmMarket.Category.Orders && offer.Price > 0)
             {
                 long reserved = 0;
                 foreach (var line in Cart) { var existing = _offers.Find(o => o.Id == line.Key); if (existing != null) reserved += (long)existing.Price * line.Value; }
@@ -199,12 +209,12 @@ namespace MyLittleFarm.UI
             var metric = panel.Find("Selected item/Detail metric").GetComponent<Image>();
             metric.sprite = FarmUITheme.Sprite("Icons/" + (_category == FarmMarket.Category.Upgrades ? "upgrade" : _category == FarmMarket.Category.Animals ? "clock" : "growth"));
             description.text = offer.Description;
-            unitPrice.text = !offer.Available ? offer.Unavailable : Remaining(offer) > 0
+            unitPrice.text = _category==FarmMarket.Category.Orders && offer.Available?"Награда: "+FarmText.Coins(offer.Price):!offer.Available ? offer.Unavailable : Remaining(offer) > 0
                 ? FarmText.Get("market.unitPrice", FarmText.Coins(offer.Price))
                 : FarmText.Get("market.limit");
             quantityInput.SetTextWithoutNotify(_quantity.ToString()); minus.interactable = _quantity > 1; plus.interactable = _quantity < Remaining(offer);
             add.interactable = offer.Available && Remaining(offer) > 0 && (!Application.isPlaying || market.CanTrade);
-            add.GetComponentInChildren<Text>().text = _category == FarmMarket.Category.Sell ? FarmText.Get("market.addSale") : FarmText.Get("market.addPurchase");
+            add.GetComponentInChildren<Text>().text = _category==FarmMarket.Category.Orders?"Выбрать заказ":_category == FarmMarket.Category.Sell ? FarmText.Get("market.addSale") : FarmText.Get("market.addPurchase");
         }
         private void Basket()
         {
@@ -212,7 +222,7 @@ namespace MyLittleFarm.UI
             // before a domain reload. Nonserialized row caches cannot own authored objects.
             for (var i = cartContent.childCount - 1; i >= 0; i--)
             { var row = cartContent.GetChild(i).gameObject; row.SetActive(false); if (Application.isPlaying) Destroy(row); else DestroyImmediate(row); }
-            cartTitle.text = FarmText.Get(_category == FarmMarket.Category.Sell ? "market.saleCartTitle" : "market.cartTitle", Cart.Count);
+            cartTitle.text = _category==FarmMarket.Category.Orders?"ВЫБРАННЫЕ ЗАКАЗЫ":FarmText.Get(_category == FarmMarket.Category.Sell ? "market.saleCartTitle" : "market.cartTitle", Cart.Count);
             var index = 0; long sum = 0;
             foreach (var line in Cart)
             {
@@ -235,8 +245,8 @@ namespace MyLittleFarm.UI
             }
             cartContent.sizeDelta = new Vector2(0, Mathf.Max(200, index * 48));
             var valid = market.Quote(_category, Cart, out _, out var reason);
-            total.text = FarmText.Get(_category == FarmMarket.Category.Sell ? "market.sellTotal" : "market.payTotal", FarmText.Coins(sum));
-            pay.GetComponentInChildren<Text>().text = _category == FarmMarket.Category.Sell ? FarmText.Get("market.sell") : FarmText.Get("market.pay");
+            total.text = _category==FarmMarket.Category.Orders?"Награда: "+FarmText.Coins(sum):FarmText.Get(_category == FarmMarket.Category.Sell ? "market.sellTotal" : "market.payTotal", FarmText.Coins(sum));
+            pay.GetComponentInChildren<Text>().text = _category==FarmMarket.Category.Orders?"Сдать заказы":_category == FarmMarket.Category.Sell ? FarmText.Get("market.sell") : FarmText.Get("market.pay");
             pay.interactable = Application.isPlaying && market.CanTrade && valid; clear.interactable = Cart.Count > 0;
             status.text = !market.CanTrade && Application.isPlaying ? FarmText.Get("market.approach")
                 : valid ? string.Empty : _receipt ?? reason;

@@ -1,0 +1,11 @@
+var scene=UnityEditor.SceneManagement.EditorSceneManager.NewPreviewScene();
+try {
+ var cg=new GameObject("Production preview camera");UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(cg,scene);var camera=cg.AddComponent<Camera>();camera.scene=scene;camera.orthographic=true;camera.orthographicSize=5;camera.aspect=1600f/900;camera.clearFlags=CameraClearFlags.SolidColor;camera.backgroundColor=new Color(.11f,.15f,.13f);
+ var lg=new GameObject("Preview sun");UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(lg,scene);var light=lg.AddComponent<Light>();light.type=LightType.Directional;light.intensity=1.3f;lg.transform.rotation=Quaternion.Euler(45,-35,0);
+ foreach(var name in new[]{"Mill","Dairy"}) {var prefab=AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_Game/Resources/FarmContent/"+name+".prefab");var go=UnityEngine.Object.Instantiate(prefab);UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(go,scene);go.transform.position=new Vector3(name=="Mill"?-3.3f:3.3f,0,0);if(name=="Dairy")go.transform.rotation=Quaternion.Euler(0,180,0);}
+ var center=new Vector3(0,2.3f,0);camera.transform.position=center+new Vector3(7,5,-13);camera.transform.LookAt(center);
+ var rt=RenderTexture.GetTemporary(1600,900,24);var prev=RenderTexture.active;var image=new Texture2D(1600,900,TextureFormat.RGB24,false);
+ try {camera.targetTexture=rt;camera.Render();RenderTexture.active=rt;image.ReadPixels(new Rect(0,0,1600,900),0,0);image.Apply();System.IO.File.WriteAllBytes("Verification/U1-3/production-art-final.png",image.EncodeToPNG());}
+ finally {camera.targetTexture=null;RenderTexture.active=prev;RenderTexture.ReleaseTemporary(rt);UnityEngine.Object.DestroyImmediate(image);}
+ return "Verification/U1-3/production-art-final.png";
+} finally {UnityEditor.SceneManagement.EditorSceneManager.ClosePreviewScene(scene);}

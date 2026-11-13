@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ca0fd498ebf84cf284a8102f677d16c8, type: 3}
+  m_Name: Pear
+  m_EditorClassIdentifier: MyLittleFarm.Runtime::MyLittleFarm.Gameplay.Farming.TreeDefinition
+  treeId: pear
+  displayName: "\u0413\u0440\u0443\u0448\u0430"
+  fruitItemId: pear
+  firstHarvestSeconds: 45
+  regrowSeconds: 60
+  yieldAmount: 3
+  foliageColor: {r: 0.39, g: 0.55, b: 0.13, a: 1}
+  fruitReadyColor: {r: 0.88, g: 0.71, b: 0.22, a: 1}
+  visualPrefab: {fileID: 808570286302435784, guid: f3febd60dacd62547843af1389e34400, type: 3}
+  fruitPrefab: {fileID: 5339907593102343403, guid: e1c989b42848d924ba728ca7bf8bbccf, type: 3}
+  saplingItemId: pear_sapling
+  visualSize: {x: 1.6, y: 3, z: 1.6}
+  fruitSize: 0.36
+  preserveFruitMaterials: 1

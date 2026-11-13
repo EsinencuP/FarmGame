@@ -93,12 +93,12 @@ namespace MyLittleFarm.Tests.PlayMode
             animals.enabled = false;
             var view = animals.GetComponentInChildren<AnimalView>();
             var start = view.transform.localPosition;
-            view.SetWanderOffset(0.25f, 0f);
+            view.SetWanderOffset(0.02f, 0f);
             Assert.That(view.transform.localPosition, Is.EqualTo(start));
             yield return new WaitForSeconds(1.5f);
             Assert.That(Mathf.Abs(Mathf.DeltaAngle(startYaw, camera.transform.eulerAngles.y)),
                 Is.EqualTo(90f).Within(0.1f));
-            Assert.That(Vector3.Distance(view.transform.localPosition, start + Vector3.right * 0.25f),
+            Assert.That(Vector3.Distance(view.transform.localPosition, start + Vector3.right * 0.02f),
                 Is.LessThan(0.005f));
         }
 

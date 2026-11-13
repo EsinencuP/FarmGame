@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d07a1340587b49598357446b7aa0fb6b, type: 3}
+  m_Name: pumpkin
+  m_EditorClassIdentifier: MyLittleFarm.Runtime::MyLittleFarm.Gameplay.Farming.CropDefinition
+  cropId: pumpkin
+  displayName: "\u0422\u044B\u043A\u0432\u0430"
+  seedItemId: pumpkin_seed
+  harvestItemId: pumpkin
+  growDurationSeconds: 35
+  regrowSeconds: 0
+  yieldAmount: 2
+  stageCount: 3
+  matureColor: {r: 1, g: 1, b: 1, a: 1}
+  stagePrefabs:
+  - {fileID: 8681541497086081154, guid: 22469ebf7bbf83b40989174e4ea35a7d, type: 3}
+  - {fileID: 1241321077481107385, guid: 58e74d50063257e41af2581a673a99cc, type: 3}
+  - {fileID: 4439898161253900765, guid: cde876299c1ab36409ac1d276ee66d10, type: 3}
+  stageSizes:
+  - {x: 0.24, y: 0.12, z: 0.24}
+  - {x: 0.48, y: 0.3, z: 0.48}
+  - {x: 0.71999997, y: 0.48000002, z: 0.71999997}
+  rareSeeds: 0
+  bonusStartHour: 0
+  bonusEndHour: 0
+  bonusHarvestYield: 0

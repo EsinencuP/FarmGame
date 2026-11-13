@@ -15,7 +15,7 @@ namespace MyLittleFarm.Gameplay.World
     /// Сам не хранит состояние, а вызывает специализированные системы в нужном порядке.
     /// </summary>
     [DefaultExecutionOrder(-50)]
-    public sealed class InteractionSystem : MonoBehaviour
+    public sealed partial class InteractionSystem : MonoBehaviour
     {
         [Header("Interaction")]
         [Tooltip("Максимальная горизонтальная дистанция до точки продажи.")]
@@ -78,6 +78,17 @@ namespace MyLittleFarm.Gameplay.World
             _upgrades = upgrades;
             _orchard = orchard;
             _animals = animals;
+            ResetFieldInteraction();
+            if(Application.isPlaying)
+            {
+                var preview=GetComponent<FieldAreaPreview>()??gameObject.AddComponent<FieldAreaPreview>();
+                preview.Configure(this,selector,grid,input);
+                if(player!=null)
+                {
+                    _heldHoe=player.GetComponent<HeldHoeView>()??player.gameObject.AddComponent<HeldHoeView>();
+                    _heldHoe.Configure(player.GetComponent<PlayerController>(),slots,upgrades,input);
+                }
+            }
         }
 
         private void Update()
@@ -88,13 +99,15 @@ namespace MyLittleFarm.Gameplay.World
                 CurrentPrompt = string.Empty;
                 return;
             }
+            if(_input.RotateFieldPressed)RotateField();
             if (_input.InteractPressed)
                 HandlePress();
             else if (_input.PlantTreePressed && _orchard != null && _selector.HasSelection)
             {
                 var planted = IsWithinReach(_selector.SelectedPosition)
-                    && _orchard.PlantApple(_selector.SelectedPosition, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
-                GameEvents.RaiseStatusChanged(planted ? FarmText.Get("world.applePlanted") : FarmText.Get("world.appleBlocked"));
+                    && _orchard.PlantSelected(_selector.SelectedPosition, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
+                GameEvents.RaiseStatusChanged(planted ? "Посажено: " + _orchard.SelectedDefinition.DisplayName
+                    : "Не удалось посадить дерево: подойдите к свободной земле и проверьте саженцы");
             }
             // Only the wording waits for hover to settle. The ray highlight and the command are independent.
             if (_selector.IsSelectionStable && (Time.unscaledTime >= _nextPromptAt || _input.InteractPressed))
@@ -140,18 +153,22 @@ namespace MyLittleFarm.Gameplay.World
                 var position = _grid.WorldToGrid(target.transform.position);
                 return _orchard != null && _orchard.Contains(position) && InteractWithCell(position, nowUnixMs);
             }
-            if (target != null && target.Kind == InteractionTargetKind.Building && _grid.Buildings?.IsApplePress(target.TargetId) == true)
+            if(target!=null && target.Kind==InteractionTargetKind.Building && _grid.Buildings?.IsFeeder(target.TargetId)==true)
             {
-                if (!IsNearTarget(target))
-                {
-                    GameEvents.RaiseStatusChanged(FarmText.Get("press.approach"));
-                    return false;
-                }
-                var acted = _grid.Buildings.Presses.TryUse(target.TargetId, nowUnixMs, out var message, out var collected);
-                GameEvents.RaiseStatusChanged(message);
-                if (collected)
-                    GameEvents.RaiseActionFeedback("harvest", target.transform.position, ApplePresses.JuiceId, 1);
-                return acted;
+                if(!_grid.Buildings.FeederInReach(target.TargetId,_player.position)){GameEvents.RaiseStatusChanged("Подойдите к кормушке");return false;}
+                var menu=GetComponentInParent<GameBootstrap>()?.GetComponentInChildren<FarmMenuUI>(true);return menu!=null && menu.OpenFeeder(target.TargetId);
+            }
+            if(target!=null && target.Kind==InteractionTargetKind.Building && _grid.Buildings?.IsWarehouse(target.TargetId)==true)
+            {
+                if(!_grid.Buildings.WarehouseInReach(target.TargetId,_player.position)){GameEvents.RaiseStatusChanged("Подойдите к складу");return false;}
+                var menu=GetComponentInParent<GameBootstrap>()?.GetComponentInChildren<FarmMenuUI>(true);
+                return menu!=null && menu.OpenWarehouse(target.TargetId);
+            }
+            if (target != null && target.Kind == InteractionTargetKind.Building && _grid.Buildings?.RecipeFor(target.TargetId) != null)
+            {
+                if (!_grid.Buildings.ProductionInReach(target.TargetId,_player.position,sellingDistance)) { GameEvents.RaiseStatusChanged("Подойдите ближе к постройке"); return false; }
+                var menus=GetComponentInParent<GameBootstrap>()?.GetComponentInChildren<FarmMenuUI>(true);
+                return menus != null && menus.OpenProduction(target.TargetId);
             }
             if (target != null && (target.Kind == InteractionTargetKind.Obstacle || target.Kind == InteractionTargetKind.Building))
                 return false;
@@ -185,80 +202,19 @@ namespace MyLittleFarm.Gameplay.World
             {
                 return false;
             }
-            if (!IsWithinReach(position)) return false;
+
 
             if (_orchard != null && _orchard.Contains(position))
             {
+                if(!IsWithinReach(position))return false;
                 if (_orchard.TryHarvest(position, nowUnixMs, out _)) return true;
                 GameEvents.RaiseStatusChanged(FarmText.Get("world.notRipe"));
                 return false;
             }
 
-            if (_crops.TryGet(position, out var crop))
-            {
-                // Растение имеет первый приоритет: зрелое собирается, незрелое остаётся на месте.
-                var harvestId = crop.cropId;
-                var expectedYield = _crops.YieldAmount;
-                if (_catalog != null && _catalog.TryGetCrop(crop.cropId, out var definition))
-                {
-                    harvestId = definition.HarvestItemId;
-                    expectedYield = _crops.HarvestYield(crop.cropId);
-                }
-                if (_inventory.GetAmount(harvestId) > int.MaxValue - expectedYield) return false;
-                if (!_crops.TryHarvest(position, nowUnixMs, out var itemId, out var yield))
-                {
-                    return false;
-                }
-
-                _inventory.Add(itemId, yield);
-                var baseYield=_catalog!=null&&_catalog.TryGetCrop(crop.cropId,out var harvestedDefinition)
-                    ? harvestedDefinition.YieldAmount : _crops.YieldAmount;
-                GameEvents.Record("harvest",crop.cropId,yield,yield>baseYield?1:0,_crops.HarvestHour);
-                GameEvents.RaiseActionFeedback("harvest", _grid.CellToWorld(position), itemId, yield);
-                GameEvents.RaiseProgressAction("harvest");
-                GameEvents.RaiseStatusChanged($"Собрано: {yield} × {CropName(crop.cropId)}");
-                return true;
-            }
-
-            if (cell.type == CellType.Tree) return false;
-
-            if (_grid.CanTill(position))
-            {
-                // Первое действие переводит исходную землю в обработанную.
-                var tilled = _soil.Till(position);
-                if (tilled)
-                {
-                    MyLittleFarm.Audio.FarmAudio.Play(MyLittleFarm.Audio.SoundId.Till, _grid.CellToWorld(position));
-                    GameEvents.RaiseStatusChanged(FarmText.Get("world.tilled"));
-                }
-
-                return tilled;
-            }
-
-            if (_grid.CanPlant(position))
-            {
-                // Семя снимается перед посадкой и возвращается, если посадка неожиданно не удалась.
-                var selectedCrop = _slots?.SelectedCrop;
-                var cropId = selectedCrop == null ? CropSystem.PrototypeCropId : selectedCrop.CropId;
-                var seedId = selectedCrop == null ? InventorySystem.CarrotSeedId : selectedCrop.SeedItemId;
-                if (!_inventory.TryRemove(seedId, 1))
-                {
-                    GameEvents.RaiseStatusChanged(FarmText.Get("world.noSeeds"));
-                    return false;
-                }
-
-                if (_crops.Plant(position, cropId, nowUnixMs))
-                {
-                    GameEvents.RaiseActionFeedback("plant", _grid.CellToWorld(position));
-                    GameEvents.RaiseProgressAction("plant");
-                    GameEvents.RaiseStatusChanged($"Посажено: {CropName(cropId)}");
-                    return true;
-                }
-
-                _inventory.Add(seedId, 1);
-            }
-
-            return false;
+            if(_slots?.Mode==QuickSlotSystem.SelectionMode.Item && _orchard!=null && _orchard.TryGetSapling(_slots.SelectedItemId,out var selectedTree))
+                return IsWithinReach(position) && _orchard.Plant(position,selectedTree.TreeId,nowUnixMs);
+            return ApplyField(position,nowUnixMs);
         }
 
         private string BuildPrompt()
@@ -275,15 +231,18 @@ namespace MyLittleFarm.Gameplay.World
             {
                 var position = _grid.WorldToGrid(target.transform.position);
                 if (_orchard == null || !_orchard.Contains(position)) return "Дерево — нет доступного действия";
-                return IsWithinReach(position) ? FarmText.Get("world.appleHarvest", InputReader.ActionHint) : FarmText.Get("world.approachApple");
+                return IsWithinReach(position) ? _orchard.HarvestPrompt(position, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()) : "Подойдите к дереву";
             }
             if (target != null && target.Kind == InteractionTargetKind.Obstacle) return FarmText.Get("world.obstacle");
             if (target != null && target.Kind == InteractionTargetKind.Building)
             {
-                if (_grid.Buildings?.IsApplePress(target.TargetId) == true)
-                    return IsNearTarget(target)
-                        ? _grid.Buildings.Presses.Prompt(target.TargetId, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), InputReader.ActionHint)
-                        : FarmText.Get("press.approach");
+                if(_grid.Buildings?.IsFeeder(target.TargetId)==true)return _grid.Buildings.FeederInReach(target.TargetId,_player.position)?InputReader.ActionHint+" — кормушка · пшеница "+_grid.Buildings.Feeders.Amount(target.TargetId)+" / 12":"Подойдите к кормушке";
+                if(_grid.Buildings?.IsWarehouse(target.TargetId)==true)
+                    return _grid.Buildings.WarehouseInReach(target.TargetId,_player.position)?InputReader.ActionHint+" — открыть склад":"Подойдите к складу";
+                if (_grid.Buildings?.RecipeFor(target.TargetId) != null)
+                    return _grid.Buildings.ProductionInReach(target.TargetId,_player.position,sellingDistance)
+                        ? _grid.Buildings.Production.Prompt(target.TargetId, _grid.Buildings.RecipeFor(target.TargetId), DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), InputReader.ActionHint)
+                        : "Подойдите ближе к постройке";
                 return FarmText.Get("world.buildingHint", InputReader.KeyLabel(InputReader.Command.Build), InputReader.KeyLabel(InputReader.Command.Customize));
             }
             if (target != null && target.Kind == InteractionTargetKind.Market && !IsNearTarget(target))
@@ -301,44 +260,10 @@ namespace MyLittleFarm.Gameplay.World
             {
                 return string.Empty;
             }
-            if (!IsWithinReach(_selector.SelectedPosition)) return FarmText.Get("world.approachBed");
-
-            if (_crops.TryGet(_selector.SelectedPosition, out var crop))
-            {
-                return crop.IsMature(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds())
-                    ? FarmText.Get("world.harvest", InputReader.ActionHint, CropName(crop.cropId), _crops.HarvestYield(crop.cropId))
-                    : FarmText.Get("world.growing", CropName(crop.cropId), Mathf.RoundToInt(crop.GetGrowthRatio(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()) * 100f));
-            }
-
-            if (cell.type == CellType.Tree)
-                return FarmText.Get("world.appleHarvest", InputReader.ActionHint);
-
-            if (_orchard != null && _grid.CanPlantTree(_selector.SelectedPosition))
-                return _animals != null && _animals.IsInPen(_selector.SelectedPosition)
-                    ? $"Курицу можно купить на рынке · {InputReader.KeyLabel(InputReader.Command.Apple)} — яблоня"
-                    : FarmText.Get("world.plantApple", InputReader.KeyLabel(InputReader.Command.Apple), InputReader.ActionHint);
-
-            if (cell.occupantId != null || cell.type == CellType.Locked || cell.type == CellType.Water
-                || cell.type == CellType.Rock || cell.type == CellType.Building || cell.type == CellType.BuildingEdge)
-                return $"Клетка занята · {InputReader.KeyLabel(InputReader.Command.Build)} — строительство";
-
-            if (_grid.CanTill(_selector.SelectedPosition))
-            {
-                return FarmText.Get("world.till", InputReader.ActionHint);
-            }
-
-            if (_grid.CanPlant(_selector.SelectedPosition))
-            {
-                var selectedCrop = _slots?.SelectedCrop;
-                var seedId = selectedCrop == null ? InventorySystem.CarrotSeedId : selectedCrop.SeedItemId;
-                var cropName = selectedCrop == null ? "морковь" : selectedCrop.DisplayName;
-                var seeds = _inventory.GetAmount(seedId);
-                return seeds > 0
-                    ? FarmText.Get("world.plant", InputReader.ActionHint, cropName, seeds)
-                    : FarmText.Get("world.noSeeds");
-            }
-
-            return "Для этой клетки пока нет действия";
+            if(cell.type==CellType.Tree)return _orchard?.HarvestPrompt(_selector.SelectedPosition,DateTimeOffset.UtcNow.ToUnixTimeMilliseconds())??string.Empty;
+            if(_slots?.Mode==QuickSlotSystem.SelectionMode.Item && _orchard!=null && _orchard.TryGetSapling(_slots.SelectedItemId,out var tree))
+                return IsWithinReach(_selector.SelectedPosition)?InputReader.ActionHint+" — посадить: "+tree.DisplayName:"Подойдите к земле";
+            return FieldPrompt(PlanField(_selector.SelectedPosition,DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()));
         }
 
         private bool IsNearSaleCrate()

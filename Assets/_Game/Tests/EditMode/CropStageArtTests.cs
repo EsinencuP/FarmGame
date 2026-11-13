@@ -17,9 +17,11 @@ namespace MyLittleFarm.Tests.EditMode
         [TestCase("tomato")]
         [TestCase("corn")]
         [TestCase("cucumber")]
+        [TestCase("strawberry")]
+        [TestCase("pumpkin")]
         public void EachCropHasThreeDistinctGroundedStagesWithIncreasingHeight(string id)
         {
-            var definition = AssetDatabase.LoadAssetAtPath<CropDefinition>("Assets/_Game/Content/Crops/" + id + ".asset");
+            var definition = AssetDatabase.LoadAssetAtPath<CropDefinition>((id=="strawberry"||id=="pumpkin"?"Assets/_Game/Resources/FarmContent/":"Assets/_Game/Content/Crops/") + id + ".asset");
             Assert.That(definition, Is.Not.Null);
             Assert.That(definition.StageCount, Is.EqualTo(3));
             Assert.That(definition.StagePrefabs.Length, Is.EqualTo(3));

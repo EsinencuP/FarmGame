@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dbfbd98bc9e94d40a9225407033e30f6, type: 3}
+  m_Name: Cheese
+  m_EditorClassIdentifier: MyLittleFarm.Runtime::MyLittleFarm.Gameplay.Economy.ItemDefinition
+  itemId: cheese
+  displayName: "\u0421\u044B\u0440"
+  buyPrice: 0
+  sellPrice: 80
+  canBuy: 0
+  icon: {fileID: 21300000, guid: f75b77efd5ac39e4da5755337ef6441e, type: 3}

@@ -1,0 +1,23 @@
+{
+  "meta": null,
+  "content": [
+    {
+      "type": "text",
+      "text": "{\"success\":true,\"message\":\"Code executed successfully.\",\"data\":{\"result\":{\"scene\":\"Assets/_Recovery/U1-1Review.unity\",\"persistence\":\"GameBootstrap only calls StartPersistence in a scene named Prototype; this copy does not start slot persistence.\"},\"compiler\":\"codedom\"}}",
+      "annotations": null,
+      "meta": null
+    }
+  ],
+  "structuredContent": {
+    "success": true,
+    "message": "Code executed successfully.",
+    "data": {
+      "result": {
+        "scene": "Assets/_Recovery/U1-1Review.unity",
+        "persistence": "GameBootstrap only calls StartPersistence in a scene named Prototype; this copy does not start slot persistence."
+      },
+      "compiler": "codedom"
+    }
+  },
+  "isError": false
+}

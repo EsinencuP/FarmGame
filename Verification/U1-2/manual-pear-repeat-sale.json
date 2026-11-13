@@ -1,0 +1,55 @@
+{
+  "meta": null,
+  "content": [
+    {
+      "type": "text",
+      "text": "{\"success\":true,\"message\":\"Code executed successfully.\",\"data\":{\"result\":{\"harvested\":true,\"amount\":3,\"sold\":true,\"reason\":\"Продано · +144 монеты\",\"coins\":184,\"saved\":true,\"trees\":[{\"x\":3,\"z\":2,\"treeId\":\"apple\",\"plantedAtUnixMs\":1794518795279,\"lastHarvestAtUnixMs\":1794518956464,\"Position\":{\"x\":3,\"y\":2,\"magnitude\":3.60555124,\"sqrMagnitude\":13}},{\"x\":6,\"z\":2,\"treeId\":\"pear\",\"plantedAtUnixMs\":1794518795279,\"lastHarvestAtUnixMs\":1794519001225,\"Position\":{\"x\":6,\"y\":2,\"magnitude\":6.3245554,\"sqrMagnitude\":40}}]},\"compiler\":\"codedom\"}}",
+      "annotations": null,
+      "meta": null
+    }
+  ],
+  "structuredContent": {
+    "success": true,
+    "message": "Code executed successfully.",
+    "data": {
+      "result": {
+        "harvested": true,
+        "amount": 3,
+        "sold": true,
+        "reason": "Продано · +144 монеты",
+        "coins": 184,
+        "saved": true,
+        "trees": [
+          {
+            "x": 3,
+            "z": 2,
+            "treeId": "apple",
+            "plantedAtUnixMs": 1794518795279,
+            "lastHarvestAtUnixMs": 1794518956464,
+            "Position": {
+              "x": 3,
+              "y": 2,
+              "magnitude": 3.60555124,
+              "sqrMagnitude": 13
+            }
+          },
+          {
+            "x": 6,
+            "z": 2,
+            "treeId": "pear",
+            "plantedAtUnixMs": 1794518795279,
+            "lastHarvestAtUnixMs": 1794519001225,
+            "Position": {
+              "x": 6,
+              "y": 2,
+              "magnitude": 6.3245554,
+              "sqrMagnitude": 40
+            }
+          }
+        ]
+      },
+      "compiler": "codedom"
+    }
+  },
+  "isError": false
+}

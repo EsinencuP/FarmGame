@@ -19,7 +19,7 @@ namespace MyLittleFarm.Core
     public sealed partial class SaveSystem : MonoBehaviour
     {
         // Версия 5 сохраняет только отличия от базовой карты и поверхность под игровыми слоями.
-        public const int CurrentSaveVersion = 12;
+        public const int CurrentSaveVersion = 18;
         private const int MaxCollectionEntries = 100_000;
 
         [Header("Persistence")]
@@ -38,6 +38,7 @@ namespace MyLittleFarm.Core
         private QuickSlotSystem _slots;
         private SectorSystem _sector;
         private ToolUpgradeSystem _upgrades;
+        public DailyMarketOrders DailyOrders {get;private set;}
         private OrchardSystem _orchard;
         private AnimalSystem _animals;
         private OnboardingSystem _onboarding;
@@ -79,6 +80,7 @@ namespace MyLittleFarm.Core
             _dayNight=root==null?null:root.GetComponentInChildren<DayNightCycle>(true);
             _weather=root==null?null:root.GetComponentInChildren<WeatherController>(true);
             _progression=root==null?null:root.GetComponentInChildren<FarmProgression>(true);
+            DailyOrders=new DailyMarketOrders(catalog,inventory,wallet,buildings,animals,orchard);
             _persistenceEnabled = false;
             _playTimeSeconds = 0;
             _lastPreview = null;
@@ -99,7 +101,10 @@ namespace MyLittleFarm.Core
             // Ручная загрузка имеет приоритет над записью и автосохранением в том же кадре.
             if (_input == null) return;
             if (_persistenceEnabled && !_input.ModalInputActive && Application.isFocused)
+            {
                 _playTimeSeconds += Time.unscaledDeltaTime;
+                DailyOrders?.Advance(Time.unscaledDeltaTime);
+            }
             if (_input.LoadPressed)
             {
                 if (mainMenu != null) mainMenu.OpenSaveBrowser();
@@ -133,11 +138,18 @@ namespace MyLittleFarm.Core
                 gridCells = new List<GridCellSaveData>(),
                 crops = _crops.Capture(),
                 trees = _orchard == null ? new List<TreeRuntimeState>() : _orchard.Capture(),
+                selectedTreeId = _orchard?.SelectedTreeId,
                 animals = _animals == null ? new List<AnimalRuntimeState>() : _animals.Capture(),
                 buildings = _buildings == null ? new List<BuildingRuntimeState>() : _buildings.Capture(),
-                applePressBatches = _buildings?.Presses?.Capture() ?? new List<ApplePressBatchData>(),
+                productionBatches = _buildings?.Production?.Capture() ?? new List<ProductionBatchData>(),
                 selectedQuickSlot = _slots == null ? 0 : _slots.SelectedIndex,
+                selectedQuickMode = _slots == null ? 0 : (int)_slots.Mode,
+                quickSlotItems = _slots?.Capture() ?? QuickSlotSystem.DefaultAssignments(),
+                marketOrders=DailyOrders?.Capture(),
+                feeders=_buildings?.Feeders?.Capture()??new List<FeederData>(),
+                warehouses = _buildings?.Warehouses?.Capture() ?? new List<WarehouseData>(),
                 sectorUnlocked = _sector != null && _sector.IsUnlocked,
+                baseHoeGranted = _upgrades==null || _upgrades.HasBaseHoe,
                 toolUpgradeLevel = _upgrades == null ? 0 : _upgrades.Level,
                 onboardingStep = _onboarding == null ? 0 : _onboarding.Capture(),
                 onboardingSchema = 1,
@@ -176,6 +188,9 @@ namespace MyLittleFarm.Core
 
         private void ApplySnapshot(SaveData data, GridSaveData migratedGrid)
         {
+            mainMenu?.CloseProduction();
+            mainMenu?.CloseItemScreens();
+            mainMenu?.CloseFeeder();
             _crops.ClearAll();
             _orchard?.ClearAll();
             _animals?.ClearAll();
@@ -184,15 +199,20 @@ namespace MyLittleFarm.Core
             _wallet.SetCoins(data.coins);
             _crops.Restore(data.crops);
             _buildings?.Restore(data.buildings);
-            _buildings?.Presses?.Restore(data.applePressBatches);
+            _buildings?.Production?.Restore(data.productionBatches);
+            _buildings?.Warehouses?.Restore(data.warehouses);
+            _buildings?.Feeders?.Restore(data.feeders);
+            DailyOrders?.Restore(data.marketOrders);
             _orchard?.Restore(data.trees);
+            if (!string.IsNullOrEmpty(data.selectedTreeId)) _orchard?.SelectTree(data.selectedTreeId);
             _animals?.Restore(data.animals);
             _onboarding?.Restore(data.onboardingStep, data.onboardingSuppliesGranted,
                 data.onboardingGardenPlanted, new Vector2Int(data.onboardingGardenX, data.onboardingGardenZ),
                 data.onboardingSaleCompleted);
             _sector?.Restore(data.sectorUnlocked);
-            _upgrades?.Restore(data.toolUpgradeLevel);
-            _slots?.Select(data.selectedQuickSlot);
+            _upgrades?.Restore(data.toolUpgradeLevel,data.baseHoeGranted);
+            _player.GetComponentInParent<GameBootstrap>()?.GetComponentInChildren<InteractionSystem>(true)?.ResetFieldInteraction();
+            _slots?.Restore(data.quickSlotItems,data.selectedQuickSlot,data.selectedQuickMode);
             _player.Teleport(new Vector3(data.player.x, data.player.y, data.player.z));
             if (_weather != null && (data.weather ?? _newFarm?.weather) != null)
                 _weather.Restore(data.weather ?? _newFarm.weather);
@@ -327,6 +347,17 @@ namespace MyLittleFarm.Core
             if (data.applePressBatches == null || data.applePressBatches.Count > MaxCollectionEntries
                 || (data.applePressBatches.Count > 0 && _buildings?.Presses == null))
                 throw new InvalidDataException("Apple press batches cannot be restored.");
+            if(data.saveVersion < 15)
+            {
+                ApplePresses.Validate(data.applePressBatches, data.buildings ?? new List<BuildingRuntimeState>());
+                // Validation runs both during file reading and Restore. Keep the legacy source intact
+                // so a second pass reproduces the same migrated batches instead of clearing them.
+                data.productionBatches=ProductionBatches.MigratePresses(data.applePressBatches);
+            }
+            else if(data.applePressBatches.Count!=0) throw new InvalidDataException("Ambiguous legacy and production batches.");
+            if(data.productionBatches==null || data.productionBatches.Count>MaxCollectionEntries
+                || (data.productionBatches.Count>0 && _buildings?.Production==null))
+                throw new InvalidDataException("Production batches cannot be restored.");
             if(!FarmProgression.IsValid(data.progression)||(data.progression!=null&&_progression==null))
                 throw new InvalidDataException("Farm progression state is invalid or its system is missing.");
             if (double.IsNaN(data.playTimeSeconds) || double.IsInfinity(data.playTimeSeconds)
@@ -376,6 +407,12 @@ namespace MyLittleFarm.Core
                 data.onboardingSaleCompleted = legacyStep == 5;
                 data.onboardingSchema = 1;
             }
+            if(data.saveVersion<16){data.quickSlotItems=QuickSlotSystem.DefaultAssignments();data.selectedQuickMode=0;data.warehouses=new List<WarehouseData>();}
+            if(data.saveVersion<17)data.baseHoeGranted=true;
+            if(!data.baseHoeGranted)throw new InvalidDataException("Permanent base hoe is missing.");
+            QuickSlotSystem.Validate(data.quickSlotItems,data.selectedQuickMode);
+            if(data.warehouses==null || data.warehouses.Count>MaxCollectionEntries || (data.warehouses.Count>0 && _buildings?.Warehouses==null))
+                throw new InvalidDataException("Warehouses cannot be restored.");
             if (data.selectedQuickSlot < 0 || data.selectedQuickSlot > 5
                 || data.toolUpgradeLevel < 0 || data.toolUpgradeLevel > 2)
                 throw new InvalidDataException("Progression state is invalid.");
@@ -393,7 +430,10 @@ namespace MyLittleFarm.Core
             ValidateSector(data, savedCells);
             ValidateCrops(data.crops, savedCells);
             ValidateTrees(data.trees, savedCells);
-            ValidateAnimals(data.animals, savedCells);
+            if (data.saveVersion < 14 || string.IsNullOrEmpty(data.selectedTreeId)) data.selectedTreeId = _orchard?.Definition?.TreeId;
+            if (!string.IsNullOrEmpty(data.selectedTreeId) && (_orchard == null || !_orchard.TryGetDefinition(data.selectedTreeId, out _)))
+                throw new InvalidDataException("Selected tree definition is unknown.");
+            ValidateAnimals(data.animals, savedCells, data.buildings);
             if (data.saveVersion < 7 && data.buildings.Count > 0)
             {
                 // Some tests/older exports already carry current footprints. Validate before deciding to migrate.
@@ -412,7 +452,11 @@ namespace MyLittleFarm.Core
             }
             ValidateBuildings(data.buildings, savedCells, data.player);
             ValidateOccupantLinks(data.crops, data.trees, data.buildings, savedCells);
-            ApplePresses.Validate(data.applePressBatches, data.buildings);
+            ProductionBatches.Validate(data.productionBatches, data.buildings);
+            WarehouseStore.Validate(data.warehouses,data.buildings);
+            if(data.saveVersion<18){data.feeders=new List<FeederData>();data.marketOrders=DailyMarketOrders.Legacy(_catalog,data);}
+            FeederStore.Validate(data.feeders,data.buildings);
+            DailyMarketOrders.Validate(data.marketOrders,_catalog);
 
             var playerCell = _grid.WorldToGrid(new Vector3(data.player.x, 0f, data.player.z));
             if (!_grid.IsChunkLoaded(_grid.GridToChunk(playerCell)))
@@ -496,6 +540,7 @@ namespace MyLittleFarm.Core
                     || !IsFinite(crop.growDurationSeconds) || crop.growDurationSeconds <= 0f
                     || !IsFinite(crop.weatherGrowthBonusSeconds) || crop.weatherGrowthBonusSeconds<0f
                     || crop.weatherGrowthBonusSeconds>crop.growDurationSeconds
+                    || crop.isRegrowing && (_catalog==null || !_catalog.TryGetCrop(crop.cropId,out var repeat) || repeat.RegrowSeconds<=0)
                     || crop.stageCount < 2 || crop.plantedAtUnixMs < 0 || !positions.Add(crop.Position)
                     || !cells.TryGetValue(crop.Position, out var cell) || cell.type != CellType.Planted
                     || cell.occupantId != CropSystem.CropOccupantId(crop.Position))
@@ -511,8 +556,9 @@ namespace MyLittleFarm.Core
             var positions = new HashSet<Vector2Int>();
             foreach (var tree in trees)
             {
-                if (tree == null || tree.treeId != _orchard.TreeDefinitionId
+                if (tree == null || !_orchard.TryGetDefinition(tree.treeId, out _)
                     || tree.plantedAtUnixMs < 0 || tree.lastHarvestAtUnixMs < 0
+                    || tree.plantedAtUnixMs > 253402300799999L || tree.lastHarvestAtUnixMs > 253402300799999L
                     || (tree.lastHarvestAtUnixMs > 0 && tree.lastHarvestAtUnixMs < tree.plantedAtUnixMs)
                     || !positions.Add(tree.Position)
                     || !cells.TryGetValue(tree.Position, out var cell) || cell.type != CellType.Tree
@@ -522,30 +568,47 @@ namespace MyLittleFarm.Core
         }
 
         /// <summary>Проверяет ID, координаты и тайминги кур до изменения runtime-состояния.</summary>
-        private void ValidateAnimals(List<AnimalRuntimeState> animals, Dictionary<Vector2Int, CellData> savedCells)
+        private void ValidateAnimals(List<AnimalRuntimeState> animals, Dictionary<Vector2Int, CellData> savedCells,
+            List<BuildingRuntimeState> buildings)
         {
             if (_animals == null && animals.Count > 0)
                 throw new InvalidDataException("Animal system is missing.");
             var ids = new HashSet<string>(StringComparer.Ordinal);
             var positions = new HashSet<Vector2Int>();
+            var homes = new HashSet<string>(StringComparer.Ordinal);
+            var chickens = 0; var cows = 0;
             foreach (var animal in animals)
             {
                 if (animal == null || string.IsNullOrWhiteSpace(animal.animalId)
-                    || animal.definitionId != _animals.AnimalDefinitionId || !ids.Add(animal.animalId)
+                    || !_animals.TryGetDefinition(animal.definitionId, out _) || !ids.Add(animal.animalId)
                     || !positions.Add(animal.Position) || animal.lastFedAtUnixMs < 0
-                    || animal.nextProductAtUnixMs < 0 || animal.readyProductCount < 0
+                    || animal.nextProductAtUnixMs < 0 || animal.nextProductAtUnixMs > 253402300799999L
+                    || animal.lastFedAtUnixMs > 253402300799999L || animal.readyProductCount < 0
                     || animal.readyProductCount > 100)
                     throw new InvalidDataException("Animal state is invalid.");
                 // Валидация должна читать загружаемый снимок: текущая сцена может быть уже изменена.
                 var savedType = savedCells.TryGetValue(animal.Position, out var savedCell)
                     ? savedCell.type : _grid.GetBaseTerrainCell(animal.Position).type;
+                if (animal.definitionId == "cow")
+                {
+                    cows++;
+                    var barn = buildings.Find(b => b != null && b.id == animal.homeBuildingId);
+                    if (!BarnHabitat.TryCell(barn, animal.homeSlot, out var cell) || cell != animal.Position
+                        || !homes.Add(animal.homeBuildingId + ":" + animal.homeSlot)
+                        || !_grid.IsChunkLoaded(_grid.GridToChunk(cell)) || savedCell.occupantId != animal.homeBuildingId
+                        || (savedType != CellType.Building && savedType != CellType.BuildingEdge))
+                        throw new InvalidDataException("Cow has no valid saved barn or reserved paddock slot.");
+                    continue;
+                }
+                chickens++;
+                if (!string.IsNullOrEmpty(animal.homeBuildingId)) throw new InvalidDataException("Legacy chicken has a foreign home.");
                 if (_animals != null && (!_animals.IsInPen(animal.Position)
                     || !_grid.IsChunkLoaded(_grid.GridToChunk(animal.Position))
                     || (savedType != CellType.Grass && savedType != CellType.Dirt
                         && savedType != CellType.Sand)))
                     throw new InvalidDataException("Animal is outside the configured pen.");
             }
-            if (_animals != null && animals.Count > _animals.MaxAnimals)
+            if (_animals != null && (chickens > _animals.MaxAnimals || cows > _animals.MaxCows))
                 throw new InvalidDataException("Save contains too many animals.");
         }
 

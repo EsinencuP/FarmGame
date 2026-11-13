@@ -1,0 +1,25 @@
+{
+  "meta": null,
+  "content": [
+    {
+      "type": "text",
+      "text": "{\"success\":true,\"message\":\"Code executed successfully.\",\"data\":{\"result\":{\"scene\":\"Assets/_Recovery/U1-3Review.unity\",\"sourceSnapshot\":\"Assets/_Recovery/U1-3SourceBackup.unity\",\"originalLoaded\":true,\"persistence\":\"Review is not Prototype; original roots disabled.\"},\"compiler\":\"codedom\"}}",
+      "annotations": null,
+      "meta": null
+    }
+  ],
+  "structuredContent": {
+    "success": true,
+    "message": "Code executed successfully.",
+    "data": {
+      "result": {
+        "scene": "Assets/_Recovery/U1-3Review.unity",
+        "sourceSnapshot": "Assets/_Recovery/U1-3SourceBackup.unity",
+        "originalLoaded": true,
+        "persistence": "Review is not Prototype; original roots disabled."
+      },
+      "compiler": "codedom"
+    }
+  },
+  "isError": false
+}

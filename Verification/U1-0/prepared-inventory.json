@@ -1,0 +1,385 @@
+{
+  "meta": null,
+  "content": [
+    {
+      "type": "text",
+      "text": "{\"success\":true,\"message\":\"Code executed successfully.\",\"data\":{\"result\":{\"scene\":\"Assets/_Game/Scenes/Prototype.unity\",\"sceneDirty\":false,\"playing\":false,\"prefabs\":[{\"path\":\"Assets/_Game/Content/Art/UniversityDemo/barn.prefab\",\"guid\":\"84d350f9f27353743b573f13f5c3866f\",\"size\":[5.14614868,4.2,5.311374],\"bottom\":0.0,\"renderers\":4,\"colliders\":0,\"materials\":[\"DarkRed / Standard\",\"White / Standard\",\"RoofBlack / Standard\",\"LightRed / Standard\"],\"controller\":null},{\"path\":\"Assets/_Game/Content/Art/UniversityDemo/cheese_dairy.prefab\",\"guid\":\"5bf503e5446674c43aee745355fe2db6\",\"size\":[3.920875,3.19999981,4.75176144],\"bottom\":0.0,\"renderers\":9,\"colliders\":0,\"materials\":[\"Dairy plaster / Standard\",\"White / Standard\",\"RoofBlack / Standard\",\"Timber / Standard\",\"Iron / Standard\",\"Cheese / Standard\"],\"controller\":null},{\"path\":\"Assets/_Game/Content/Art/UniversityDemo/cheese_product.prefab\",\"guid\":\"a1ab4feaf30c21748a2d2ff1c024a0de\",\"size\":[0.6800001,0.22,0.6800002],\"bottom\":0.0,\"renderers\":12,\"colliders\":0,\"materials\":[\"colormap / Standard\"],\"controller\":null},{\"path\":\"Assets/_Game/Content/Art/UniversityDemo/cow.prefab\",\"guid\":\"49eb302d2c643324585180dd86381493\",\"size\":[0.5945147,1.3499999,2.40553379],\"bottom\":0.0,\"renderers\":1,\"colliders\":0,\"materials\":[\"White / Standard\",\"Black / Standard\",\"Pink / Standard\"],\"controller\":\"Assets/_Game/Content/Art/UniversityDemo/Animations/Cow.controller\"},{\"path\":\"Assets/_Game/Content/Art/UniversityDemo/feeder.prefab\",\"guid\":\"3f83e61e720b8704886c22e1630f5c4f\",\"size\":[0.82,0.31,0.51],\"bottom\":0.0,\"renderers\":6,\"colliders\":0,\"materials\":[\"Timber / Standard\",\"Feed / Standard\"],\"controller\":null},{\"path\":\"Assets/_Game/Content/Art/UniversityDemo/flour_product.prefab\",\"guid\":\"bf3d63076c8cbae46b133444661c8ade\",\"size\":[0.25000003,0.339999974,0.25000006],\"bottom\":0.0,\"renderers\":2,\"colliders\":0,\"materials\":[\"Flour sack / Standard\",\"Flour / Standard\"],\"controller\":null},{\"path\":\"Assets/_Game/Content/Art/UniversityDemo/mill.prefab\",\"guid\":\"eb9ff4d0768db39499e56eec3bef3372\",\"size\":[4.02665424,5.8,2.53612423],\"bottom\":0.0,\"renderers\":2,\"colliders\":0,\"materials\":[\"DarkGrey / Standard\",\"RoofBlack / Standard\",\"LightBrown / Standard\",\"White / Standard\",\"Black / Standard\",\"Grey / Standard\",\"DarkBrown / Standard\"],\"controller\":null},{\"path\":\"Assets/_Game/Content/Art/UniversityDemo/pear_fruit.prefab\",\"guid\":\"8b77f74a1afb0884f83154c582f9cfe6\",\"size\":[0.1476194,0.26,0.145117611],\"bottom\":0.0,\"renderers\":1,\"colliders\":0,\"materials\":[\"LP_FoodLite_MAIN / Standard\"],\"controller\":null},{\"path\":\"Assets/_Game/Content/Art/UniversityDemo/pear_tree.prefab\",\"guid\":\"b39a64dd0a277f744961a6962d6b881c\",\"size\":[1.98552334,2.6,1.64606166],\"bottom\":0.0,\"renderers\":1,\"colliders\":0,\"materials\":[\"LowPolyFarmLite_MAIN / Standard\"],\"controller\":null},{\"path\":\"Assets/_Game/Content/Art/UniversityDemo/pumpkin_fruit.prefab\",\"guid\":\"2847f36e7d7927f43987f917f1e010dc\",\"size\":[0.481332719,0.360000044,0.489408463],\"bottom\":0.0,\"renderers\":1,\"colliders\":0,\"materials\":[\"LP_FoodLite_MAIN / Standard\"],\"controller\":null},{\"path\":\"Assets/_Game/Content/Art/UniversityDemo/pumpkin_Growing.prefab\",\"guid\":\"58e74d50063257e41af2581a673a99cc\",\"size\":[0.5400001,0.2554899,0.467653751],\"bottom\":0.00451010466,\"renderers\":1,\"colliders\":0,\"materials\":[\"Crop Foliage / My Little Farm/Crop Vertex Color\"],\"controller\":null},{\"path\":\"Assets/_Game/Content/Art/UniversityDemo/pumpkin_Mature.prefab\",\"guid\":\"cde876299c1ab36409ac1d276ee66d10\",\"size\":[0.680000067,0.320000023,0.5888972],\"bottom\":0.0,\"renderers\":2,\"colliders\":0,\"materials\":[\"Crop Foliage / My Little Farm/Crop Vertex Color\",\"LP_FoodLite_MAIN / Standard\"],\"controller\":null},{\"path\":\"Assets/_Game/Content/Art/UniversityDemo/pumpkin_Sprout.prefab\",\"guid\":\"22469ebf7bbf83b40989174e4ea35a7d\",\"size\":[0.212741017,0.126311481,0.2251666],\"bottom\":0.00548850745,\"renderers\":1,\"colliders\":0,\"materials\":[\"Crop Foliage / My Little Farm/Crop Vertex Color\"],\"controller\":null},{\"path\":\"Assets/_Game/Content/Art/UniversityDemo/strawberry_fruit.prefab\",\"guid\":\"1ffe412a367d092418b7dee80247c11f\",\"size\":[0.09863738,0.15,0.09863738],\"bottom\":0.0,\"renderers\":1,\"colliders\":0,\"materials\":[\"colormap / Standard\"],\"controller\":null},{\"path\":\"Assets/_Game/Content/Art/UniversityDemo/strawberry_Growing.prefab\",\"guid\":\"3c69bed08576c924984743a01b1bb2b4\",\"size\":[0.523717046,0.2554899,0.5317962],\"bottom\":0.00451010466,\"renderers\":1,\"colliders\":0,\"materials\":[\"Crop Foliage / My Little Farm/Crop Vertex Color\"],\"controller\":null},{\"path\":\"Assets/_Game/Content/Art/UniversityDemo/strawberry_Mature.prefab\",\"guid\":\"7e0b0dec5cabc0844a84f03221e1b652\",\"size\":[0.6594956,0.255979,0.6696694],\"bottom\":0.004020989,\"renderers\":5,\"colliders\":0,\"materials\":[\"Crop Foliage / My Little Farm/Crop Vertex Color\",\"colormap / Standard\"],\"controller\":null},{\"path\":\"Assets/_Game/Content/Art/UniversityDemo/strawberry_Sprout.prefab\",\"guid\":\"a8ea83fee1c740d4393bd52c6da9a680\",\"size\":[0.212741017,0.126311481,0.2251666],\"bottom\":0.00548850745,\"renderers\":1,\"colliders\":0,\"materials\":[\"Crop Foliage / My Little Farm/Crop Vertex Color\"],\"controller\":null},{\"path\":\"Assets/_Game/Content/Art/UniversityDemo/tool_hoe_0.prefab\",\"guid\":\"4486943346a30f3468e8d3618e94d16e\",\"size\":[0.177368239,1.45000017,0.351783574],\"bottom\":-0.35,\"renderers\":1,\"colliders\":0,\"materials\":[\"PandaMat / Standard\"],\"controller\":null},{\"path\":\"Assets/_Game/Content/Art/UniversityDemo/tool_hoe_1.prefab\",\"guid\":\"45e9c6b5378106343ac8d82f5e2dc069\",\"size\":[0.177368239,1.45000017,0.351783574],\"bottom\":-0.35,\"renderers\":2,\"colliders\":0,\"materials\":[\"PandaMat / Standard\",\"Iron / Standard\"],\"controller\":null},{\"path\":\"Assets/_Game/Content/Art/UniversityDemo/tool_hoe_2.prefab\",\"guid\":\"fd69a069a9fab3e459b1dcf2f55a5d75\",\"size\":[0.177368239,1.45000017,0.351783574],\"bottom\":-0.35,\"renderers\":3,\"colliders\":0,\"materials\":[\"PandaMat / Standard\",\"Brass / Standard\"],\"controller\":null}],\"clips\":[{\"name\":\"Cow_Eat\",\"length\":6.25,\"isLooping\":true},{\"name\":\"Cow_Idle\",\"length\":6.25,\"isLooping\":true},{\"name\":\"Cow_Walk\",\"length\":3.33333349,\"isLooping\":true}]},\"compiler\":\"codedom\"}}",
+      "annotations": null,
+      "meta": null
+    }
+  ],
+  "structuredContent": {
+    "success": true,
+    "message": "Code executed successfully.",
+    "data": {
+      "result": {
+        "scene": "Assets/_Game/Scenes/Prototype.unity",
+        "sceneDirty": false,
+        "playing": false,
+        "prefabs": [
+          {
+            "path": "Assets/_Game/Content/Art/UniversityDemo/barn.prefab",
+            "guid": "84d350f9f27353743b573f13f5c3866f",
+            "size": [
+              5.14614868,
+              4.2,
+              5.311374
+            ],
+            "bottom": 0.0,
+            "renderers": 4,
+            "colliders": 0,
+            "materials": [
+              "DarkRed / Standard",
+              "White / Standard",
+              "RoofBlack / Standard",
+              "LightRed / Standard"
+            ],
+            "controller": null
+          },
+          {
+            "path": "Assets/_Game/Content/Art/UniversityDemo/cheese_dairy.prefab",
+            "guid": "5bf503e5446674c43aee745355fe2db6",
+            "size": [
+              3.920875,
+              3.19999981,
+              4.75176144
+            ],
+            "bottom": 0.0,
+            "renderers": 9,
+            "colliders": 0,
+            "materials": [
+              "Dairy plaster / Standard",
+              "White / Standard",
+              "RoofBlack / Standard",
+              "Timber / Standard",
+              "Iron / Standard",
+              "Cheese / Standard"
+            ],
+            "controller": null
+          },
+          {
+            "path": "Assets/_Game/Content/Art/UniversityDemo/cheese_product.prefab",
+            "guid": "a1ab4feaf30c21748a2d2ff1c024a0de",
+            "size": [
+              0.6800001,
+              0.22,
+              0.6800002
+            ],
+            "bottom": 0.0,
+            "renderers": 12,
+            "colliders": 0,
+            "materials": [
+              "colormap / Standard"
+            ],
+            "controller": null
+          },
+          {
+            "path": "Assets/_Game/Content/Art/UniversityDemo/cow.prefab",
+            "guid": "49eb302d2c643324585180dd86381493",
+            "size": [
+              0.5945147,
+              1.3499999,
+              2.40553379
+            ],
+            "bottom": 0.0,
+            "renderers": 1,
+            "colliders": 0,
+            "materials": [
+              "White / Standard",
+              "Black / Standard",
+              "Pink / Standard"
+            ],
+            "controller": "Assets/_Game/Content/Art/UniversityDemo/Animations/Cow.controller"
+          },
+          {
+            "path": "Assets/_Game/Content/Art/UniversityDemo/feeder.prefab",
+            "guid": "3f83e61e720b8704886c22e1630f5c4f",
+            "size": [
+              0.82,
+              0.31,
+              0.51
+            ],
+            "bottom": 0.0,
+            "renderers": 6,
+            "colliders": 0,
+            "materials": [
+              "Timber / Standard",
+              "Feed / Standard"
+            ],
+            "controller": null
+          },
+          {
+            "path": "Assets/_Game/Content/Art/UniversityDemo/flour_product.prefab",
+            "guid": "bf3d63076c8cbae46b133444661c8ade",
+            "size": [
+              0.25000003,
+              0.339999974,
+              0.25000006
+            ],
+            "bottom": 0.0,
+            "renderers": 2,
+            "colliders": 0,
+            "materials": [
+              "Flour sack / Standard",
+              "Flour / Standard"
+            ],
+            "controller": null
+          },
+          {
+            "path": "Assets/_Game/Content/Art/UniversityDemo/mill.prefab",
+            "guid": "eb9ff4d0768db39499e56eec3bef3372",
+            "size": [
+              4.02665424,
+              5.8,
+              2.53612423
+            ],
+            "bottom": 0.0,
+            "renderers": 2,
+            "colliders": 0,
+            "materials": [
+              "DarkGrey / Standard",
+              "RoofBlack / Standard",
+              "LightBrown / Standard",
+              "White / Standard",
+              "Black / Standard",
+              "Grey / Standard",
+              "DarkBrown / Standard"
+            ],
+            "controller": null
+          },
+          {
+            "path": "Assets/_Game/Content/Art/UniversityDemo/pear_fruit.prefab",
+            "guid": "8b77f74a1afb0884f83154c582f9cfe6",
+            "size": [
+              0.1476194,
+              0.26,
+              0.145117611
+            ],
+            "bottom": 0.0,
+            "renderers": 1,
+            "colliders": 0,
+            "materials": [
+              "LP_FoodLite_MAIN / Standard"
+            ],
+            "controller": null
+          },
+          {
+            "path": "Assets/_Game/Content/Art/UniversityDemo/pear_tree.prefab",
+            "guid": "b39a64dd0a277f744961a6962d6b881c",
+            "size": [
+              1.98552334,
+              2.6,
+              1.64606166
+            ],
+            "bottom": 0.0,
+            "renderers": 1,
+            "colliders": 0,
+            "materials": [
+              "LowPolyFarmLite_MAIN / Standard"
+            ],
+            "controller": null
+          },
+          {
+            "path": "Assets/_Game/Content/Art/UniversityDemo/pumpkin_fruit.prefab",
+            "guid": "2847f36e7d7927f43987f917f1e010dc",
+            "size": [
+              0.481332719,
+              0.360000044,
+              0.489408463
+            ],
+            "bottom": 0.0,
+            "renderers": 1,
+            "colliders": 0,
+            "materials": [
+              "LP_FoodLite_MAIN / Standard"
+            ],
+            "controller": null
+          },
+          {
+            "path": "Assets/_Game/Content/Art/UniversityDemo/pumpkin_Growing.prefab",
+            "guid": "58e74d50063257e41af2581a673a99cc",
+            "size": [
+              0.5400001,
+              0.2554899,
+              0.467653751
+            ],
+            "bottom": 0.00451010466,
+            "renderers": 1,
+            "colliders": 0,
+            "materials": [
+              "Crop Foliage / My Little Farm/Crop Vertex Color"
+            ],
+            "controller": null
+          },
+          {
+            "path": "Assets/_Game/Content/Art/UniversityDemo/pumpkin_Mature.prefab",
+            "guid": "cde876299c1ab36409ac1d276ee66d10",
+            "size": [
+              0.680000067,
+              0.320000023,
+              0.5888972
+            ],
+            "bottom": 0.0,
+            "renderers": 2,
+            "colliders": 0,
+            "materials": [
+              "Crop Foliage / My Little Farm/Crop Vertex Color",
+              "LP_FoodLite_MAIN / Standard"
+            ],
+            "controller": null
+          },
+          {
+            "path": "Assets/_Game/Content/Art/UniversityDemo/pumpkin_Sprout.prefab",
+            "guid": "22469ebf7bbf83b40989174e4ea35a7d",
+            "size": [
+              0.212741017,
+              0.126311481,
+              0.2251666
+            ],
+            "bottom": 0.00548850745,
+            "renderers": 1,
+            "colliders": 0,
+            "materials": [
+              "Crop Foliage / My Little Farm/Crop Vertex Color"
+            ],
+            "controller": null
+          },
+          {
+            "path": "Assets/_Game/Content/Art/UniversityDemo/strawberry_fruit.prefab",
+            "guid": "1ffe412a367d092418b7dee80247c11f",
+            "size": [
+              0.09863738,
+              0.15,
+              0.09863738
+            ],
+            "bottom": 0.0,
+            "renderers": 1,
+            "colliders": 0,
+            "materials": [
+              "colormap / Standard"
+            ],
+            "controller": null
+          },
+          {
+            "path": "Assets/_Game/Content/Art/UniversityDemo/strawberry_Growing.prefab",
+            "guid": "3c69bed08576c924984743a01b1bb2b4",
+            "size": [
+              0.523717046,
+              0.2554899,
+              0.5317962
+            ],
+            "bottom": 0.00451010466,
+            "renderers": 1,
+            "colliders": 0,
+            "materials": [
+              "Crop Foliage / My Little Farm/Crop Vertex Color"
+            ],
+            "controller": null
+          },
+          {
+            "path": "Assets/_Game/Content/Art/UniversityDemo/strawberry_Mature.prefab",
+            "guid": "7e0b0dec5cabc0844a84f03221e1b652",
+            "size": [
+              0.6594956,
+              0.255979,
+              0.6696694
+            ],
+            "bottom": 0.004020989,
+            "renderers": 5,
+            "colliders": 0,
+            "materials": [
+              "Crop Foliage / My Little Farm/Crop Vertex Color",
+              "colormap / Standard"
+            ],
+            "controller": null
+          },
+          {
+            "path": "Assets/_Game/Content/Art/UniversityDemo/strawberry_Sprout.prefab",
+            "guid": "a8ea83fee1c740d4393bd52c6da9a680",
+            "size": [
+              0.212741017,
+              0.126311481,
+              0.2251666
+            ],
+            "bottom": 0.00548850745,
+            "renderers": 1,
+            "colliders": 0,
+            "materials": [
+              "Crop Foliage / My Little Farm/Crop Vertex Color"
+            ],
+            "controller": null
+          },
+          {
+            "path": "Assets/_Game/Content/Art/UniversityDemo/tool_hoe_0.prefab",
+            "guid": "4486943346a30f3468e8d3618e94d16e",
+            "size": [
+              0.177368239,
+              1.45000017,
+              0.351783574
+            ],
+            "bottom": -0.35,
+            "renderers": 1,
+            "colliders": 0,
+            "materials": [
+              "PandaMat / Standard"
+            ],
+            "controller": null
+          },
+          {
+            "path": "Assets/_Game/Content/Art/UniversityDemo/tool_hoe_1.prefab",
+            "guid": "45e9c6b5378106343ac8d82f5e2dc069",
+            "size": [
+              0.177368239,
+              1.45000017,
+              0.351783574
+            ],
+            "bottom": -0.35,
+            "renderers": 2,
+            "colliders": 0,
+            "materials": [
+              "PandaMat / Standard",
+              "Iron / Standard"
+            ],
+            "controller": null
+          },
+          {
+            "path": "Assets/_Game/Content/Art/UniversityDemo/tool_hoe_2.prefab",
+            "guid": "fd69a069a9fab3e459b1dcf2f55a5d75",
+            "size": [
+              0.177368239,
+              1.45000017,
+              0.351783574
+            ],
+            "bottom": -0.35,
+            "renderers": 3,
+            "colliders": 0,
+            "materials": [
+              "PandaMat / Standard",
+              "Brass / Standard"
+            ],
+            "controller": null
+          }
+        ],
+        "clips": [
+          {
+            "name": "Cow_Eat",
+            "length": 6.25,
+            "isLooping": true
+          },
+          {
+            "name": "Cow_Idle",
+            "length": 6.25,
+            "isLooping": true
+          },
+          {
+            "name": "Cow_Walk",
+            "length": 3.33333349,
+            "isLooping": true
+          }
+        ]
+      },
+      "compiler": "codedom"
+    }
+  },
+  "isError": false
+}

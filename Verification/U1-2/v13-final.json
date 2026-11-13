@@ -1,0 +1,42 @@
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "{\"success\":true,\"message\":\"Code executed successfully.\",\"data\":{\"result\":{\"loaded\":true,\"version\":14,\"selected\":\"apple\",\"animals\":[{\"animalId\":\"cow_f7555bcacaca4967b3d880d3e34b8680\",\"definitionId\":\"cow\",\"x\":-2,\"z\":-1,\"lastFedAtUnixMs\":1794516984541,\"nextProductAtUnixMs\":1794517044541,\"readyProductCount\":1,\"homeBuildingId\":\"0c31141908c04787bd8586e3bc7d25f5\",\"homeSlot\":0,\"Position\":{\"x\":-2,\"y\":-1,\"magnitude\":2.236068,\"sqrMagnitude\":5}}],\"trees\":[],\"activeFarm\":false},\"compiler\":\"codedom\"}}"
+    }
+  ],
+  "structuredContent": {
+    "success": true,
+    "message": "Code executed successfully.",
+    "data": {
+      "result": {
+        "loaded": true,
+        "version": 14,
+        "selected": "apple",
+        "animals": [
+          {
+            "animalId": "cow_f7555bcacaca4967b3d880d3e34b8680",
+            "definitionId": "cow",
+            "x": -2,
+            "z": -1,
+            "lastFedAtUnixMs": 1794516984541,
+            "nextProductAtUnixMs": 1794517044541,
+            "readyProductCount": 1,
+            "homeBuildingId": "0c31141908c04787bd8586e3bc7d25f5",
+            "homeSlot": 0,
+            "Position": {
+              "x": -2,
+              "y": -1,
+              "magnitude": 2.236068,
+              "sqrMagnitude": 5
+            }
+          }
+        ],
+        "trees": [],
+        "activeFarm": false
+      },
+      "compiler": "codedom"
+    }
+  },
+  "isError": false
+}

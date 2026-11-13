@@ -1,0 +1,12 @@
+var farm=UnityEngine.Object.FindFirstObjectByType<MyLittleFarm.Core.GameBootstrap>();
+var save=farm.GetComponentInChildren<MyLittleFarm.Core.SaveSystem>();
+var loaded=save.LoadFromPath("Verification/U1-3/sold-profile-v15.json");
+var camera=farm.GetComponentInChildren<Camera>();
+farm.GetComponentInChildren<MyLittleFarm.Gameplay.World.IsometricCameraController>().enabled=false;
+var center=new Vector3(7,1,6);camera.transform.position=center+new Vector3(16,17,-26);camera.transform.LookAt(center);
+var target=RenderTexture.GetTemporary(1600,900,24,RenderTextureFormat.ARGB32);var previous=RenderTexture.active;
+var picture=new Texture2D(1600,900,TextureFormat.RGB24,false);
+try { camera.targetTexture=target;camera.aspect=1600f/900;camera.Render();RenderTexture.active=target;picture.ReadPixels(new Rect(0,0,1600,900),0,0);picture.Apply();System.IO.File.WriteAllBytes("Verification/U1-3/workshops.png",picture.EncodeToPNG()); }
+finally { camera.targetTexture=null;RenderTexture.active=previous;RenderTexture.ReleaseTemporary(target);UnityEngine.Object.DestroyImmediate(picture); }
+var migrated=save.LoadFromPath("Verification/U1-3/migrated-profile-v15.json");
+return new {loaded,capture="Verification/U1-3/workshops.png",migrated,batches=save.Capture().productionBatches};

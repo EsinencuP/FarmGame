@@ -1,0 +1,138 @@
+{
+    "saveVersion": 14,
+    "savedAtUnixMs": 1794519001231,
+    "playTimeSeconds": 0.0,
+    "previewPngBase64": "",
+    "progression": {
+        "revenue": 144,
+        "expenses": 60,
+        "refunds": 0,
+        "plantings": 0,
+        "harvests": 0,
+        "harvestedUnits": 0,
+        "apples": 6,
+        "eggs": 0,
+        "bonusHarvests": 0,
+        "rareSeeds": 0,
+        "highestBalance": 184,
+        "shepherdHired": false,
+        "firstJuiceSold": false,
+        "crops": [],
+        "achievements": [
+            "coins_100",
+            "orchard"
+        ],
+        "decorations": [],
+        "caches": []
+    },
+    "player": {
+        "x": 7.5,
+        "y": 0.7440000176429749,
+        "z": 0.5
+    },
+    "coins": 184,
+    "inventory": [
+        {
+            "itemId": "carrot_seed",
+            "amount": 8
+        },
+        {
+            "itemId": "pear_sapling",
+            "amount": 1
+        },
+        {
+            "itemId": "apple",
+            "amount": 6
+        },
+        {
+            "itemId": "pear",
+            "amount": 0
+        }
+    ],
+    "grid": {
+        "chunks": [
+            {
+                "chunkX": 0,
+                "chunkZ": 0,
+                "modifiedCells": [
+                    {
+                        "localX": 3,
+                        "localZ": 2,
+                        "cellType": 23,
+                        "occupantId": "tree:3:2",
+                        "hasTerrainData": true,
+                        "terrainType": 0,
+                        "biome": 0,
+                        "moisture": 0,
+                        "permissions": 0,
+                        "pathSurface": 0,
+                        "farmingMoisture": 0,
+                        "fertilizer": 0,
+                        "lastWateredDay": 0,
+                        "farmingFlags": 0
+                    },
+                    {
+                        "localX": 6,
+                        "localZ": 2,
+                        "cellType": 23,
+                        "occupantId": "tree:6:2",
+                        "hasTerrainData": true,
+                        "terrainType": 0,
+                        "biome": 0,
+                        "moisture": 0,
+                        "permissions": 0,
+                        "pathSurface": 0,
+                        "farmingMoisture": 0,
+                        "fertilizer": 0,
+                        "lastWateredDay": 0,
+                        "farmingFlags": 0
+                    }
+                ]
+            }
+        ]
+    },
+    "worldBaseHash": 3966892030404822408,
+    "gridCells": [],
+    "crops": [],
+    "trees": [
+        {
+            "x": 3,
+            "z": 2,
+            "treeId": "apple",
+            "plantedAtUnixMs": 1794518795279,
+            "lastHarvestAtUnixMs": 1794518956464
+        },
+        {
+            "x": 6,
+            "z": 2,
+            "treeId": "pear",
+            "plantedAtUnixMs": 1794518795279,
+            "lastHarvestAtUnixMs": 1794519001225
+        }
+    ],
+    "selectedTreeId": "pear",
+    "animals": [],
+    "buildings": [],
+    "applePressBatches": [],
+    "selectedQuickSlot": 0,
+    "sectorUnlocked": false,
+    "toolUpgradeLevel": 0,
+    "onboardingStep": 0,
+    "onboardingSchema": 1,
+    "onboardingSuppliesGranted": true,
+    "onboardingGardenPlanted": false,
+    "onboardingSaleCompleted": false,
+    "onboardingGardenX": 0,
+    "onboardingGardenZ": 0,
+    "hasWorldTime": true,
+    "worldHour": 13.47453784942627,
+    "weather": {
+        "targetState": 0,
+        "cloudCover": 0.0,
+        "rainIntensity": 0.0,
+        "transitionRemaining": 0.0,
+        "holdRemaining": 34.37314224243164,
+        "cloudRotation": 22.99317741394043,
+        "randomState": 325195499
+    }
+}

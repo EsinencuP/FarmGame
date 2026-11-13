@@ -1,0 +1,20 @@
+{
+  "meta": null,
+  "content": [
+    {
+      "type": "text",
+      "text": "{\"success\":true,\"message\":\"Code executed successfully.\",\"data\":{\"result\":\"Six fixed visual poses captured; no gameplay or tests.\",\"compiler\":\"codedom\"}}",
+      "annotations": null,
+      "meta": null
+    }
+  ],
+  "structuredContent": {
+    "success": true,
+    "message": "Code executed successfully.",
+    "data": {
+      "result": "Six fixed visual poses captured; no gameplay or tests.",
+      "compiler": "codedom"
+    }
+  },
+  "isError": false
+}

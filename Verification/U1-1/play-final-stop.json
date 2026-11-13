@@ -1,0 +1,17 @@
+{
+  "meta": null,
+  "content": [
+    {
+      "type": "text",
+      "text": "{\"success\":true,\"message\":\"Exited play mode.\",\"data\":null}",
+      "annotations": null,
+      "meta": null
+    }
+  ],
+  "structuredContent": {
+    "success": true,
+    "message": "Exited play mode.",
+    "data": null
+  },
+  "isError": false
+}

@@ -1,0 +1,37 @@
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "{\"success\":true,\"message\":\"Code executed successfully.\",\"data\":{\"result\":{\"loaded\":true,\"version\":14,\"selected\":\"apple\",\"trees\":[{\"x\":4,\"z\":0,\"treeId\":\"apple\",\"plantedAtUnixMs\":1793939900164,\"lastHarvestAtUnixMs\":1793939986676,\"Position\":{\"x\":4,\"y\":0,\"magnitude\":4.0,\"sqrMagnitude\":16}}],\"activeFarm\":false},\"compiler\":\"codedom\"}}"
+    }
+  ],
+  "structuredContent": {
+    "success": true,
+    "message": "Code executed successfully.",
+    "data": {
+      "result": {
+        "loaded": true,
+        "version": 14,
+        "selected": "apple",
+        "trees": [
+          {
+            "x": 4,
+            "z": 0,
+            "treeId": "apple",
+            "plantedAtUnixMs": 1793939900164,
+            "lastHarvestAtUnixMs": 1793939986676,
+            "Position": {
+              "x": 4,
+              "y": 0,
+              "magnitude": 4,
+              "sqrMagnitude": 16
+            }
+          }
+        ],
+        "activeFarm": false
+      },
+      "compiler": "codedom"
+    }
+  },
+  "isError": false
+}

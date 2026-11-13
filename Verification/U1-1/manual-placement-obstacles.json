@@ -1,0 +1,31 @@
+{
+  "meta": null,
+  "content": [
+    {
+      "type": "text",
+      "text": "{\"success\":true,\"message\":\"Code executed successfully.\",\"data\":{\"result\":[{\"x\":-8,\"z\":-7,\"type\":\"Rock\"},{\"x\":-7,\"z\":-7,\"type\":\"Rock\"}],\"compiler\":\"codedom\"}}",
+      "annotations": null,
+      "meta": null
+    }
+  ],
+  "structuredContent": {
+    "success": true,
+    "message": "Code executed successfully.",
+    "data": {
+      "result": [
+        {
+          "x": -8,
+          "z": -7,
+          "type": "Rock"
+        },
+        {
+          "x": -7,
+          "z": -7,
+          "type": "Rock"
+        }
+      ],
+      "compiler": "codedom"
+    }
+  },
+  "isError": false
+}

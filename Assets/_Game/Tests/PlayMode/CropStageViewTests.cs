@@ -39,10 +39,10 @@ namespace MyLittleFarm.Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator AllEighteenAuthoredStagesSurviveSaveRestoreAndMatureHarvest()
+        public IEnumerator AllTwentyFourAuthoredStagesSurviveSaveRestoreAndMatureHarvest()
         {
             var catalog = Farm.GetComponentInChildren<FarmCatalog>();
-            var definitions = new CropDefinition[6];
+            var definitions = new CropDefinition[8];
             for (var i = 0; i < definitions.Length; i++) definitions[i] = Load(FarmCatalog.CropIds[i]);
             typeof(FarmCatalog).GetField("cropAssets", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(catalog, definitions);
             catalog.Configure();
@@ -64,7 +64,7 @@ namespace MyLittleFarm.Tests.PlayMode
             save.Restore(snapshot);
             yield return null;
             var views = crops.GetComponentsInChildren<CropView>();
-            Assert.That(views.Length, Is.EqualTo(18));
+            Assert.That(views.Length, Is.EqualTo(24));
             foreach (var view in views)
             {
                 var position = grid.WorldToGrid(view.transform.position);
@@ -84,7 +84,7 @@ namespace MyLittleFarm.Tests.PlayMode
 
         private static CropDefinition Load(string id)
         {
-            var definition = AssetDatabase.LoadAssetAtPath<CropDefinition>("Assets/_Game/Content/Crops/" + id + ".asset");
+            var definition = AssetDatabase.LoadAssetAtPath<CropDefinition>((id=="strawberry"||id=="pumpkin"?"Assets/_Game/Resources/FarmContent/":"Assets/_Game/Content/Crops/") + id + ".asset");
             Assert.That(definition, Is.Not.Null);
             return definition;
         }

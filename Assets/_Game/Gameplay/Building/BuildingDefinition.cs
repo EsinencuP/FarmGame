@@ -41,7 +41,11 @@ namespace MyLittleFarm.Gameplay.Building
             new BuildingDefinition("market", "Торговая стойка", 8, 5, 10, 3.1f),
             new BuildingDefinition("flowerbed", "Клумба", 1, 1, 3, 0.45f),
             new BuildingDefinition("coop", "Курятник", 3, 5, 18, 4f),
-            new BuildingDefinition(ApplePresses.BuildingId, FarmText.Get("press.name"), 2, 2, ApplePresses.BuildingPrice, 1.8f)};
+            new BuildingDefinition(ApplePresses.BuildingId, FarmText.Get("press.name"), 2, 2, ApplePresses.BuildingPrice, 1.8f),
+            new BuildingDefinition("feeder", "Кормушка", 1, 1, 18, .6f),
+            new BuildingDefinition("mill", "Мельница", 5, 4, 80, 5.8f),
+            new BuildingDefinition("cheese_dairy", "Сыроварня", 5, 6, 100, 4f),
+            new BuildingDefinition(BarnHabitat.BuildingId, "Коровник с загоном", BarnHabitat.Width, BarnHabitat.Depth, BarnHabitat.Price, 4f)};
             items.AddRange(FarmDecorationCatalog.Items);return items.AsReadOnly();
         }
 

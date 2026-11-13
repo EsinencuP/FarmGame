@@ -24,8 +24,12 @@ namespace MyLittleFarm.Gameplay.Economy
         {
             _items.Clear();
             _items[CarrotSeedId] = startingCarrotSeeds;
+            Revision++;
             GameEvents.RaiseInventoryChanged();
         }
+
+        public long Revision { get; private set; }
+        internal void SetAmountSilently(string id,int amount) { _items[id]=amount;Revision++; }
 
         public int GetAmount(string itemId)
         {
@@ -42,6 +46,7 @@ namespace MyLittleFarm.Gameplay.Economy
             }
 
             _items[itemId] = checked(GetAmount(itemId) + amount);
+            Revision++;
             GameEvents.RaiseInventoryChanged();
         }
 
@@ -54,6 +59,7 @@ namespace MyLittleFarm.Gameplay.Economy
             }
 
             _items[itemId] -= amount;
+            Revision++;
             GameEvents.RaiseInventoryChanged();
             return true;
         }
@@ -85,6 +91,7 @@ namespace MyLittleFarm.Gameplay.Economy
                 }
             }
 
+            Revision++;
             GameEvents.RaiseInventoryChanged();
         }
     }
