@@ -27,6 +27,7 @@ namespace MyLittleFarm.UI
 
         private void OnEnable()
         {
+            RefreshCatalogue();
             if(!Application.isPlaying||buildings==null||input==null)return;
             buildings.ActiveChanged+=OnBuildMode;
             openCatalogue.onClick.AddListener(ToggleCatalogue);
@@ -54,6 +55,7 @@ namespace MyLittleFarm.UI
         {
             openCatalogue.gameObject.SetActive(active);
             if (!active) { Close(); return; }
+            RefreshCatalogue();
             openCatalogue.GetComponentInChildren<Text>().text =
                 FarmText.Get("construction.openCatalogue", InputReader.KeyLabel(InputReader.Command.Catalogue));
         }
@@ -73,8 +75,15 @@ namespace MyLittleFarm.UI
             if (!Application.isPlaying || input == null || input.ModalInputActive || buildings == null || !buildings.IsActive) return;
             if (!shade.activeSelf) ToggleCatalogue();
         }
+        // Serialized cards are a view of the current catalogue, never a second list of buildings.
+        [ContextMenu("Refresh Construction Catalogue")]
+        public void RefreshCatalogue() => ShowPage(_page);
+
         private void ShowPage(int page)
         {
+            // Create() adds the component before assigning its baked UI references.
+            if(itemButtons==null || itemButtons.Length==0 || itemLabels==null || itemLabels.Length!=itemButtons.Length
+                || catalogueTitle==null || previous==null || next==null)return;
             var count=BuildingDefinition.Catalog.Count;var pages=(count+itemButtons.Length-1)/itemButtons.Length;
             _page=Mathf.Clamp(page,0,pages-1);catalogueTitle.text=FarmText.Get("construction.pageTitle", _page + 1, pages);
             previous.interactable=_page>0;next.interactable=_page+1<pages;
@@ -92,7 +101,11 @@ namespace MyLittleFarm.UI
                 }
             }
         }
-        private void Choose(int slot){buildings.SelectDefinition(_page*itemButtons.Length+slot);Close();}
+        private void Choose(int slot)
+        {
+            if(slot<0 || slot>=itemButtons.Length || !itemButtons[slot].gameObject.activeSelf)return;
+            buildings.SelectDefinition(_page*itemButtons.Length+slot);Close();
+        }
         public void ShowDetails(BuildingRuntimeState state)
         {
             if(!Application.isPlaying||state==null)return;

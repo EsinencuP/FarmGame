@@ -6952,7 +6952,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: "\u0421\u043A\u043B\u0430\u0434\n12 \u043C\u043E\u043D\u0435\u0442 \xB7 5\xD76"
+  m_Text: "Склад\n12 монет · 5 × 6"
 --- !u!222 &138290563
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -15466,7 +15466,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: "\u041A\u0440\u0435\u0441\u0442\u043E\u0432\u043E\u0439 \u0437\u0430\u0431\u043E\u0440\n3 \u043C\u043E\u043D\u0435\u0442 \xB7 1\xD71"
+  m_Text: "Мельница\n80 монет · 5 × 4"
 --- !u!222 &338207443
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -24091,7 +24091,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: a9aacbcc5f1ab7d44a673ca5a11c759c, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 6745e5e8b3432374195d7815bb1c4c08, type: 3}
   m_Type: 0
   m_PreserveAspect: 1
   m_FillCenter: 1
@@ -24416,7 +24416,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: "\u0414\u043E\u043C\n20 \u043C\u043E\u043D\u0435\u0442 \xB7 7\xD76"
+  m_Text: "Дом\n20 монет · 7 × 6"
 --- !u!222 &506497447
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -30166,7 +30166,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: "\u0423\u0433\u043E\u043B \u0437\u0430\u0431\u043E\u0440\u0430\n3 \u043C\u043E\u043D\u0435\u0442 \xB7 1\xD71"
+  m_Text: "Сыроварня\n100 монет · 5 × 6"
 --- !u!222 &626906514
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -36391,7 +36391,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: "\u0416\u0435\u0440\u0434\u044F\u043D\u043E\u0439 \u0437\u0430\u0431\u043E\u0440\n2 \u043C\u043E\u043D\u0435\u0442 \xB7 1\xD71"
+  m_Text: "Кормушка\n18 монет · 1 × 1"
 --- !u!222 &749337221
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -46159,7 +46159,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: a9aacbcc5f1ab7d44a673ca5a11c759c, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 475a6f4a4e009134ea539f17a08671b3, type: 3}
   m_Type: 0
   m_PreserveAspect: 1
   m_FillCenter: 1
@@ -55140,7 +55140,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: a9aacbcc5f1ab7d44a673ca5a11c759c, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 13242ebbfee6e6340b490d380ddb0680, type: 3}
   m_Type: 0
   m_PreserveAspect: 1
   m_FillCenter: 1
@@ -55416,7 +55416,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: "\u0421\u0430\u0434\u043E\u0432\u0430\u044F \u043A\u0430\u043B\u0438\u0442\u043A\u0430\n5 \u043C\u043E\u043D\u0435\u0442 \xB7 2\xD71"
+  m_Text: "Коровник с загоном\n60 монет · 9 × 6"
 --- !u!222 &1113276726
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -58907,7 +58907,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: a9aacbcc5f1ab7d44a673ca5a11c759c, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 3ba77b5824d020e4cb63b1012af561a2, type: 3}
   m_Type: 0
   m_PreserveAspect: 1
   m_FillCenter: 1
@@ -60941,7 +60941,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: "\u0422\u043E\u0440\u0433\u043E\u0432\u0430\u044F \u0441\u0442\u043E\u0439\u043A\u0430\n10 \u043C\u043E\u043D\u0435\u0442 \xB7 8\xD75"
+  m_Text: "Торговая стойка\n10 монет · 8 × 5"
 --- !u!222 &1205973065
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -68415,7 +68415,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: "\u041A\u043B\u0443\u043C\u0431\u0430\n3 \u043C\u043E\u043D\u0435\u0442 \xB7 1\xD71"
+  m_Text: "Клумба\n3 монеты · 1 × 1"
 --- !u!222 &1347002262
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -82253,7 +82253,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: "\u0428\u0442\u0430\u043A\u0435\u0442\u043D\u0438\u043A\n2 \u043C\u043E\u043D\u0435\u0442 \xB7 1\xD71"
+  m_Text: "Яблочный пресс\n80 монет · 2 × 2"
 --- !u!222 &1618795116
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -95022,7 +95022,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: a9aacbcc5f1ab7d44a673ca5a11c759c, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 822a48f850f09a34aa657bb61b8f7176, type: 3}
   m_Type: 0
   m_PreserveAspect: 1
   m_FillCenter: 1
@@ -105023,7 +105023,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: "\u041A\u0443\u0440\u044F\u0442\u043D\u0438\u043A\n18 \u043C\u043E\u043D\u0435\u0442 \xB7 3\xD75"
+  m_Text: "Курятник\n18 монет · 3 × 5"
 --- !u!222 &2044307761
 CanvasRenderer:
   m_ObjectHideFlags: 0

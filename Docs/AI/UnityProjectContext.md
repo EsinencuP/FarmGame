@@ -8,6 +8,12 @@
 - The historical pre-U1 audit included RC-03 key rebinding, RC-04 UI and RC-06 apple press with save version 12. Latest implementation/save schema is recorded in the U1 sections below.
 - Preserve AGENTS.md testing cadence: compilation/Console and brief manual checks within tasks; automated suites only at closure of major phases. No tests or runtime checks were performed when creating this plan.
 
+## Construction catalogue follow-up — 13 November 2026
+
+- Prototype's serialized catalogue cards still showed pre-U1 decorations in slots 6–10. Updated only ten Text fields/five Image sprites on disk to current first page: house/storage/market/flowerbed/coop/press/feeder/mill/dairy/barn. Preserved original dirty scene in memory and local CatalogueSourceBackup.
+- BuildCustomizationUI.RefreshCatalogue is the common projection, called on enable/build mode/open/page and by FarmUISetup. Context menu supports explicit editor refresh; choosing a hidden/out-of-range slot is ignored. All 40 definitions remain reachable across four pages, with production/livestock buildings on page one.
+- Compiled, Console errors clear. Isolated review with persistence=false: all five visible new cards selected correct definitions and closed; mill placed (2,2), 1000→920 coins; next page retained decorations. Inspected 1366x768. No tests/Verify-Scripts; suites remain U1-8. See Verification/BuildCatalogue/report.md. Review closed/removed in Edit Mode, source roots and Game View restored.
+
 ## U1-7 extra crops, feeder and daily market orders — 13 November 2026
 
 - Current save schema **v18**. U1-0–U1-7 implemented. **U1-8 is the separate phase-closing milestone** with the complete route, actual old v12 migration and EditMode/PlayMode suites; it has not run. Audio remains last implementation phase after polish. Preserve AGENTS.md cadence.

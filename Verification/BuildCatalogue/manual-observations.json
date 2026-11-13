@@ -1,0 +1,84 @@
+{
+  "open": {
+    "scene": "Assets/_Recovery/CatalogueReview.unity",
+    "persistence": false,
+    "modal": true,
+    "title": "КАТАЛОГ ФЕРМЫ · 1 / 4",
+    "cards": [
+      "Дом\n20 монет · 7 × 6",
+      "Склад\n12 монет · 5 × 6",
+      "Торговая стойка\n10 монет · 8 × 5",
+      "Клумба\n3 монеты · 1 × 1",
+      "Курятник\n18 монет · 3 × 5",
+      "Яблочный пресс\n80 монет · 2 × 2",
+      "Кормушка\n18 монет · 1 × 1",
+      "Мельница\n80 монет · 5 × 4",
+      "Сыроварня\n100 монет · 5 × 6",
+      "Коровник с загоном\n60 монет · 9 × 6"
+    ]
+  },
+  "selectionAndPlacement": {
+    "selected": [
+      "apple_press",
+      "feeder",
+      "cheese_dairy",
+      "barn",
+      "mill"
+    ],
+    "placed": true,
+    "reason": "Постройка размещена",
+    "balanceBefore": 1000,
+    "balanceAfter": 920,
+    "buildings": [
+      {
+        "id": "a4a506a0033d49b893c29ae7b9f49086",
+        "definitionId": "mill",
+        "x": 2,
+        "z": 2,
+        "quarterTurns": 0,
+        "paidCost": 80,
+        "appearanceLevel": 0,
+        "customText": null,
+        "Refund": 40
+      }
+    ],
+    "secondPageFirst": "Штакетник\n2 монеты · 1 × 1",
+    "modal": true
+  },
+  "visibleSelection": {
+    "choices": [
+      {
+        "visible": true,
+        "selected": "apple_press",
+        "closed": true
+      },
+      {
+        "visible": true,
+        "selected": "feeder",
+        "closed": true
+      },
+      {
+        "visible": true,
+        "selected": "mill",
+        "closed": true
+      },
+      {
+        "visible": true,
+        "selected": "cheese_dairy",
+        "closed": true
+      },
+      {
+        "visible": true,
+        "selected": "barn",
+        "closed": true
+      }
+    ],
+    "secondPage": "Штакетник\n2 монеты · 1 × 1",
+    "visible": true,
+    "size": [
+      1366,
+      768
+    ],
+    "persistence": false
+  }
+}

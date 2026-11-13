@@ -132,6 +132,7 @@ namespace MyLittleFarm.Editor
                 FarmUITheme.Place(icon.rectTransform, new Vector2(0, .5f), new Vector2(0, .5f), new Vector2(10, 0), new Vector2(58, 58));
                 var label = button.GetComponentInChildren<Text>(); label.rectTransform.offsetMin = new Vector2(76, 4);
             }
+            catalogue.RefreshCatalogue();
         }
         [MenuItem("Tools/My Little Farm/UI/Preview Main Menu")]
         private static void MainPreview() => FarmSceneSetup.OpenMenu();
