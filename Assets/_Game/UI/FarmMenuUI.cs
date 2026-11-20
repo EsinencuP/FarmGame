@@ -131,6 +131,7 @@ namespace MyLittleFarm.UI
         public void OpenPause() { if (CanOpenFromGame()) Show(Page.Pause); }
         public void OpenInventory() { if (CanOpenFromGame()) Show(Page.Inventory); }
         public void OpenMarket() { if (CanOpenFromGame() && shop != null && shop.CanTrade) Show(Page.Shop); }
+        internal void ResetMarketCart() => market?.ResetCart();
         public void OpenGuide()
         { if (CanOpenFromGame()) { if (guide != null) Show(Page.Guide); else journal.Open(); } }
         public void OpenJournal()
@@ -229,7 +230,7 @@ namespace MyLittleFarm.UI
         }
         private void Quit()
         {
-            if (saves.HasActiveFarm && !saves.SaveActivePoint(true))
+            if (!saves.TrySaveForQuit())
             { Back(); pauseMessage.text = FarmText.Get("pause.quitSaveFailed"); return; }
             Application.Quit();
 #if UNITY_EDITOR

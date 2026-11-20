@@ -27,32 +27,26 @@ namespace MyLittleFarm.Gameplay.Farming
             return GetGrowthRatio(nowUnixMs) >= 1f;
         }
 
-        public int GetStage(long nowUnixMs)
+        public int GetStage(long nowUnixMs) => StageFor(GetGrowthRatio(nowUnixMs), stageCount, isRegrowing);
+
+        internal static int StageFor(float growth, int stageCount, bool isRegrowing)
         {
             // Последняя визуальная стадия зарезервирована для полностью созревшего растения.
-            var safeStageCount = Mathf.Max(1, stageCount);
-            if (IsMature(nowUnixMs))
-            {
-                return safeStageCount - 1;
-            }
-
-            if(isRegrowing)return Mathf.Min(1,safeStageCount-1);
-            return Mathf.Clamp(
-                Mathf.FloorToInt(GetGrowthRatio(nowUnixMs) * Mathf.Max(1, safeStageCount - 1)),
-                0,
-                safeStageCount - 1);
+            var finalStage = Mathf.Max(0, stageCount - 1);
+            if (growth >= 1f || finalStage == 0) return finalStage;
+            if (isRegrowing) return Mathf.Min(1, finalStage - 1);
+            return Mathf.Min(Mathf.FloorToInt(growth * finalStage), finalStage - 1);
         }
 
-        public float GetGrowthRatio(long nowUnixMs)
+        public float GetGrowthRatio(long nowUnixMs) =>
+            GrowthRatioAt(nowUnixMs, plantedAtUnixMs, growDurationSeconds, weatherGrowthBonusSeconds);
+
+        internal static float GrowthRatioAt(long nowUnixMs, long plantedAtUnixMs, float duration, float weatherBonus)
         {
             // UTC-время позволяет росту продолжаться между игровыми сессиями.
-            if (growDurationSeconds <= 0f)
-            {
-                return 1f;
-            }
-
-            var elapsedSeconds = (float)(((double)nowUnixMs - plantedAtUnixMs) / 1000.0);
-            return Mathf.Clamp01((elapsedSeconds+weatherGrowthBonusSeconds) / growDurationSeconds);
+            if (duration <= 0f) return 1f;
+            var elapsedSeconds = ((double)nowUnixMs - plantedAtUnixMs) / 1000.0;
+            return Mathf.Clamp01((float)((elapsedSeconds + weatherBonus) / duration));
         }
     }
 }

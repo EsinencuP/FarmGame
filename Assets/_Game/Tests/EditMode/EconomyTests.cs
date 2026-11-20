@@ -1,3 +1,4 @@
+using MyLittleFarm.Core;
 using MyLittleFarm.Gameplay.Economy;
 using NUnit.Framework;
 using UnityEngine;
@@ -44,11 +45,22 @@ namespace MyLittleFarm.Tests.EditMode
                 var selling = root.AddComponent<SellingSystem>();
                 selling.Configure(inventory, wallet);
 
-                var earned = selling.SellAllCarrots();
+                int earned, observedCoins = -1, observedCarrots = -1;
+                GameEvents.InventoryChanged += ObserveSale;
+                try { earned = selling.SellAllCarrots(); }
+                finally { GameEvents.InventoryChanged -= ObserveSale; }
 
                 Assert.That(earned, Is.EqualTo(3 * selling.CarrotSellPrice));
                 Assert.That(inventory.GetAmount(InventorySystem.CarrotId), Is.Zero);
                 Assert.That(wallet.Coins, Is.EqualTo(40));
+                Assert.That(observedCoins, Is.EqualTo(40));
+                Assert.That(observedCarrots, Is.Zero);
+
+                void ObserveSale()
+                {
+                    observedCoins = wallet.Coins;
+                    observedCarrots = inventory.GetAmount(InventorySystem.CarrotId);
+                }
             }
             finally
             {

@@ -151,7 +151,8 @@ namespace MyLittleFarm.Gameplay.Farming
                 recovering.weatherGrowthBonusSeconds=0;recovering.isRegrowing=true;
                 _grid.SetFarmingCell(position,recovering);
                 _rainBaselines[position]=_weather==null?0:_weather.GrowthBonusSeconds;
-                if(_views.TryGetValue(position,out var retained))retained.SetStage(1,crop.stageCount);
+                if (_views.TryGetValue(position, out var retained))
+                    retained.SetStage(CropRuntimeState.StageFor(0f, crop.stageCount, true), crop.stageCount);
                 return true;
             }
             if (_views.TryGetValue(position, out var view))
@@ -163,8 +164,6 @@ namespace MyLittleFarm.Gameplay.Farming
 
             _grid.SetFarmingCell(position, new FarmingCell { soilType = CellType.Tilled });
             _rainBaselines.Remove(position);
-            itemId = definition == null ? crop.cropId : definition.HarvestItemId;
-            yield = HarvestYield(crop.cropId);
             return true;
         }
         public float HarvestHour => _dayNight==null?-1:_dayNight.Hour;
@@ -260,9 +259,9 @@ namespace MyLittleFarm.Gameplay.Farming
             {
                 var farming=_grid.GetFarmingCell(pair.Key);
                 if(farming.soilType!=CellType.Planted)continue;
-                var elapsed=((double)nowUnixMs-farming.plantedAtUnixMs)/1000.0+GetWeatherBonus(pair.Key,farming);
-                var ratio=farming.growDurationSeconds<=0f?1f:Mathf.Clamp01((float)(elapsed/farming.growDurationSeconds));
-                var stage=ratio>=1f?farming.stageCount-1:Mathf.FloorToInt(ratio*Mathf.Max(1,farming.stageCount-1));
+                var ratio = CropRuntimeState.GrowthRatioAt(nowUnixMs, farming.plantedAtUnixMs,
+                    farming.growDurationSeconds, GetWeatherBonus(pair.Key, farming));
+                var stage = CropRuntimeState.StageFor(ratio, farming.stageCount, farming.isRegrowing);
                 pair.Value.SetStage(stage,farming.stageCount);
             }
         }

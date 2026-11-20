@@ -75,6 +75,34 @@ namespace MyLittleFarm.Tests.PlayMode
         }
 
         [UnityTest]
+        public IEnumerator SavingWithoutLoadingThisPointKeepsItsLastGoodBackup()
+        {
+            var save = Farm.GetComponentInChildren<SaveSystem>();
+            var wallet = Farm.GetComponentInChildren<WalletSystem>();
+            var path = Path.Combine(Application.temporaryCachePath, $"mvp-autosave-recovery-{Guid.NewGuid():N}.json");
+            try
+            {
+                wallet.SetCoins(17);
+                Assert.That(save.SaveToPath(path), Is.True);
+                wallet.SetCoins(29);
+                Assert.That(save.SaveToPath(path), Is.True);
+                File.WriteAllText(path, "{");
+
+                wallet.SetCoins(41);
+                Assert.That(save.SaveToPath(path), Is.True);
+                File.WriteAllText(path, "{");
+                Assert.That(save.LoadFromPath(path), Is.True);
+                Assert.That(wallet.Coins, Is.EqualTo(17));
+            }
+            finally
+            {
+                foreach (var file in new[] { path, path + ".tmp", path + ".bak" })
+                    if (File.Exists(file)) File.Delete(file);
+            }
+            yield return null;
+        }
+
+        [UnityTest]
         public IEnumerator CameraTurnAndAnimalWanderConvergeWithoutAnInstantSnap()
         {
             var input = Farm.GetComponent<InputReader>();

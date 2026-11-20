@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using MyLittleFarm.Core;
 using MyLittleFarm.Gameplay.Building;
 using MyLittleFarm.Gameplay.Farming;
@@ -27,11 +29,11 @@ namespace MyLittleFarm.Gameplay.Economy
         {
             if (market == null || !market.CanTrade || amount <= 0 || _inventory == null || _wallet == null
                 || _catalog == null || !_catalog.TryGetItem(itemId, out var item) || item.SellPrice <= 0
-                || _catalog.IsRareSeed(itemId) || itemId.EndsWith("_seed")
+                || _catalog.IsRareSeed(itemId) || itemId.EndsWith("_seed", StringComparison.Ordinal)
                 || _inventory.GetAmount(itemId) < amount
                 || !TransactionMath.TryAddSale(item.SellPrice, amount, _wallet.Coins, 0, out var earned)) return false;
-            if (!_inventory.TryRemove(itemId, amount)) return false;
-            _wallet.AddCoins((int)earned);
+            _inventory.SetAmountSilently(itemId, _inventory.GetAmount(itemId) - amount);
+            CompleteSale((int)earned);
             GameEvents.Record("sale", itemId, amount, earned);
             GameEvents.RaiseStatusChanged("Продано: " + amount + " × " + item.DisplayName + " (+" + earned + ")");
             GameEvents.RaiseProgressAction("sale");
@@ -52,61 +54,55 @@ namespace MyLittleFarm.Gameplay.Economy
             if (_catalog == null) return SellAllCarrots();
             long total = 0;
             long sold = 0;
+            var items = new HashSet<string>(StringComparer.Ordinal);
             foreach (var crop in _catalog.Crops)
-            {
-                if (!_catalog.TryGetItem(crop.HarvestItemId, out var item)) continue;
-                var amount = _inventory.GetAmount(item.ItemId);
-                // Проверка до умножения не допускает переполнения long при больших запасах.
-                if (!TransactionMath.TryAddSale(item.SellPrice, amount, _wallet.Coins, total,
-                    out var nextTotal)) return 0;
-                total = nextTotal;
-                sold += amount;
-            }
+                if (!QuoteItem(crop.HarvestItemId)) return 0;
             foreach (var id in FarmCatalog.FarmProductIds)
-            {
-                if (!_catalog.TryGetItem(id, out var product)) continue;
-                var amount = _inventory.GetAmount(id);
-                if (!TransactionMath.TryAddSale(product.SellPrice, amount, _wallet.Coins, total,
-                    out var nextTotal)) return 0;
-                total = nextTotal;
-                sold += amount;
-            }
+                if (!QuoteItem(id)) return 0;
             if (sold == 0) return 0;
-            foreach (var crop in _catalog.Crops)
-                if (_catalog.TryGetItem(crop.HarvestItemId, out var item))
-                {
-                    var amount = _inventory.GetAmount(item.ItemId);
-                    if (amount > 0) _inventory.TryRemove(item.ItemId, amount);
-                }
-            var containsJuice = _inventory.GetAmount(ApplePresses.JuiceId) > 0;
-            foreach (var id in FarmCatalog.FarmProductIds)
-            {
-                var amount = _inventory.GetAmount(id);
-                if (amount > 0 && _catalog.TryGetItem(id, out _)) _inventory.TryRemove(id, amount);
-            }
-            _wallet.AddCoins((int)total);
-            GameEvents.Record("sale", containsJuice ? ApplePresses.JuiceId : string.Empty, amount: sold, value: total);
+            foreach (var id in items) _inventory.SetAmountSilently(id, 0);
+            CompleteSale((int)total);
+            GameEvents.Record("sale", items.Contains(ApplePresses.JuiceId) ? ApplePresses.JuiceId : string.Empty, amount: sold, value: total);
             GameEvents.RaiseStatusChanged($"Продано урожая: {sold}  +{total} монет");
             return (int)total;
+
+            bool QuoteItem(string id)
+            {
+                var amount = _inventory.GetAmount(id);
+                if (amount == 0 || !_catalog.TryGetItem(id, out var item) || item.SellPrice <= 0 || !items.Add(id))
+                    return true;
+                if (!TransactionMath.TryAddSale(item.SellPrice, amount, _wallet.Coins, total, out var nextTotal))
+                    return false;
+                total = nextTotal;
+                sold += amount;
+                return true;
+            }
         }
 
         public int SellAllCarrots()
         {
             // До удаления урожая проверяется переполнение будущего баланса.
             var amount = _inventory.GetAmount(InventorySystem.CarrotId);
-            long earnedLong = 0;
-            if (amount <= 0 || !TransactionMath.TryAddSale(carrotSellPrice, amount, _wallet.Coins,
-                    0, out earnedLong)
-                || !_inventory.TryRemove(InventorySystem.CarrotId, amount))
+            var price = CarrotSellPrice;
+            if (amount <= 0 || price <= 0
+                || !TransactionMath.TryAddSale(price, amount, _wallet.Coins, 0, out var earnedLong))
             {
                 return 0;
             }
 
             var earned = (int)earnedLong;
-            _wallet.AddCoins(earned);
+            _inventory.SetAmountSilently(InventorySystem.CarrotId, 0);
+            CompleteSale(earned);
             GameEvents.Record("sale",amount:amount,value:earned);
             GameEvents.RaiseStatusChanged($"Продано: {amount} моркови  +{earned} монет");
             return earned;
+        }
+
+        private void CompleteSale(int earned)
+        {
+            _wallet.SetCoinsSilently(_wallet.Coins + earned);
+            GameEvents.RaiseInventoryChanged();
+            GameEvents.RaiseMoneyChanged(_wallet.Coins);
         }
     }
 }

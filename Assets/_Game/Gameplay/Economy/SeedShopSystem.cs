@@ -59,19 +59,18 @@ namespace MyLittleFarm.Gameplay.Economy
             }
             if (amount <= 0 || _catalog == null || !_catalog.TryGetItem(itemId, out var item)) return false;
             if(!item.CanBuy||_catalog.IsRareSeed(itemId)){GameEvents.RaiseStatusChanged("Редкие семена кукурузы: ищите тайники у пруда, в лесу и на холме (J)");return false;}
-            if (!TransactionMath.TryPurchase(item.BuyPrice, amount,
-                _inventory.GetAmount(item.ItemId), _wallet.Coins, out var cost))
+            var stock = _inventory.GetAmount(item.ItemId);
+            if (!TransactionMath.TryPurchase(item.BuyPrice, amount, stock, _wallet.Coins, out var cost))
             {
                 GameEvents.RaiseStatusChanged((long)item.BuyPrice * amount > _wallet.Coins
                     ? "Недостаточно монет для покупки" : "Инвентарь заполнен");
                 return false;
             }
-            if (!_wallet.TrySpend(cost))
-            {
-                GameEvents.RaiseStatusChanged("Недостаточно монет для семян");
-                return false;
-            }
-            _inventory.Add(item.ItemId, amount);
+            _inventory.SetAmountSilently(item.ItemId, stock + amount);
+            _wallet.SetCoinsSilently(_wallet.Coins - cost);
+            GameEvents.RaiseInventoryChanged();
+            GameEvents.RaiseMoneyChanged(_wallet.Coins);
+            if (cost > 0) GameEvents.Record("spent", value: cost);
             GameEvents.Record("purchase",item.ItemId,amount,cost);
             GameEvents.RaiseStatusChanged($"Куплено: {amount} × {item.DisplayName} (-{cost})");
             GameEvents.RaiseProgressAction("purchase");

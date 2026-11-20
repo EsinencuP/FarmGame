@@ -35,6 +35,7 @@ namespace MyLittleFarm.Core
         private double _playTimeSeconds;
         private string _lastPreview;
         private bool _showStartupMenu;
+        private bool _savedForQuit;
         public int ActiveSlot { get; private set; }
         public bool HasActiveFarm => _persistenceEnabled;
         public double PlayTimeSeconds => _playTimeSeconds;
@@ -136,6 +137,13 @@ namespace MyLittleFarm.Core
             return success;
         }
 
+        internal bool TrySaveForQuit()
+        {
+            if (!_persistenceEnabled) return true;
+            _savedForQuit = SaveActivePoint(true);
+            return _savedForQuit;
+        }
+
         public bool LoadSlot(int slot, bool manualOnly)
         {
             if (!SlotIsValid(slot)) return false;
@@ -148,15 +156,19 @@ namespace MyLittleFarm.Core
             }
             // Switching farms must not silently lose the active one's unsaved progress.
             if (_persistenceEnabled && slot != ActiveSlot && !SaveActivePoint(true)) return false;
-            if (!LoadFromPath(SlotPath(slot, point.IsAutosave)))
+            var other = point.IsAutosave ? info.Manual : info.Autosave;
+            var loadedPreferred = LoadFromPath(SlotPath(slot, point.IsAutosave));
+            if (!loadedPreferred && (manualOnly || !other.CanLoad || !LoadFromPath(SlotPath(slot, other.IsAutosave))))
             {
                 GameEvents.RaiseStatusChanged("Не удалось загрузить слот. Текущая ферма сохранена.");
                 return false;
             }
             ActiveSlot = slot; _persistenceEnabled = true; RememberActiveSlot();
             _nextAutosaveAt = Time.unscaledTime + autosaveIntervalSeconds;
+            mainMenu?.ResetMarketCart();
             SlotsChanged?.Invoke();
-            GameEvents.RaiseStatusChanged(LastLoadUsedBackup ? "Ферма восстановлена из резервной копии"
+            GameEvents.RaiseStatusChanged(!loadedPreferred ? "Загружена предыдущая точка · слот " + (slot + 1)
+                : LastLoadUsedBackup ? "Ферма восстановлена из резервной копии"
                 : "Загружен слот " + (slot + 1));
             MyLittleFarm.Audio.FarmAudio.Play(MyLittleFarm.Audio.SoundId.Load);
             return true;
@@ -188,6 +200,7 @@ namespace MyLittleFarm.Core
             }
             ActiveSlot = slot; _persistenceEnabled = true; RememberActiveSlot();
             _nextAutosaveAt = Time.unscaledTime + autosaveIntervalSeconds;
+            mainMenu?.ResetMarketCart();
             SlotsChanged?.Invoke();
             GameEvents.RaiseStatusChanged("Новая ферма · слот " + (slot + 1));
             return true;

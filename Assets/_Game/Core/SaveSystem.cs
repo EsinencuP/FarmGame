@@ -21,6 +21,7 @@ namespace MyLittleFarm.Core
         // Версия 5 сохраняет только отличия от базовой карты и поверхность под игровыми слоями.
         public const int CurrentSaveVersion = 18;
         private const int MaxCollectionEntries = 100_000;
+        private const int MaxSaveFileBytes = 16 * 1024 * 1024;
 
         [Header("Persistence")]
         [Tooltip("Интервал автоматического сохранения в секундах реального времени.")]
@@ -48,7 +49,7 @@ namespace MyLittleFarm.Core
         private float _nextAutosaveAt;
         // false запрещает автозапись после ошибки загрузки, чтобы не затереть повреждённый файл.
         private bool _persistenceEnabled;
-        private string _recoveredPath;
+        private readonly HashSet<string> _recoveredPaths = new HashSet<string>(StringComparer.Ordinal);
 
         /// <summary>True when the latest load used the last valid backup instead of the primary file.</summary>
         public bool LastLoadUsedBackup { get; private set; }
@@ -85,7 +86,8 @@ namespace MyLittleFarm.Core
             _playTimeSeconds = 0;
             _lastPreview = null;
             _newFarm = null; _showStartupMenu = false; _legacyUnavailable = false;
-            _recoveredPath = null; LastLoadUsedBackup = false; ActiveSlot = 0;
+            _recoveredPaths.Clear(); LastLoadUsedBackup = false; ActiveSlot = 0;
+            _savedForQuit = false;
             if (slotMenu != null) slotMenu.Configure(this, input);
             _nextAutosaveAt = Time.unscaledTime + autosaveIntervalSeconds;
         }
@@ -250,11 +252,16 @@ namespace MyLittleFarm.Core
                 if (includePreview) snapshot.previewPngBase64 = CapturePreview();
                 ValidateAndMigrate(snapshot);
                 var json = JsonUtility.ToJson(snapshot, true);
+                if (Encoding.UTF8.GetByteCount(json) > MaxSaveFileBytes)
+                    throw new InvalidDataException("Save file is too large.");
                 ValidateAndMigrate(JsonUtility.FromJson<SaveData>(json));
                 var fullPath = Path.GetFullPath(path);
-                var preserveBackup = string.Equals(fullPath, _recoveredPath, StringComparison.Ordinal);
+                // The active farm may have been loaded from a different point in this slot.
+                // Never rotate a corrupt primary over the surviving backup in that case either.
+                var preserveBackup = _recoveredPaths.Contains(fullPath)
+                    || (File.Exists(fullPath + ".bak") && !TryReadValidated(fullPath, out _, true));
                 WriteAtomically(fullPath, json, preserveBackup);
-                if (preserveBackup) _recoveredPath = null;
+                _recoveredPaths.Remove(fullPath);
                 if (includePreview) _lastPreview = snapshot.previewPngBase64;
                 return true;
             }
@@ -276,12 +283,12 @@ namespace MyLittleFarm.Core
                 if (TryReadValidated(fullPath, out var data))
                 {
                     Restore(data);
-                    if (string.Equals(fullPath, _recoveredPath, StringComparison.Ordinal)) _recoveredPath = null;
+                    _recoveredPaths.Remove(fullPath);
                     return true;
                 }
                 if (!TryReadValidated(fullPath + ".bak", out data)) return false;
                 Restore(data);
-                _recoveredPath = fullPath;
+                _recoveredPaths.Add(fullPath);
                 LastLoadUsedBackup = true;
                 Debug.LogWarning("My Little Farm: restored the last valid backup; primary save was missing or invalid.");
                 return true;
@@ -300,7 +307,7 @@ namespace MyLittleFarm.Core
             if (!File.Exists(path)) return false;
             try
             {
-                if (new FileInfo(path).Length > 16 * 1024 * 1024)
+                if (new FileInfo(path).Length > MaxSaveFileBytes)
                     throw new InvalidDataException("Save file is too large.");
                 var candidate = JsonUtility.FromJson<SaveData>(File.ReadAllText(path));
                 ValidateAndMigrate(candidate);
@@ -328,7 +335,7 @@ namespace MyLittleFarm.Core
                     writer.Write(contents);
                 stream.Flush(true);
             }
-            // After recovery the good backup must not be replaced by the corrupt primary.
+            // Keep the surviving backup when the previous primary cannot be used.
             if (File.Exists(path)) File.Replace(temporaryPath, path, preserveBackup ? null : backupPath);
             else File.Move(temporaryPath, path);
         }
@@ -780,7 +787,7 @@ namespace MyLittleFarm.Core
         private void OnApplicationQuit()
         {
             // Выход сохраняет игру только после успешной инициализации подсистемы хранения.
-            if (_persistenceEnabled && _player != null && _grid != null && _crops != null
+            if (!_savedForQuit && _persistenceEnabled && _player != null && _grid != null && _crops != null
                 && _crops.IsConfigured && _inventory != null && _wallet != null) SaveActivePoint(true);
         }
     }

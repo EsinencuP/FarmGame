@@ -150,14 +150,35 @@ namespace MyLittleFarm.Gameplay.Economy
                 if (category == Category.Sell)
                 {
                     var containsJuice = order.Exists(line => line.Key == ApplePresses.JuiceId);
-                    foreach (var line in order) inventory.TryRemove(line.Key, line.Value);
-                    wallet.AddCoins(total);
-                    GameEvents.Record("sale", containsJuice ? ApplePresses.JuiceId : string.Empty, value: total);
+                    long sold = 0;
+                    foreach (var line in order)
+                    {
+                        inventory.SetAmountSilently(line.Key, Owned(line.Key) - line.Value);
+                        sold += line.Value;
+                    }
+                    wallet.SetCoinsSilently(Balance + total);
+                    GameEvents.RaiseInventoryChanged();
+                    GameEvents.RaiseMoneyChanged(Balance);
+                    GameEvents.Record("sale", containsJuice ? ApplePresses.JuiceId : string.Empty, sold, total);
                     GameEvents.RaiseProgressAction("sale");
                 }
                 else if (category == Category.Animals)
                 {
                     if (!animals.TryPurchase(cart, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), out reason)) return false;
+                    MyLittleFarm.Audio.FarmAudio.PlayAtPlayer(MyLittleFarm.Audio.SoundId.Purchase);
+                }
+                else if (category == Category.Seeds)
+                {
+                    foreach (var line in order) inventory.SetAmountSilently(line.Key, Owned(line.Key) + line.Value);
+                    wallet.SetCoinsSilently(Balance - total);
+                    GameEvents.RaiseInventoryChanged();
+                    GameEvents.RaiseMoneyChanged(Balance);
+                    if (total > 0) GameEvents.Record("spent", value: total);
+                    foreach (var line in order)
+                    {
+                        var offer = offers.Find(o => o.Id == line.Key);
+                        GameEvents.Record("purchase", offer.ItemId, line.Value, offer.Price * line.Value);
+                    }
                     GameEvents.RaiseProgressAction("purchase");
                     MyLittleFarm.Audio.FarmAudio.PlayAtPlayer(MyLittleFarm.Audio.SoundId.Purchase);
                 }
@@ -167,13 +188,11 @@ namespace MyLittleFarm.Gameplay.Economy
                     foreach (var line in order)
                     {
                         var offer = offers.Find(o => o.Id == line.Key);
-                        if (category == Category.Seeds) { inventory.Add(offer.ItemId, line.Value); GameEvents.Record("purchase", offer.ItemId, line.Value, offer.Price * line.Value); }
-                        else if (line.Key.StartsWith("tool:")) { tool.Restore(tool.Level + 1); MyLittleFarm.Audio.FarmAudio.PlayAtPlayer(MyLittleFarm.Audio.SoundId.ToolUpgrade); }
+                        if (line.Key.StartsWith("tool:")) { tool.Restore(tool.Level + 1); MyLittleFarm.Audio.FarmAudio.PlayAtPlayer(MyLittleFarm.Audio.SoundId.ToolUpgrade); }
                         else if (line.Key == "sector") { sector.Restore(true); GameEvents.Record("sector"); }
                         else if (line.Key == "shepherd") progress.GrantShepherd();
                         else if (line.Key.StartsWith("house:")) buildings.CompleteHouseUpgrade(offer.ItemId);
                     }
-                    GameEvents.RaiseProgressAction("purchase");
                     MyLittleFarm.Audio.FarmAudio.PlayAtPlayer(MyLittleFarm.Audio.SoundId.Purchase);
                 }
                 GameEvents.RaiseActionFeedback(category == Category.Sell ? "sale" : "purchase", proximity.TradePosition,

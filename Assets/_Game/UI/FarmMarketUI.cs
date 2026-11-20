@@ -29,6 +29,7 @@ namespace MyLittleFarm.UI
         private float _balancePulseUntil;
         private Color _balancePulseColor;
         private float _nextProximityCheck;
+        private bool _wasNearMarket;
         private Dictionary<string, int> Cart => _carts[(int)_category];
         public RectTransform Panel => panel;
         public Button CloseButton => close;
@@ -68,6 +69,15 @@ namespace MyLittleFarm.UI
             for(var i=0;i<5;i++)At((RectTransform)tabs[i].transform,40+i*274,78,264,64);
         }
         public void Hide() => gameObject.SetActive(false);
+        internal void ResetCart()
+        {
+            foreach (var cart in _carts) cart.Clear();
+            _receipt = null;
+            _selected = null;
+            _quantity = 1;
+            Dirty();
+        }
+
         public void Preview(int category = 0, bool sampleCart = false)
         {
             if (Application.isPlaying) return;
@@ -117,8 +127,7 @@ namespace MyLittleFarm.UI
             }
             if (Time.unscaledTime < _nextProximityCheck) return;
             _nextProximityCheck = Time.unscaledTime + .2f;
-            if(_category==FarmMarket.Category.Orders)Dirty();
-            if (!market.CanTrade) { pay.interactable = false; add.interactable = false; status.text = FarmText.Get("market.approach"); }
+            if (_wasNearMarket != market.CanTrade) Refresh();
         }
         private void SelectCategory(int index)
         {
@@ -135,7 +144,12 @@ namespace MyLittleFarm.UI
         private FarmMarket.Offer Selected => _offers == null ? null : _offers.Find(o => o.Id == _selected);
         private int Remaining(FarmMarket.Offer offer) => Mathf.Max(0, offer.Maximum - (Cart.TryGetValue(offer.Id, out var value) ? value : 0));
         private void Less() { _quantity = Mathf.Max(1, _quantity - 1); Details(); }
-        private void More() { if (Selected != null) _quantity = Mathf.Min(_quantity + 1, Mathf.Max(1, Remaining(Selected))); Details(); }
+        private void More()
+        {
+            var offer = Selected;
+            if (offer != null && _quantity < Remaining(offer)) _quantity++;
+            Details();
+        }
         private void EnterQuantity(string value) { if (int.TryParse(value, out var amount)) _quantity = amount; Details(); }
         private void Maximum()
         {
@@ -171,6 +185,7 @@ namespace MyLittleFarm.UI
         }
         private void Refresh()
         {
+            _wasNearMarket = market.CanTrade;
             _offers = market.Offers(_category);
             EnsureCardCapacity(_offers.Count);
             if (!_offers.Exists(o => o.Id == _selected)) _selected = _offers.Count == 0 ? null : _offers[0].Id;

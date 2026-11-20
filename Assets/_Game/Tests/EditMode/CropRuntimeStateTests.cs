@@ -6,6 +6,23 @@ namespace MyLittleFarm.Tests.EditMode
     /// <summary>Проверяет расчёт прогресса культуры только по сохранённым временным данным.</summary>
     public sealed class CropRuntimeStateTests
     {
+        [TestCase(2, 0)]
+        [TestCase(3, 1)]
+        public void RegrowingCropUsesAnUnripeStageUntilReady(int stages, int regrowthStage)
+        {
+            var crop = new CropRuntimeState
+            {
+                plantedAtUnixMs = 10_000,
+                growDurationSeconds = 8f,
+                stageCount = stages,
+                isRegrowing = true
+            };
+
+            Assert.That(crop.GetStage(10_000), Is.EqualTo(regrowthStage));
+            Assert.That(crop.GetStage(17_999), Is.EqualTo(regrowthStage));
+            Assert.That(crop.GetStage(18_000), Is.EqualTo(stages - 1));
+        }
+
         /// <summary>Подтверждает правильные стадии в начале, середине, перед зрелостью и после неё.</summary>
         [Test]
         public void GrowthStages_AreCalculatedFromUtcTimestamp()
