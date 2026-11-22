@@ -33,10 +33,10 @@ namespace MyLittleFarm.Editor
             foreach (var button in nav.GetComponentsInChildren<UnityEngine.UI.Button>(true))
                 if (button.transform.parent == nav && Array.IndexOf(removed, button.name) >= 0) UnityEngine.Object.DestroyImmediate(button.gameObject);
             var font = AssetDatabase.LoadAssetAtPath<Font>("Assets/_Game/Content/UI/Nunito.ttf");
-            var animals = farm.GetComponentInChildren<AnimalSystem>(true); var orchard = farm.GetComponentInChildren<OrchardSystem>(true);
+            var animals = farm.GetComponentInChildren<AnimalSystem_AI>(true); var orchard = farm.GetComponentInChildren<OrchardSystem_AI>(true);
             menu.ConfigureGameplayReference(font, farm.GetComponentInChildren<FarmCatalog>(true), animals, orchard, farm.GetComponentInChildren<SeedShopSystem>(true));
-            farm.GetComponentInChildren<MyLittleFarm.Gameplay.World.FarmProgression>(true).ConfigureGuideNavigation(menu);
-            menu.GetComponentInChildren<FarmInventoryUI>(true).ConfigureReferenceDetails(font, orchard, animals);
+            farm.GetComponentInChildren<MyLittleFarm.Gameplay.World.FarmProgression_AI>(true).ConfigureGuideNavigation(menu);
+            menu.GetComponentInChildren<FarmInventoryUI_AI>(true).ConfigureReferenceDetails(font, orchard, animals);
             menu.Preview(FarmMenuUI.Page.Game); EditorUtility.SetDirty(menu);
         }
     }

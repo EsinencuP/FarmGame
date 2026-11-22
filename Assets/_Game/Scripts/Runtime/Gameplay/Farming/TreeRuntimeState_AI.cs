@@ -14,6 +14,7 @@ namespace MyLittleFarm.Gameplay.Farming
         // Время посадки и последнего сбора позволяют вычислить офлайн-плодоношение.
         public long plantedAtUnixMs;
         public long lastHarvestAtUnixMs;
+        // После сбора эти данные сбрасываются для следующей партии плодов.
         public bool manuallyWatered;
         public float rainySeconds;
         public bool sizeReady;

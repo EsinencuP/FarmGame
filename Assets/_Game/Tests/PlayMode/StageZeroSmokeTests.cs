@@ -53,15 +53,15 @@ namespace MyLittleFarm.Tests.PlayMode
             // Ищем все основные системы, чтобы ранняя ошибка сборки давала точное сообщение теста.
             var grid = UnityEngine.Object.FindFirstObjectByType<GridSystem>();
             var soil = UnityEngine.Object.FindFirstObjectByType<SoilSystem>();
-            var crops = UnityEngine.Object.FindFirstObjectByType<CropSystem>();
-            var inventory = UnityEngine.Object.FindFirstObjectByType<InventorySystem>();
+            var crops = UnityEngine.Object.FindFirstObjectByType<CropSystem_AI>();
+            var inventory = UnityEngine.Object.FindFirstObjectByType<InventorySystem_AI>();
             var wallet = UnityEngine.Object.FindFirstObjectByType<WalletSystem>();
             var selling = UnityEngine.Object.FindFirstObjectByType<SellingSystem>();
-            var save = UnityEngine.Object.FindFirstObjectByType<SaveSystem>();
+            var save = UnityEngine.Object.FindFirstObjectByType<SaveSystem_AI>();
             var player = UnityEngine.Object.FindFirstObjectByType<PlayerController>();
             var cameraController = UnityEngine.Object.FindFirstObjectByType<IsometricCameraController>();
             var selector = UnityEngine.Object.FindFirstObjectByType<CellSelector>();
-            var interaction = UnityEngine.Object.FindFirstObjectByType<InteractionSystem>();
+            var interaction = UnityEngine.Object.FindFirstObjectByType<InteractionSystem_AI>();
             var hud = UnityEngine.Object.FindFirstObjectByType<HUDController>();
 
             Assert.That(grid, Is.Not.Null);
@@ -96,12 +96,12 @@ namespace MyLittleFarm.Tests.PlayMode
             Assert.That(interaction.InteractWithCell(position, now - 9_000), Is.True, "Plant seed");
             yield return new WaitForSecondsRealtime(.2f);
             Assert.That(interaction.InteractWithCell(position, now), Is.True, "Harvest mature crop");
-            Assert.That(inventory.GetAmount(InventorySystem.CarrotId), Is.EqualTo(crops.YieldAmount));
+            Assert.That(inventory.GetAmount(InventorySystem_AI.CarrotId), Is.EqualTo(crops.YieldAmount));
 
             var coinsBeforeSale = wallet.Coins;
             player.Teleport(new Vector3(8.5f, 1.1f, 1.5f));
             var shop = Farm.GetComponentInChildren<SeedShopSystem>();
-            Assert.That(selling.TrySellItem(InventorySystem.CarrotId, crops.YieldAmount, shop), Is.True, "Sell harvested crop");
+            Assert.That(selling.TrySellItem(InventorySystem_AI.CarrotId, crops.YieldAmount, shop), Is.True, "Sell harvested crop");
             Assert.That(wallet.Coins, Is.GreaterThan(coinsBeforeSale));
 
             var snapshot = save.Capture();
@@ -110,7 +110,7 @@ namespace MyLittleFarm.Tests.PlayMode
             save.Restore(snapshot);
 
             Assert.That(wallet.Coins, Is.EqualTo(expectedCoins));
-            Assert.That(snapshot.saveVersion, Is.EqualTo(SaveSystem.CurrentSaveVersion));
+            Assert.That(snapshot.saveVersion, Is.EqualTo(SaveSystem_AI.CurrentSaveVersion));
         }
 
         /// <summary>Проверяет запись файла и восстановление всех данных фермы и игрока.</summary>
@@ -121,11 +121,11 @@ namespace MyLittleFarm.Tests.PlayMode
 
             var grid = UnityEngine.Object.FindFirstObjectByType<GridSystem>();
             var soil = UnityEngine.Object.FindFirstObjectByType<SoilSystem>();
-            var crops = UnityEngine.Object.FindFirstObjectByType<CropSystem>();
-            var inventory = UnityEngine.Object.FindFirstObjectByType<InventorySystem>();
+            var crops = UnityEngine.Object.FindFirstObjectByType<CropSystem_AI>();
+            var inventory = UnityEngine.Object.FindFirstObjectByType<InventorySystem_AI>();
             var wallet = UnityEngine.Object.FindFirstObjectByType<WalletSystem>();
             var player = UnityEngine.Object.FindFirstObjectByType<PlayerController>();
-            var save = UnityEngine.Object.FindFirstObjectByType<SaveSystem>();
+            var save = UnityEngine.Object.FindFirstObjectByType<SaveSystem_AI>();
             // Уникальный временный путь исключает влияние параллельных и прошлых запусков теста.
             var path = Path.Combine(Application.temporaryCachePath, $"stage-zero-{Guid.NewGuid():N}.json");
 
@@ -133,9 +133,9 @@ namespace MyLittleFarm.Tests.PlayMode
             {
                 var plantedPosition = new Vector2Int(1, 1);
                 Assert.That(soil.Till(plantedPosition), Is.True);
-                Assert.That(inventory.TryRemove(InventorySystem.CarrotSeedId, 1), Is.True);
+                Assert.That(inventory.TryRemove(InventorySystem_AI.CarrotSeedId, 1), Is.True);
                 Assert.That(crops.Plant(plantedPosition, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()), Is.True);
-                inventory.Add(InventorySystem.CarrotId, 3);
+                inventory.Add(InventorySystem_AI.CarrotId, 3);
                 wallet.SetCoins(73);
                 player.Teleport(new Vector3(1.5f, 1.1f, 2.5f));
 
@@ -150,7 +150,7 @@ namespace MyLittleFarm.Tests.PlayMode
 
                 Assert.That(save.LoadFromPath(path), Is.True);
                 Assert.That(wallet.Coins, Is.EqualTo(73));
-                Assert.That(inventory.GetAmount(InventorySystem.CarrotId), Is.EqualTo(3));
+                Assert.That(inventory.GetAmount(InventorySystem_AI.CarrotId), Is.EqualTo(3));
                 Assert.That(crops.Contains(plantedPosition), Is.True);
                 Assert.That(grid.TryGetCell(plantedPosition, out var cell), Is.True);
                 Assert.That(cell.type, Is.EqualTo(CellType.Planted));

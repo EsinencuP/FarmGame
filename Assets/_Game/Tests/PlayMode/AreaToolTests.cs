@@ -23,7 +23,7 @@ namespace MyLittleFarm.Tests.PlayMode
         public IEnumerator PreviewBudgetMatchesPlantingAndRepeatDoesNotDuplicateHarvest()
         {
             yield return null;
-            var c=new Vector2Int(3,2);var grid=System<GridSystem>();var actions=System<InteractionSystem>();
+            var c=new Vector2Int(3,2);var grid=System<GridSystem>();var actions=System<InteractionSystem_AI>();
             var player = System<PlayerController>();
             var slots=System<QuickSlotSystem>();var tools=System<ToolUpgradeSystem>();tools.Restore(2);
             var now=DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
@@ -44,24 +44,24 @@ namespace MyLittleFarm.Tests.PlayMode
             slots.SelectTool(QuickSlotSystem.SelectionMode.Hoe);
             Assert.That(actions.PlanField(c,now).Allowed,Is.EqualTo(9));Assert.That(actions.InteractWithCell(c,now),Is.True);
             yield return new WaitForSecondsRealtime(.2f);
-            var items=System<InventorySystem>();items.TryRemove("carrot_seed",items.GetAmount("carrot_seed"));items.Add("carrot_seed",4);slots.Select(0);
+            var items=System<InventorySystem_AI>();items.TryRemove("carrot_seed",items.GetAmount("carrot_seed"));items.Add("carrot_seed",4);slots.Select(0);
             var preview=actions.PlanField(c,now);Assert.That(preview.Allowed,Is.EqualTo(4));
             var reentered=false;Action observer=()=>reentered|=actions.InteractWithCell(c,now);
             GameEvents.InventoryChanged+=observer;
             try{Assert.That(actions.InteractWithCell(c,now),Is.True);}finally{GameEvents.InventoryChanged-=observer;}
             Assert.That(reentered,Is.False);Assert.That(items.GetAmount("carrot_seed"),Is.Zero);
-            Assert.That(System<CropSystem>().Capture().Count,Is.EqualTo(4));Assert.That(actions.InteractWithCell(c,now),Is.False);
+            Assert.That(System<CropSystem_AI>().Capture().Count,Is.EqualTo(4));Assert.That(actions.InteractWithCell(c,now),Is.False);
             yield return new WaitForSecondsRealtime(.2f);
             var mature=now+60000;Assert.That(actions.PlanField(c,mature).Allowed,Is.EqualTo(4));
             Assert.That(actions.InteractWithCell(c,mature),Is.True);var collected=items.GetAmount("carrot");
-            Assert.That(collected,Is.EqualTo(4*System<CropSystem>().HarvestYield("carrot")));
+            Assert.That(collected,Is.EqualTo(4*System<CropSystem_AI>().HarvestYield("carrot")));
             Assert.That(actions.InteractWithCell(c,mature),Is.False);Assert.That(items.GetAmount("carrot"),Is.EqualTo(collected));
         }
         [UnityTest]
         public IEnumerator RotationAndProtectedCellsMatchTheCommittedMask()
         {
             yield return null;
-            var grid=System<GridSystem>();var actions=System<InteractionSystem>();var c=new Vector2Int(3,4);
+            var grid=System<GridSystem>();var actions=System<InteractionSystem_AI>();var c=new Vector2Int(3,4);
             System<PlayerController>().Teleport(grid.CellToWorld(c)+Vector3.up*1.1f);
             System<QuickSlotSystem>().SelectTool(QuickSlotSystem.SelectionMode.Hoe);System<ToolUpgradeSystem>().Restore(1);
             var now=DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();var initial=actions.PlanField(c,now);actions.RotateField();var rotated=actions.PlanField(c,now);
@@ -69,7 +69,7 @@ namespace MyLittleFarm.Tests.PlayMode
             System<ToolUpgradeSystem>().Restore(2);System<WalletSystem>().SetCoins(1000);
             Assert.That(System<BuildSystem>().TryPlace("storage",new Vector2Int(4,3),0,out var reason),Is.True,reason);
             grid.SetCellType(new Vector2Int(2,3),CellType.Water);
-            Assert.That(System<AnimalSystem>().AddChicken(new Vector2Int(2,4),now),Is.True);
+            Assert.That(System<AnimalSystem_AI>().AddChicken(new Vector2Int(2,4),now),Is.True);
             var plan=actions.PlanField(c,now);Assert.That(plan.Allowed,Is.LessThan(9));
             Assert.That(plan.Cells.First(p=>p.Position==new Vector2Int(2,4)).SkipReason,Is.EqualTo("животное"));
             Assert.That(actions.InteractWithCell(c,now),Is.True);
@@ -82,7 +82,7 @@ namespace MyLittleFarm.Tests.PlayMode
         public IEnumerator OlderPaidLevelsConvertToAreasAndPermanentToolGrantsOnce()
         {
             yield return null;
-            var save=System<SaveSystem>();var tools=System<ToolUpgradeSystem>();var items=System<InventorySystem>();
+            var save=System<SaveSystem_AI>();var tools=System<ToolUpgradeSystem>();var items=System<InventorySystem_AI>();
             var old=save.Capture();old.saveVersion=16;old.toolUpgradeLevel=2;old.baseHoeGranted=false;
             var path=Path.Combine(Application.temporaryCachePath,"U16-"+Guid.NewGuid().ToString("N")+".json");
             File.WriteAllText(path,JsonUtility.ToJson(old));

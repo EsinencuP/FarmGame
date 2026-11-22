@@ -15,7 +15,7 @@ namespace MyLittleFarm.Tests.PlayMode
         [UnityTest]
         public IEnumerator PlayerSettlesOnThePhysicalPlane()
         {
-            Farm.GetComponent<InputReader>().enabled = false;
+            Farm.GetComponent<InputReader_AI>().enabled = false;
             var player = Farm.GetComponentInChildren<PlayerController>();
             player.Teleport(new Vector3(3.5f, 1.1f, 0.5f));
             var deadline = Time.time + 1.5f;
@@ -30,7 +30,7 @@ namespace MyLittleFarm.Tests.PlayMode
         [UnityTest]
         public IEnumerator ChickenFeetStayOnGroundDuringWander()
         {
-            var animals = Farm.GetComponentInChildren<AnimalSystem>();
+            var animals = Farm.GetComponentInChildren<AnimalSystem_AI>();
             Assert.That(animals.AddChicken(new Vector2Int(1, 3), 1), Is.True);
             var chicken = animals.GetComponentInChildren<AnimalView>();
             Assert.That(VisualPrefab.TryGetBounds(chicken.gameObject, out var initial), Is.True);

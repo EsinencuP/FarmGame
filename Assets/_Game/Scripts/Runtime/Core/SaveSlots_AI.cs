@@ -24,7 +24,7 @@ namespace MyLittleFarm.Core
             : !Autosave.CanLoad || Manual.SavedAtUnixMs >= Autosave.SavedAtUnixMs ? Manual : Autosave;
     }
 
-    public sealed partial class SaveSystem
+    public sealed partial class SaveSystem_AI
     {
         public const int SlotCount = 3;
         private const string ActiveSlotKey = "MyLittleFarm.Save.ActiveSlot";

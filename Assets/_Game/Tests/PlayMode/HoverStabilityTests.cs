@@ -15,9 +15,9 @@ namespace MyLittleFarm.Tests.PlayMode
         [UnityTest]
         public IEnumerator MovingSameChickenAcrossCellEdgeKeepsDwellAndNeverSelectsGround()
         {
-            Farm.GetComponent<InputReader>().enabled=false;
+            Farm.GetComponent<InputReader_AI>().enabled=false;
             var selector=Farm.GetComponentInChildren<CellSelector>();selector.enabled=false;
-            var animals=Farm.GetComponentInChildren<AnimalSystem>();animals.AddChicken(new Vector2Int(1,3),1);animals.enabled=false;
+            var animals=Farm.GetComponentInChildren<AnimalSystem_AI>();animals.AddChicken(new Vector2Int(1,3),1);animals.enabled=false;
             var target=animals.GetComponentInChildren<InteractionTarget>();target.GetComponent<AnimalView>().enabled=false;
             selector.SelectRay(new Ray(target.transform.position+Vector3.up*5,Vector3.down));
             yield return new WaitForSeconds(.2f);
@@ -35,13 +35,13 @@ namespace MyLittleFarm.Tests.PlayMode
         [UnityTest]
         public IEnumerator BriefMissRetainsPublishedPromptUntilNewHoverSettles()
         {
-            var input=Farm.GetComponent<InputReader>();input.enabled=false;
+            var input=Farm.GetComponent<InputReader_AI>();input.enabled=false;
             var selector=Farm.GetComponentInChildren<CellSelector>();selector.enabled=false;
-            var animals=Farm.GetComponentInChildren<AnimalSystem>();animals.AddChicken(new Vector2Int(1,3),1);
+            var animals=Farm.GetComponentInChildren<AnimalSystem_AI>();animals.AddChicken(new Vector2Int(1,3),1);
             var grid = Farm.GetComponentInChildren<GridSystem>();
             Farm.GetComponentInChildren<PlayerController>().Teleport(grid.CellToWorld(new Vector2Int(1, 2)) + Vector3.up * .8f);
             var target=animals.GetComponentInChildren<InteractionTarget>();selector.SelectTarget(target);
-            var interaction=Farm.GetComponentInChildren<InteractionSystem>();
+            var interaction=Farm.GetComponentInChildren<InteractionSystem_AI>();
             yield return new WaitForSeconds(.25f);
             var original=interaction.CurrentPrompt;Assert.That(original,Does.Contain("Кури"));
             selector.SelectRay(new Ray(new Vector3(5000,10,5000),Vector3.down));

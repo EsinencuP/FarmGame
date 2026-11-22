@@ -39,11 +39,11 @@ namespace MyLittleFarm.Gameplay.Building
     internal sealed class ProductionBatches
     {
         private const long MaxUnixMs = 253402300799999L;
-        private readonly InventorySystem _inventory;
+        private readonly InventorySystem_AI _inventory;
         private readonly Dictionary<string, ProductionBatchData> _batches = new Dictionary<string, ProductionBatchData>(StringComparer.Ordinal);
         private bool _changing;
         internal Action<string> RecordCollection { get; set; }
-        public ProductionBatches(InventorySystem inventory) => _inventory=inventory;
+        public ProductionBatches(InventorySystem_AI inventory) => _inventory=inventory;
         public bool IsOccupied(string id) => id != null && _batches.ContainsKey(id);
         public bool HasPressBatches
         { get { foreach(var batch in _batches.Values) if(batch.recipeId==ProductionRecipe.Press.Id) return true; return false; } }
@@ -57,6 +57,7 @@ namespace MyLittleFarm.Gameplay.Building
                 ? "готовность через "+FarmText.Duration((float)Math.Ceiling((batch.readyAtUnixMs-now)/1000d)) : "продукт готов";
             return recipe.Name+" · "+state+"\n"+hint+" — открыть производство";
         }
+        // Проверяю сырьё и записываю партию с временем готовности.
         public bool TryStart(string id, ProductionRecipe recipe, long now, out string message)
         {
             message="Партия уже находится в постройке. Сначала заберите продукт.";
@@ -73,6 +74,7 @@ namespace MyLittleFarm.Gameplay.Building
             }
             finally { _changing=false; }
         }
+        // Если партия готова и помещается в сумку, выдаю её и сообщаю рынку.
         public bool TryCollect(string id, long now, out string message)
         {
             message="Нет готового продукта.";
@@ -85,6 +87,7 @@ namespace MyLittleFarm.Gameplay.Building
             {
                 _batches.Remove(id);
                 _inventory.SetAmountSilently(batch.outputItemId, _inventory.GetAmount(batch.outputItemId) + batch.outputAmount);
+                // Рынок узнаёт именно о полученной партии. Запуск рецепта этот счётчик не меняет.
                 RecordCollection?.Invoke(batch.outputItemId);
                 GameEvents.RaiseInventoryChanged();
                 message="Продукт получен · "+batch.outputAmount+" шт."; return true;

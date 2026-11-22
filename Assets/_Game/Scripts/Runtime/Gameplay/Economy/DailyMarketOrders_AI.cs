@@ -15,17 +15,18 @@ namespace MyLittleFarm.Gameplay.Economy
     {
         public const double DaySeconds=840;
         private readonly FarmCatalog _catalog;
-        private readonly InventorySystem _inventory;
+        private readonly InventorySystem_AI _inventory;
         private readonly WalletSystem _wallet;
         private readonly BuildSystem _build;
-        private readonly AnimalSystem _animals;
-        private readonly OrchardSystem _orchard;
+        private readonly AnimalSystem_AI _animals;
+        private readonly OrchardSystem_AI _orchard;
         private MarketOrdersData _data;
         private bool _changing;
         public double Remaining=>DaySeconds-_data.elapsedSeconds;
         public int Day=>_data.day;
         public IReadOnlyList<MarketOrderData> Current=>Capture().orders;
-        public DailyMarketOrders(FarmCatalog catalog,InventorySystem inventory,WalletSystem wallet,BuildSystem build,AnimalSystem animals,OrchardSystem orchard,
+        // Подключаю данные фермы и подписываю мастерские на запись успешной выдачи партий.
+        public DailyMarketOrders(FarmCatalog catalog,InventorySystem_AI inventory,WalletSystem wallet,BuildSystem build,AnimalSystem_AI animals,OrchardSystem_AI orchard,
             MarketBalance marketBalance = null)
         {
             _catalog=catalog;_inventory=inventory;_wallet=wallet;_build=build;_animals=animals;_orchard=orchard;
@@ -34,12 +35,15 @@ namespace MyLittleFarm.Gameplay.Economy
             if (build?.Production != null) build.Production.RecordCollection = RecordProduction;
         }
         private SaveData Live()=>new SaveData{buildings=_build?.Capture()??new List<BuildingRuntimeState>(),animals=_animals?.Capture()??new List<AnimalRuntimeState>(),trees=_orchard?.Capture()??new List<TreeRuntimeState>()};
+        // Завожу новые экономические сутки и первый набор заказов.
         public static MarketOrdersData Initial(FarmCatalog catalog,SaveData farm,int seed)
         {
             var data=new MarketOrdersData{seed=Math.Max(1,seed)};Generate(data,catalog,farm);return data;
         }
+        // Для старой фермы получаю стабильное стартовое число из её сохранения.
         public static MarketOrdersData Legacy(FarmCatalog catalog,SaveData farm)
             =>Initial(catalog,farm,unchecked((int)(farm.savedAtUnixMs^farm.worldBaseHash))&int.MaxValue);
+        // Собираю список доступных товаров и добавляю персональный заказ, если нашёлся подходящий.
         private static void Generate(MarketOrdersData data,FarmCatalog catalog,SaveData farm,int elapsedDays=0)
         {
             var pool=new List<string>{"carrot","potato","wheat","tomato","cucumber","strawberry","pumpkin","apple"};
@@ -54,11 +58,13 @@ namespace MyLittleFarm.Gameplay.Economy
             if(farm.trees.Any(t=>t.treeId=="pear"))pool.Add("pear");
             pool.RemoveAll(id=>catalog!=null && !catalog.TryGetItem(id,out _));
             if(catalog==null)pool=new List<string>{"carrot"};
+            // Сначала выбираю персональный товар. Остальные места заполню обычными предложениями.
             var personal = elapsedDays == 0 ? null : ChoosePersonalOrder(data, pool, elapsedDays);
             var random=new System.Random(unchecked(data.seed+data.day*7919));var count=1+random.Next(3);data.orders.Clear();
             for(var i=0;i<count && pool.Count>0;i++)
             {
                 var id = i == 0 && personal != null ? personal : pool[random.Next(pool.Count)];
+                // Убираю выбранный товар из списка, чтобы он не появился второй раз в этих сутках.
                 pool.Remove(id);
                 var crop=catalog!=null && catalog.TryGetCrop(id,out _);var amount=crop?2+random.Next(4):1+random.Next(2);
                 var price=catalog!=null && catalog.TryGetItem(id,out var item)?item.SellPrice:3;
@@ -66,6 +72,7 @@ namespace MyLittleFarm.Gameplay.Economy
                 data.orders.Add(new MarketOrderData{id="day:"+data.day+":"+i,itemId=id,amount=amount,unitPrice=price,bonus=bonus,personalized=id==personal});
             }
         }
+        // Двигаю экономические часы. На границе суток сначала выпускаю заказы, потом обновляю историю.
         public void Advance(double seconds)
         {
             if(_changing || double.IsNaN(seconds) || double.IsInfinity(seconds) || seconds<0)return;
@@ -78,8 +85,11 @@ namespace MyLittleFarm.Gameplay.Economy
             RotateActivity(days);
             GameEvents.RaiseInventoryChanged();
         }
+        // Делаю отдельный снимок рыночных данных для сохранения.
         public MarketOrdersData Capture()=>JsonUtility.FromJson<MarketOrdersData>(JsonUtility.ToJson(_data));
+        // Восстанавливаю отдельную копию, чтобы игровой рынок не менял исходный снимок.
         public void Restore(MarketOrdersData data)=>_data=JsonUtility.FromJson<MarketOrdersData>(JsonUtility.ToJson(data));
+        // Проверяю товары во всей корзине заказов и считаю общую награду.
         public bool Quote(IReadOnlyDictionary<string,int> cart,out int reward,out string message)
         {
             reward=0;message="Выберите заказ. Штрафа за отказ нет.";
@@ -95,6 +105,7 @@ namespace MyLittleFarm.Gameplay.Economy
             if(sum>int.MaxValue-_wallet.Coins){message="Кошелёк не вмещает награду. Товар не списан.";return false;}
             reward=(int)sum;message="";return true;
         }
+        // Списываю товар, отмечаю заказы выполненными и выдаю монеты один раз.
         public bool Complete(IReadOnlyDictionary<string,int> cart,out string message)
         {
             message="Заказ уже обрабатывается.";if(_changing)return false;
@@ -111,6 +122,7 @@ namespace MyLittleFarm.Gameplay.Economy
             }
             finally{_changing=false;}
         }
+        // Проверяю заказы из сохранения, прежде чем подставлять их в живой рынок.
         public static void Validate(MarketOrdersData data,FarmCatalog catalog)
         {
             if(data==null || data.seed<1 || data.day<0 || data.day>1000000 || double.IsNaN(data.elapsedSeconds) || double.IsInfinity(data.elapsedSeconds)

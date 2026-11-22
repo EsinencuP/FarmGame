@@ -12,7 +12,7 @@ namespace MyLittleFarm.UI
     public sealed class BuildCustomizationUI : MonoBehaviour
     {
         [SerializeField] private BuildSystem buildings;
-        [SerializeField] private InputReader input;
+        [SerializeField] private InputReader_AI input;
         [SerializeField] private Button openCatalogue;
         [SerializeField] private GameObject shade;
         [SerializeField] private RectTransform cataloguePanel,signPanel,housePanel;
@@ -71,10 +71,10 @@ namespace MyLittleFarm.UI
             if (!_bound) return;
             var showShortcut = !input.ModalInputActive && !FarmSceneFlow.IsLoading;
             if (openCatalogue.gameObject.activeSelf != showShortcut) openCatalogue.gameObject.SetActive(showShortcut);
-            if (_bindingRevision != InputReader.BindingRevision)
+            if (_bindingRevision != InputReader_AI.BindingRevision)
             {
-                _bindingRevision = InputReader.BindingRevision;
-                _shortcutLabel.text = FarmText.Get("construction.openCatalogue", InputReader.KeyLabel(InputReader.Command.Build));
+                _bindingRevision = InputReader_AI.BindingRevision;
+                _shortcutLabel.text = FarmText.Get("construction.openCatalogue", InputReader_AI.KeyLabel(InputReader_AI.Command.Build));
             }
 
             if (input.ConstructionCatalogueActive) _catalogue.RenderNextPreview();
@@ -138,13 +138,13 @@ namespace MyLittleFarm.UI
             if (_slots?.SelectTool(QuickSlotSystem.SelectionMode.Hoe) != true) return;
             Close();
             buildings.SetActive(false);
-            GameEvents.RaiseStatusChanged("Наведите на свободную землю и обработайте её · " + InputReader.ActionHint);
+            GameEvents.RaiseStatusChanged("Наведите на свободную землю и обработайте её · " + InputReader_AI.ActionHint);
         }
         public void ShowDetails(BuildingRuntimeState state)
         {
             if (!_bound || state == null || state.IsUnderConstruction || (input.ModalInputActive && !shade.activeSelf)) return;
             if(state.definitionId!="house"&&!FarmDecorationCatalog.SupportsText(state.definitionId))
-            {GameEvents.RaiseStatusChanged(FarmText.Get("construction.moveDelete", InputReader.KeyLabel(InputReader.Command.MoveBuilding), InputReader.KeyLabel(InputReader.Command.DeleteBuilding)));return;}
+            {GameEvents.RaiseStatusChanged(FarmText.Get("construction.moveDelete", InputReader_AI.KeyLabel(InputReader_AI.Command.MoveBuilding), InputReader_AI.KeyLabel(InputReader_AI.Command.DeleteBuilding)));return;}
             BeginModal(); _detailId=state.id;
             if(FarmDecorationCatalog.SupportsText(state.definitionId))
             {
@@ -220,7 +220,7 @@ namespace MyLittleFarm.UI
         }
 
         // Called solely by explicit Editor setup. All references are serialized into Prototype.
-        public static BuildCustomizationUI Create(Transform parent,BuildSystem build,InputReader reader,Font font)
+        public static BuildCustomizationUI Create(Transform parent,BuildSystem build,InputReader_AI reader,Font font)
         {
             var root=new GameObject("Farm Customization",typeof(RectTransform),typeof(BuildCustomizationUI));root.transform.SetParent(parent,false);
             Stretch(root.GetComponent<RectTransform>());var ui=root.GetComponent<BuildCustomizationUI>();ui.buildings=build;ui.input=reader;

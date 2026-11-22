@@ -8,16 +8,16 @@ namespace MyLittleFarm.Gameplay.World
     /// <summary>Paints the same evaluated cells that the interaction coordinator commits.</summary>
     public sealed class FieldAreaPreview : MonoBehaviour
     {
-        private InteractionSystem _actions;
+        private InteractionSystem_AI _actions;
         private CellSelector _selector;
         private GridSystem _grid;
-        private InputReader _input;
+        private InputReader_AI _input;
         private readonly LineRenderer[] _cells=new LineRenderer[9];
         private LineRenderer _arrow;
         private Material _material;
         private readonly Vector3[] _points=new Vector3[5];
-        public InteractionSystem.FieldPlan VisiblePlan {get;private set;}
-        public void Configure(InteractionSystem actions,CellSelector selector,GridSystem grid,InputReader input)
+        public InteractionSystem_AI.FieldPlan VisiblePlan {get;private set;}
+        public void Configure(InteractionSystem_AI actions,CellSelector selector,GridSystem grid,InputReader_AI input)
         {
             _actions=actions;_selector=selector;_grid=grid;_input=input;
             if(_material!=null)return;
@@ -38,10 +38,10 @@ namespace MyLittleFarm.Gameplay.World
             {Hide();return;}
             Paint(_actions.PlanField(_selector.SelectedPosition,DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()));
         }
-        private void Paint(InteractionSystem.FieldPlan plan)
+        private void Paint(InteractionSystem_AI.FieldPlan plan)
         {
             VisiblePlan=plan;
-            if(plan.Action==InteractionSystem.FieldAction.None){Hide();return;}
+            if(plan.Action==InteractionSystem_AI.FieldAction.None){Hide();return;}
             _grid.Select(null);
             for(var i=0;i<_cells.Length;i++)
             {

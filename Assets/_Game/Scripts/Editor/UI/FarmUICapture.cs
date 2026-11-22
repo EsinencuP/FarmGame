@@ -53,7 +53,7 @@ namespace MyLittleFarm.Editor
                 camera.Render(); Canvas.ForceUpdateCanvases(); menu.Preview(page);
                 if (page == FarmMenuUI.Page.Settings) menu.GetComponentInChildren<FarmSettingsUI>(true).PreviewPage(settingsTab);
                 if (page == FarmMenuUI.Page.Guide) menu.GetComponentInChildren<FarmGuideUI>(true).Preview(guideAnimals, guideScroll);
-                if (page == FarmMenuUI.Page.Shop) menu.GetComponentInChildren<FarmMarketUI>(true).Preview(marketTab, sampleCart);
+                if (page == FarmMenuUI.Page.Shop) menu.GetComponentInChildren<FarmMarketUI_AI>(true).Preview(marketTab, sampleCart);
                 if (slotsPreview)
                 {
                     menu.Preview(FarmMenuUI.Page.Game);

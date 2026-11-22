@@ -13,9 +13,9 @@ namespace MyLittleFarm.Gameplay.Economy
         public enum SelectionMode { Item, Hand, Hoe }
         public const int ItemSlotCount=6;
         [SerializeField, Range(0,5)] private int startingSlot;
-        private InputReader _input;
+        private InputReader_AI _input;
         private FarmCatalog _catalog;
-        private InventorySystem _inventory;
+        private InventorySystem_AI _inventory;
         private string[] _items=new string[ItemSlotCount];
         private bool _changing;
         public int SelectedIndex {get;private set;}
@@ -28,7 +28,7 @@ namespace MyLittleFarm.Gameplay.Economy
         public string ItemAt(int index)=>index>=0 && index<ItemSlotCount?_items[index]:null;
         public static List<string> DefaultAssignments()
         {var result=new List<string>();foreach(var id in FarmCatalog.CropIds){if(result.Count==ItemSlotCount)break;result.Add(id+"_seed");}return result;}
-        public void Configure(InputReader input,FarmCatalog catalog,InventorySystem inventory=null)
+        public void Configure(InputReader_AI input,FarmCatalog catalog,InventorySystem_AI inventory=null)
         {_input=input;_catalog=catalog;_inventory=inventory;_items=DefaultAssignments().ToArray();SelectedIndex=startingSlot;Mode=SelectionMode.Item;Revision++;}
         private void Update()
         {if(_input!=null && !_input.BuildModeActive && !_input.ModalInputActive && !_input.SuppressGameplayThisFrame && _input.SeedSelection>=0)Select(_input.SeedSelection);}

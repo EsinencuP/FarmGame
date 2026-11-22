@@ -21,17 +21,17 @@ namespace MyLittleFarm.Tests.PlayMode
             var north=new GameObject("Migration north chunk");north.transform.SetParent(Farm.transform,false);north.transform.position=new Vector3(0,0,10);
             var chunk=north.AddComponent<TilemapChunk>();grid.RegisterSceneChunk(chunk);chunk.ApplyTo(grid);
             var cropPosition=new Vector2Int(4,7);grid.SetCellType(cropPosition,CellType.Tilled);
-            Assert.That(Farm.GetComponentInChildren<CropSystem>().Plant(cropPosition,100000),Is.True);
+            Assert.That(Farm.GetComponentInChildren<CropSystem_AI>().Plant(cropPosition,100000),Is.True);
             var snapshot=LegacyHouse(grid);
             var original=JsonUtility.ToJson(snapshot);
-            Farm.GetComponentInChildren<SaveSystem>().Restore(snapshot);
+            Farm.GetComponentInChildren<SaveSystem_AI>().Restore(snapshot);
             Assert.That(JsonUtility.ToJson(snapshot),Is.EqualTo(original));
             var states=Farm.GetComponentInChildren<BuildSystem>().Capture();
             Assert.That(states.Count,Is.EqualTo(1));Assert.That(states[0].id,Is.EqualTo("legacy-house"));
             Assert.That(states[0].x!=1||states[0].z!=3,Is.True,"The expanded footprint must avoid the crop.");
-            Assert.That(Farm.GetComponentInChildren<CropSystem>().Contains(cropPosition),Is.True);
+            Assert.That(Farm.GetComponentInChildren<CropSystem_AI>().Contains(cropPosition),Is.True);
             Assert.That(Farm.GetComponentInChildren<WalletSystem>().Coins,Is.EqualTo(snapshot.coins));
-            Assert.That(Farm.GetComponentInChildren<SaveSystem>().Capture().saveVersion,Is.EqualTo(SaveSystem.CurrentSaveVersion));
+            Assert.That(Farm.GetComponentInChildren<SaveSystem_AI>().Capture().saveVersion,Is.EqualTo(SaveSystem_AI.CurrentSaveVersion));
             var definition=BuildingDefinition.Catalog[0];var count=0;
             for(var z=0;z<definition.Depth;z++)for(var x=0;x<definition.Width;x++)if(grid.GetCell(new Vector2Int(states[0].x+x,states[0].z+z)).occupantId==states[0].id)count++;
             Assert.That(count,Is.EqualTo(definition.Width*definition.Depth));
@@ -45,7 +45,7 @@ namespace MyLittleFarm.Tests.PlayMode
             for(var x=0;x<10;x++)for(var z=0;z<10;z++)
                 if(!(x>=1&&x<=2&&z>=3&&z<=4))grid.SetTerrainCell(new Vector2Int(x,z),new TerrainCell(CellType.Rock));
             var snapshot=LegacyHouse(grid);var original=JsonUtility.ToJson(snapshot);var before=JsonUtility.ToJson(grid.Serialize());
-            var error=Assert.Throws<InvalidDataException>(()=>Farm.GetComponentInChildren<SaveSystem>().Restore(snapshot));
+            var error=Assert.Throws<InvalidDataException>(()=>Farm.GetComponentInChildren<SaveSystem_AI>().Restore(snapshot));
             Assert.That(error.Message,Does.Contain("Недостаточно"));
             Assert.That(JsonUtility.ToJson(snapshot),Is.EqualTo(original));
             Assert.That(JsonUtility.ToJson(grid.Serialize()),Is.EqualTo(before));
@@ -57,7 +57,7 @@ namespace MyLittleFarm.Tests.PlayMode
         private SaveData LegacyHouse(GridSystem grid)
         {
             grid.OccupyWithBuilding(new Vector2Int(1,3),new Vector2Int(2,2),"legacy-house");
-            var snapshot=Farm.GetComponentInChildren<SaveSystem>().Capture();snapshot.saveVersion=6;
+            var snapshot=Farm.GetComponentInChildren<SaveSystem_AI>().Capture();snapshot.saveVersion=6;
             snapshot.buildings.Add(new BuildingRuntimeState{id="legacy-house",definitionId="house",x=1,z=3,paidCost=20});
             return snapshot;
         }
@@ -75,7 +75,7 @@ namespace MyLittleFarm.Tests.PlayMode
             try
             {
                 File.WriteAllText(path,JsonUtility.ToJson(snapshot));
-                Assert.That(Farm.GetComponentInChildren<SaveSystem>().LoadFromPath(path),Is.True);
+                Assert.That(Farm.GetComponentInChildren<SaveSystem_AI>().LoadFromPath(path),Is.True);
                 Assert.That(Farm.GetComponentInChildren<BuildSystem>().Count,Is.EqualTo(1));
                 Assert.That(grid.GetTerrainCell(new Vector2Int(9,0)).type,Is.EqualTo(CellType.Dirt));
                 Assert.That(Farm.GetComponentInChildren<WalletSystem>().Coins,Is.EqualTo(snapshot.coins));

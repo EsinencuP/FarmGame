@@ -11,7 +11,7 @@ namespace MyLittleFarm.UI
     public sealed class FarmFeederUI:MonoBehaviour
     {
         private BuildSystem _build;
-        private InventorySystem _inventory;
+        private InventorySystem_AI _inventory;
         private PlayerController _player;
         private string _id;
         private Text _state,_note;
@@ -42,7 +42,7 @@ namespace MyLittleFarm.UI
         {
             var panel=FarmUITheme.Panel(parent,"КОРМУШКА",font,new Vector2(760,450));panel.gameObject.SetActive(false);
             var ui=panel.gameObject.AddComponent<FarmFeederUI>();ui._build=build;
-            var farm=build.GetComponentInParent<GameBootstrap>();ui._inventory=farm.GetComponentInChildren<InventorySystem>(true);ui._player=farm.GetComponentInChildren<PlayerController>(true);
+            var farm=build.GetComponentInParent<GameBootstrap>();ui._inventory=farm.GetComponentInChildren<InventorySystem_AI>(true);ui._player=farm.GetComponentInChildren<PlayerController>(true);
             ui._state=FarmUITheme.Label(panel,"",font,26);Place(ui._state.rectTransform,35,65,690,130);
             ui._note=FarmUITheme.Label(panel,"",font,21);Place(ui._note.rectTransform,35,205,690,70);
             ui._one=Button(panel,"+1",font,30,290,100,()=>ui.Transfer(1,true));ui._five=Button(panel,"+5",font,140,290,100,()=>ui.Transfer(5,true));

@@ -53,7 +53,7 @@ namespace MyLittleFarm.Tests.PlayMode
         {
             yield return null;
             var grid = Object.FindFirstObjectByType<GridSystem>();
-            var save = Object.FindFirstObjectByType<SaveSystem>();
+            var save = Object.FindFirstObjectByType<SaveSystem_AI>();
             var coordinate = new Vector2Int(2, 2);
             grid.SetCellType(coordinate, CellType.Tilled);
             var snapshot = save.Capture();

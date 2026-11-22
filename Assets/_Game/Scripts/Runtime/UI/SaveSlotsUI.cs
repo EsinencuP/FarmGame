@@ -7,8 +7,8 @@ namespace MyLittleFarm.UI
     /// <summary>Three farm slots, live only when explicitly opened. Edit previews use supplied DTOs.</summary>
     public sealed class SaveSlotsUI : MonoBehaviour
     {
-        [SerializeField] private SaveSystem saves;
-        [SerializeField] private InputReader input;
+        [SerializeField] private SaveSystem_AI saves;
+        [SerializeField] private InputReader_AI input;
         [SerializeField] private GameObject shade, confirmation;
         [SerializeField] private RectTransform panel, viewport, content;
         [SerializeField] private ScrollRect scroll;
@@ -30,7 +30,7 @@ namespace MyLittleFarm.UI
         private ComicPrologue _prologue;
         public bool IsOpen => shade != null && shade.activeSelf;
 
-        public void Configure(SaveSystem system, InputReader reader)
+        public void Configure(SaveSystem_AI system, InputReader_AI reader)
         { saves = system; input = reader; Bind(); }
         private void OnEnable() => Bind();
         private void Bind()
@@ -78,7 +78,7 @@ namespace MyLittleFarm.UI
             if (subtitle != null) subtitle.GetComponent<Text>().text = FarmText.Get("saves.subtitle");
             RefreshIfOpen(); Resize();
             message.text = saves.LegacyUnavailable ? FarmText.Get("saves.legacyUnavailable")
-                : saves.HasActiveFarm ? FarmText.Get("saves.autosave", InputReader.KeyLabel(InputReader.Command.Save)) : FarmText.Get("saves.chooseFarm");
+                : saves.HasActiveFarm ? FarmText.Get("saves.autosave", InputReader_AI.KeyLabel(InputReader_AI.Command.Save)) : FarmText.Get("saves.chooseFarm");
             FocusFirst();
         }
         private void RefreshIfOpen()
@@ -243,7 +243,7 @@ namespace MyLittleFarm.UI
             scroll.verticalScrollbar = scrollbar;scroll.verticalScrollbarVisibility = ScrollRect.ScrollbarVisibility.AutoHide;
         }
 
-        public static SaveSlotsUI Create(Transform parent, SaveSystem system, InputReader reader, Font font)
+        public static SaveSlotsUI Create(Transform parent, SaveSystem_AI system, InputReader_AI reader, Font font)
         {
             var root = new GameObject("Save Slots UI",typeof(RectTransform),typeof(SaveSlotsUI)); root.transform.SetParent(parent,false);
             Stretch((RectTransform)root.transform);
@@ -265,7 +265,7 @@ namespace MyLittleFarm.UI
             content.GetComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
             ui.scroll.viewport = ui.viewport;ui.scroll.content = ui.content;
             ui.EnsureScrollbar();
-            ui.cards = new SaveSlotCard[SaveSystem.SlotCount];for(var i = 0;i < ui.cards.Length;i++) {ui.cards[i] = SaveSlotCard.Create(ui.content,font);ui.cards[i].name = "Slot " + (i+1);}
+            ui.cards = new SaveSlotCard[SaveSystem_AI.SlotCount];for(var i = 0;i < ui.cards.Length;i++) {ui.cards[i] = SaveSlotCard.Create(ui.content,font);ui.cards[i].name = "Slot " + (i+1);}
             ui.message = Label(ui.panel,"",font,18);ui.message.alignment = TextAnchor.MiddleLeft;
             var messageRect = ui.message.rectTransform;messageRect.anchorMin = Vector2.zero;messageRect.anchorMax = new Vector2(1,0);messageRect.pivot = new Vector2(.5f,0);messageRect.offsetMin = new Vector2(24,74);messageRect.offsetMax = new Vector2(-24,125);
             ui.save = Button(ui.panel,FarmText.Get("saves.save"),font);Bottom(ui.save,24,false);

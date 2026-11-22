@@ -16,13 +16,13 @@ namespace MyLittleFarm.Tests.PlayMode
     /// <summary>Runs the installed Humanoid through real CharacterController movement, directional gaits, gestures and jump phases.</summary>
     public sealed class KevinLocomotionTests : FarmPlayModeFixture
     {
-        private InputReader _input;
+        private InputReader_AI _input;
         private PlayerController _player;
         private Animator _animator;
 
         private void Install()
         {
-            _input=Farm.GetComponent<InputReader>();_input.enabled=false;
+            _input=Farm.GetComponent<InputReader_AI>();_input.enabled=false;
             _player=Farm.GetComponentInChildren<PlayerController>();
             _player.GetComponent<Renderer>().enabled=false;
             var capsule=_player.GetComponent<CharacterController>();capsule.height=1.8f;capsule.radius=0.3f;capsule.skinWidth=0.03f;
@@ -82,7 +82,7 @@ namespace MyLittleFarm.Tests.PlayMode
             Assert.That(_player.transform.position.y,Is.EqualTo(0.93f).Within(0.035f));
         }
 
-        private void Set(string name,object value)=>typeof(InputReader).GetProperty(name,BindingFlags.Public|BindingFlags.Instance).SetValue(_input,value);
+        private void Set(string name,object value)=>typeof(InputReader_AI).GetProperty(name,BindingFlags.Public|BindingFlags.Instance).SetValue(_input,value);
         private IEnumerator WaitForClip(string name)
         {
             var deadline=Time.time+1.5f;

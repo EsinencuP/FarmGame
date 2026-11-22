@@ -8,7 +8,7 @@ using UnityEngine.UI;
 namespace MyLittleFarm.UI
 {
     /// <summary>A gesture owns one immutable snapshot. Consuming it precedes any mutation.</summary>
-    public sealed class FarmItemDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler, IDropHandler
+    public sealed class FarmItemDrag_AI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler, IDropHandler
     {
         public enum Source { Inventory, Warehouse, QuickSlot }
         public sealed class Payload
@@ -17,7 +17,7 @@ namespace MyLittleFarm.UI
             public string Item, Warehouse, Token;
             public int Amount, Slot;
             public long InventoryRevision, StorageRevision, SlotRevision;
-            public InventorySystem Inventory;
+            public InventorySystem_AI Inventory;
             public QuickSlotSystem Slots;
             public WarehouseStore Storage;
             public Sprite Icon;
@@ -26,15 +26,15 @@ namespace MyLittleFarm.UI
         private Action<Payload> _drop;
         private static Payload _active;
         private static GameObject _ghost;
-        private static FarmItemDrag _owner;
+        private static FarmItemDrag_AI _owner;
         public void Configure(Func<Payload> begin, Action<Payload> drop) { _begin=begin; _drop=drop; }
-        public static Payload Snapshot(Source from,string item,int amount,int slot,string warehouse,InventorySystem inventory,QuickSlotSystem slots,WarehouseStore storage,Sprite icon)
+        public static Payload Snapshot(Source from,string item,int amount,int slot,string warehouse,InventorySystem_AI inventory,QuickSlotSystem slots,WarehouseStore storage,Sprite icon)
             => new Payload{From=from,Item=item,Amount=amount,Slot=slot,Warehouse=warehouse,Inventory=inventory,Slots=slots,Storage=storage,Icon=icon,
                 Token=Guid.NewGuid().ToString("N"),InventoryRevision=inventory.Revision,StorageRevision=storage?.Revision??0,SlotRevision=slots.Revision};
-        public static bool Current(Payload p,InventorySystem inventory,QuickSlotSystem slots,WarehouseStore storage=null)
+        public static bool Current(Payload p,InventorySystem_AI inventory,QuickSlotSystem slots,WarehouseStore storage=null)
             => p!=null && p.Inventory==inventory && p.Slots==slots && p.InventoryRevision==inventory.Revision && p.SlotRevision==slots.Revision
                 && (storage==null || p.Storage==storage && p.StorageRevision==storage.Revision);
-        public static void DropOnSlot(Payload p,int index,InventorySystem inventory,QuickSlotSystem slots)
+        public static void DropOnSlot(Payload p,int index,InventorySystem_AI inventory,QuickSlotSystem slots)
         {
             if(!Current(p,inventory,slots) || p.From==Source.Warehouse)return;
             if(p.From==Source.QuickSlot)slots.Swap(p.Slot,index);else slots.Assign(HarvestQuality.ParseStack(p.Item).itemId,index);
@@ -65,7 +65,7 @@ namespace MyLittleFarm.UI
         public void OnEndDrag(PointerEventData e)=>Cancel();
         private void OnDisable(){if(_owner==this)Cancel();}
         public static void Cancel(){_active=null;_owner=null;if(_ghost!=null)Destroy(_ghost);_ghost=null;}
-        public static FarmItemDrag Install(GameObject target,Func<Payload> begin,Action<Payload> drop)
-        {var hook=target.GetComponent<FarmItemDrag>()??target.AddComponent<FarmItemDrag>();hook.Configure(begin,drop);return hook;}
+        public static FarmItemDrag_AI Install(GameObject target,Func<Payload> begin,Action<Payload> drop)
+        {var hook=target.GetComponent<FarmItemDrag_AI>()??target.AddComponent<FarmItemDrag_AI>();hook.Configure(begin,drop);return hook;}
     }
 }

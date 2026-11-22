@@ -26,9 +26,9 @@ namespace MyLittleFarm.UI
         private static readonly Vector2[] Offsets={Vector2.zero,new Vector2(0,34),new Vector2(-34,0),new Vector2(34,0),new Vector2(-34,34),new Vector2(34,34),new Vector2(0,68)};
         private RectTransform _canvas;
         private Camera _camera;
-        private InputReader _input;
+        private InputReader_AI _input;
         private int _occlusionMask;
-        public void Configure(InputReader input,Camera camera)
+        public void Configure(InputReader_AI input,Camera camera)
         {
             _input=input;_camera=camera;
             if(_canvas!=null)return;

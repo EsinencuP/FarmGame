@@ -23,16 +23,16 @@ namespace MyLittleFarm.Core
         private readonly Stopwatch _clock=new Stopwatch();
         private readonly Dictionary<string,PropertyInfo> _properties=new Dictionary<string,PropertyInfo>();
         private GameBootstrap _farm;
-        private InputReader _input;
+        private InputReader_AI _input;
         private PlayerController _player;
         private BuildSystem _build;
         private GridSystem _grid;
-        private CropSystem _crops;
+        private CropSystem_AI _crops;
         private FarmCatalog _catalog;
-        private SaveSystem _save;
+        private SaveSystem_AI _save;
         private Camera _camera;
-        private AnimalSystem _animals;
-        private OrchardSystem _orchard;
+        private AnimalSystem_AI _animals;
+        private OrchardSystem_AI _orchard;
         private int _job=-1, _minute=-1, _pulse=-1;
         private Vector2Int _buildCell;
         private float _activeSeconds;
@@ -44,15 +44,15 @@ namespace MyLittleFarm.Core
         {
             if(!Application.isPlaying || farm.gameObject.scene.name!="Phase0-Verification")
                 throw new InvalidOperationException("Use a disposable Phase0-Verification scene in Play Mode.");
-            _farm=farm;_input=farm.GetComponent<InputReader>();_input.enabled=false;
+            _farm=farm;_input=farm.GetComponent<InputReader_AI>();_input.enabled=false;
             _player=farm.GetComponentInChildren<PlayerController>();_build=farm.GetComponentInChildren<BuildSystem>();
-            _grid=farm.GetComponentInChildren<GridSystem>();_crops=farm.GetComponentInChildren<CropSystem>();
-            _catalog=farm.GetComponentInChildren<FarmCatalog>();_save=farm.GetComponentInChildren<SaveSystem>();_save.enabled=false;
+            _grid=farm.GetComponentInChildren<GridSystem>();_crops=farm.GetComponentInChildren<CropSystem_AI>();
+            _catalog=farm.GetComponentInChildren<FarmCatalog>();_save=farm.GetComponentInChildren<SaveSystem_AI>();_save.enabled=false;
             _camera=farm.GetComponentInChildren<Camera>();_camera.GetComponent<IsometricCameraController>().enabled=false;
-            _animals=farm.GetComponentInChildren<AnimalSystem>();_orchard=farm.GetComponentInChildren<OrchardSystem>();
-            foreach(var property in typeof(InputReader).GetProperties())if(property.CanWrite)_properties[property.Name]=property;
+            _animals=farm.GetComponentInChildren<AnimalSystem_AI>();_orchard=farm.GetComponentInChildren<OrchardSystem_AI>();
+            foreach(var property in typeof(InputReader_AI).GetProperties())if(property.CanWrite)_properties[property.Name]=property;
             farm.GetComponentInChildren<WalletSystem>().SetCoins(10000);
-            farm.GetComponentInChildren<InventorySystem>().Add("wheat",100);
+            farm.GetComponentInChildren<InventorySystem_AI>().Add("wheat",100);
             _animals.AddChicken(new Vector2Int(2,3),DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
             _orchard.PlantApple(new Vector2Int(6,4),DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()-120000);
             for(var i=0;i<_catalog.Crops.Count;i++)for(var stage=0;stage<3;stage++)

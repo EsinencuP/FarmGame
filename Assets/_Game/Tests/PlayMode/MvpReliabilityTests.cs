@@ -20,12 +20,12 @@ namespace MyLittleFarm.Tests.PlayMode
         [UnityTest]
         public IEnumerator UnfedChickenConsumesInteractionWithoutTillingTheSelectedCell()
         {
-            var animals = Farm.GetComponentInChildren<AnimalSystem>();
-            var inventory = Farm.GetComponentInChildren<InventorySystem>();
+            var animals = Farm.GetComponentInChildren<AnimalSystem_AI>();
+            var inventory = Farm.GetComponentInChildren<InventorySystem_AI>();
             var grid = Farm.GetComponentInChildren<GridSystem>();
             var player = Farm.GetComponentInChildren<PlayerController>();
             var selector = Farm.GetComponentInChildren<CellSelector>();
-            var interaction = Farm.GetComponentInChildren<InteractionSystem>();
+            var interaction = Farm.GetComponentInChildren<InteractionSystem_AI>();
             inventory.Restore(null);
             var position = new Vector2Int(1, 3);
             Assert.That(animals.AddChicken(position, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()), Is.True);
@@ -41,7 +41,7 @@ namespace MyLittleFarm.Tests.PlayMode
         [UnityTest]
         public IEnumerator BackupRecoveryPreservesGoodBackupWhenSavingAgain()
         {
-            var save = Farm.GetComponentInChildren<SaveSystem>();
+            var save = Farm.GetComponentInChildren<SaveSystem_AI>();
             var wallet = Farm.GetComponentInChildren<WalletSystem>();
             var path = Path.Combine(Application.temporaryCachePath, $"mvp-recovery-{Guid.NewGuid():N}.json");
             try
@@ -77,7 +77,7 @@ namespace MyLittleFarm.Tests.PlayMode
         [UnityTest]
         public IEnumerator SavingWithoutLoadingThisPointKeepsItsLastGoodBackup()
         {
-            var save = Farm.GetComponentInChildren<SaveSystem>();
+            var save = Farm.GetComponentInChildren<SaveSystem_AI>();
             var wallet = Farm.GetComponentInChildren<WalletSystem>();
             var path = Path.Combine(Application.temporaryCachePath, $"mvp-autosave-recovery-{Guid.NewGuid():N}.json");
             try
@@ -105,18 +105,18 @@ namespace MyLittleFarm.Tests.PlayMode
         [UnityTest]
         public IEnumerator CameraTurnAndAnimalWanderConvergeWithoutAnInstantSnap()
         {
-            var input = Farm.GetComponent<InputReader>();
+            var input = Farm.GetComponent<InputReader_AI>();
             input.enabled = false;
             var camera = Farm.GetComponentInChildren<IsometricCameraController>();
             var startYaw = camera.transform.eulerAngles.y;
-            typeof(InputReader).GetProperty("RotateLeftPressed", BindingFlags.Instance | BindingFlags.Public)
+            typeof(InputReader_AI).GetProperty("RotateLeftPressed", BindingFlags.Instance | BindingFlags.Public)
                 .SetValue(input, true);
             yield return null;
-            typeof(InputReader).GetProperty("RotateLeftPressed", BindingFlags.Instance | BindingFlags.Public)
+            typeof(InputReader_AI).GetProperty("RotateLeftPressed", BindingFlags.Instance | BindingFlags.Public)
                 .SetValue(input, false);
             var firstAngle = Mathf.Abs(Mathf.DeltaAngle(startYaw, camera.transform.eulerAngles.y));
             Assert.That(firstAngle, Is.GreaterThan(0f).And.LessThan(90f));
-            var animals = Farm.GetComponentInChildren<AnimalSystem>();
+            var animals = Farm.GetComponentInChildren<AnimalSystem_AI>();
             Assert.That(animals.AddChicken(new Vector2Int(1, 3), 1), Is.True);
             animals.enabled = false;
             var view = animals.GetComponentInChildren<AnimalView>();

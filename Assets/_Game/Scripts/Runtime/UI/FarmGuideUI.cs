@@ -13,8 +13,8 @@ namespace MyLittleFarm.UI
         [Serializable] private sealed class PlantCard
         { public Image portrait, seed; public Text title, seedLabel, growth, price, yield; }
         [SerializeField] private FarmCatalog catalog;
-        [SerializeField] private AnimalSystem animals;
-        [SerializeField] private OrchardSystem orchard;
+        [SerializeField] private AnimalSystem_AI animals;
+        [SerializeField] private OrchardSystem_AI orchard;
         [SerializeField] private RectTransform panel;
         [SerializeField] private Button plantsTab, animalsTab, close, journal;
         [SerializeField] private GameObject plantsPage, animalsPage;
@@ -25,7 +25,7 @@ namespace MyLittleFarm.UI
         [SerializeField] private Button upgradesTab;
         [SerializeField] private GameObject upgradesPage;
         [SerializeField] private Text upgradePrices;
-        [SerializeField] private MyLittleFarm.Gameplay.Economy.FarmMarket market;
+        [SerializeField] private MyLittleFarm.Gameplay.Economy.FarmMarket_AI market;
         private bool _cowReference;
         private Button _chickenChoice, _cowChoice;
         private Image _animalPortrait;
@@ -60,9 +60,9 @@ namespace MyLittleFarm.UI
                 if (label.text.StartsWith("1. "))
                     label.text = "1. Купите животное на рынке\nДля коровы сначала постройте коровник с загоном.";
                 else if (label.text.StartsWith("2. Дайте корм"))
-                    label.text = $"2. Дайте корм\n{MyLittleFarm.Core.InputReader.ActionHint} рядом с животным: нужна пшеница.";
+                    label.text = $"2. Дайте корм\n{MyLittleFarm.Core.InputReader_AI.ActionHint} рядом с животным: нужна пшеница.";
                 else if (label.text.StartsWith("3. Соберите продукцию"))
-                    label.text = $"3. Соберите продукцию\nДождитесь яйца или молока и нажмите {MyLittleFarm.Core.InputReader.ActionHint}.";
+                    label.text = $"3. Соберите продукцию\nДождитесь яйца или молока и нажмите {MyLittleFarm.Core.InputReader_AI.ActionHint}.";
             }
             Show(true);
         }
@@ -97,9 +97,9 @@ namespace MyLittleFarm.UI
             plantsPage.SetActive(false); animalsPage.SetActive(false); upgradesPage.SetActive(true);
             FarmUITheme.Style(plantsTab, "ghost"); FarmUITheme.Style(animalsTab, "ghost"); FarmUITheme.Style(upgradesTab, "secondary");
             var text = new System.Text.StringBuilder("КАТАЛОГ УЛУЧШЕНИЙ\n\n");
-            foreach (var offer in market.Offers(MyLittleFarm.Gameplay.Economy.FarmMarket.Category.Upgrades))
+            foreach (var offer in market.Offers(MyLittleFarm.Gameplay.Economy.FarmMarket_AI.Category.Upgrades))
                 text.Append(offer.Name).Append(" · ").Append(offer.Price).Append(" монет").Append(offer.Available ? "" : " · " + offer.Unavailable).Append('\n').Append(offer.Description).Append("\n\n");
-            text.Append($"Покупка улучшений и найм — в окне рынка.\nПодойдите к рынку и нажмите {MyLittleFarm.Core.InputReader.MarketHint}.");
+            text.Append($"Покупка улучшений и найм — в окне рынка.\nПодойдите к рынку и нажмите {MyLittleFarm.Core.InputReader_AI.MarketHint}.");
             text.Append("\n\nРыбалка · подойдите к знаку на восточном берегу озера. Забросьте удочку, дождитесь поклёвки и подсеките. Рыбу можно продать на рынке.");
             text.Append("\n\nКОРМУШКА\n18 монет, 12 пшеницы, радиус 6 м. Кормит кур и коров после сбора продукта. Пастух берёт корм сначала здесь, затем в инвентаре; молоко собирается вручную.\n");
             text.Append("\n\nПРОИЗВОДСТВО\n\n");
@@ -110,7 +110,7 @@ namespace MyLittleFarm.UI
             text.Append("Откройте постройку обычным действием. Следующая партия — после сбора. Перенос сохраняет партию; удаление занятой постройки заблокировано.");
             upgradePrices.text = text.ToString();
         }
-        public void ConfigureUpgrades(Font font, MyLittleFarm.Gameplay.Economy.FarmMarket system)
+        public void ConfigureUpgrades(Font font, MyLittleFarm.Gameplay.Economy.FarmMarket_AI system)
         {
             market = system;
             if (upgradesTab == null)
@@ -209,7 +209,7 @@ namespace MyLittleFarm.UI
             for (var i = indices.Count - 1; i >= 0; i--) clone = clone.GetChild(indices[i]);
             return clone.GetComponent<T>();
         }
-        public static FarmGuideUI Create(Transform parent, Font font, FarmCatalog catalog, AnimalSystem animals, OrchardSystem orchard)
+        public static FarmGuideUI Create(Transform parent, Font font, FarmCatalog catalog, AnimalSystem_AI animals, OrchardSystem_AI orchard)
         {
             var root = FarmUITheme.Rect(parent, "Farm handbook"); FarmUITheme.Stretch(root);
             var ui = root.gameObject.AddComponent<FarmGuideUI>(); ui.catalog = catalog; ui.animals = animals; ui.orchard = orchard;

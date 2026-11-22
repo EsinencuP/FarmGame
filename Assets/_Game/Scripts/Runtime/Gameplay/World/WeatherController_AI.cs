@@ -20,7 +20,7 @@ namespace MyLittleFarm.Gameplay.World
 
     /// <summary>Visual weather and a session-only integral of the extra growth earned under rain.</summary>
     [DefaultExecutionOrder(-250)]
-    public sealed class WeatherController : MonoBehaviour
+    public sealed class WeatherController_AI : MonoBehaviour
     {
         [SerializeField] private DayNightCycle lighting;
         [SerializeField] private Transform focus;
@@ -70,6 +70,7 @@ namespace MyLittleFarm.Gameplay.World
             }
         }
 
+        // Считаю фактический дождь по времени и интенсивности. Посевы и деревья берут из этого свой кусок.
         private void Update()
         {
             if (Time.timeScale <= 0) return;

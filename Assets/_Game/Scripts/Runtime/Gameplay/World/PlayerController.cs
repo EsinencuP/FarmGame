@@ -26,7 +26,7 @@ namespace MyLittleFarm.Gameplay.World
         [SerializeField, Min(0.1f)] private float rotationSpeed = 14f;
 
         // Зависимости предоставляют команды, физическое движение и ориентацию камеры.
-        private InputReader _input;
+        private InputReader_AI _input;
         private CharacterController _controller;
         private Transform _cameraTransform;
         private GridSystem _grid;
@@ -67,7 +67,7 @@ namespace MyLittleFarm.Gameplay.World
         }
 
         /// <summary>Получает ввод и локальные компоненты после создания игрока.</summary>
-        public void Configure(InputReader input, GridSystem grid = null)
+        public void Configure(InputReader_AI input, GridSystem grid = null)
         {
             _input = input;
             _controller = GetComponent<CharacterController>();

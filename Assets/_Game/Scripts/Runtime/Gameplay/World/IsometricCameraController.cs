@@ -35,7 +35,7 @@ namespace MyLittleFarm.Gameplay.World
         [SerializeField, Min(0.01f)] private float zoomSmoothTime = 0.12f;
 
         // Input задаёт команды, target — игрок, yaw — текущий угол, distance — текущий масштаб обзора.
-        private InputReader _input;
+        private InputReader_AI _input;
         private Transform _target;
         private float _yaw;
         private float _distance;
@@ -64,7 +64,7 @@ namespace MyLittleFarm.Gameplay.World
             initialDistance = Mathf.Clamp(initialDistance, minDistance, maxDistance);
         }
 
-        public void Configure(InputReader input, Transform target)
+        public void Configure(InputReader_AI input, Transform target)
         {
             // После получения цели камера сразу занимает правильное положение без первого скачка.
             _input = input;

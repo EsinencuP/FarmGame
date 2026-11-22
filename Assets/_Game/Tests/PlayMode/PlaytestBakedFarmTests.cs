@@ -38,7 +38,7 @@ namespace MyLittleFarm.Tests.PlayMode
             yield return null;
             Assert.That(_baked.gameObject.activeInHierarchy, Is.True, "The Windows farm scene must start with its bootstrap active.");
             Assert.That(SceneManager.GetActiveScene().name, Is.Not.EqualTo("Prototype"));
-            Assert.That(_baked.GetComponentInChildren<SaveSystem>().HasActiveFarm, Is.False);
+            Assert.That(_baked.GetComponentInChildren<SaveSystem_AI>().HasActiveFarm, Is.False);
         }
 
         [UnityTearDown]
@@ -58,7 +58,7 @@ namespace MyLittleFarm.Tests.PlayMode
                 Path.Combine(folder, "U1-0", "V12", "first-juice-sale-v12.json"),
                 Path.Combine(folder, "U1-7", "all-systems-v18.json")
             };
-            var saves = _baked.GetComponentInChildren<SaveSystem>();
+            var saves = _baked.GetComponentInChildren<SaveSystem_AI>();
             foreach (var path in files)
             {
                 var original = File.ReadAllText(path);
@@ -66,7 +66,7 @@ namespace MyLittleFarm.Tests.PlayMode
                 // LoadFromPath reads this control snapshot without selecting or overwriting a user slot.
                 Assert.That(saves.LoadFromPath(path), Is.True, Path.GetFileName(path));
                 var current = saves.Capture();
-                Assert.That(current.saveVersion, Is.EqualTo(SaveSystem.CurrentSaveVersion));
+                Assert.That(current.saveVersion, Is.EqualTo(SaveSystem_AI.CurrentSaveVersion));
                 Assert.That(current.coins, Is.EqualTo(previous.coins));
                 Assert.That(current.buildings.Select(building => building.id), Is.EquivalentTo(previous.buildings.Select(building => building.id)));
                 Assert.That(current.crops.Count, Is.EqualTo(previous.crops.Count));
@@ -84,7 +84,7 @@ namespace MyLittleFarm.Tests.PlayMode
             var project = Path.GetDirectoryName(Application.dataPath);
             var control = Path.Combine(project, "Verification", "AdaptiveAI", "demo-orders-v21.json");
             var path = Path.Combine(Application.temporaryCachePath, "farm-round-trip-" + Guid.NewGuid().ToString("N") + ".json");
-            var saves = _baked.GetComponentInChildren<SaveSystem>();
+            var saves = _baked.GetComponentInChildren<SaveSystem_AI>();
             try
             {
                 Assert.That(saves.LoadFromPath(control), Is.True);
@@ -121,7 +121,7 @@ namespace MyLittleFarm.Tests.PlayMode
             var grid = _baked.GetComponentInChildren<GridSystem>();
             var player = _baked.GetComponentInChildren<PlayerController>();
             var wallet = _baked.GetComponentInChildren<WalletSystem>();
-            var market = _baked.GetComponentInChildren<FarmMarket>();
+            var market = _baked.GetComponentInChildren<FarmMarket_AI>();
             var trail = new Vector2Int(10, 0);
             var dirt = Enumerable.Range(10, 10).SelectMany(x => Enumerable.Range(0, 10).Select(z => new Vector2Int(x, z)))
                 .First(cell => grid.GetTerrainCell(cell).type == CellType.Dirt);
@@ -132,24 +132,24 @@ namespace MyLittleFarm.Tests.PlayMode
             player.Teleport(_baked.transform.Find("Sale Crate").position + new Vector3(1.2f, 1f, 0));
             wallet.SetCoins(sector.PurchasePrice + 1);
             var cart = new Dictionary<string, int> { ["sector"] = 1 };
-            Assert.That(market.Checkout(FarmMarket.Category.Upgrades, cart, out var reason), Is.True, reason);
+            Assert.That(market.Checkout(FarmMarket_AI.Category.Upgrades, cart, out var reason), Is.True, reason);
             Assert.That(wallet.Coins, Is.EqualTo(1));
             Assert.That(sector.IsUnlocked, Is.True);
             Assert.That(grid.GetTerrainCell(trail).type, Is.EqualTo(CellType.Sand));
             Assert.That(grid.GetCellType(dirt), Is.EqualTo(CellType.Dirt));
             Assert.That(grid.CanTill(dirt), Is.True);
             Assert.That(grid.IsWalkable(trail), Is.True);
-            Assert.That(market.Checkout(FarmMarket.Category.Upgrades, cart, out _), Is.False);
+            Assert.That(market.Checkout(FarmMarket_AI.Category.Upgrades, cart, out _), Is.False);
             yield return null;
         }
 
         [UnityTest]
         public IEnumerator RainHydratesFieldCropsAndOrchardBeforeHarvest()
         {
-            var crops = _baked.GetComponentInChildren<CropSystem>();
+            var crops = _baked.GetComponentInChildren<CropSystem_AI>();
             var soil = _baked.GetComponentInChildren<SoilSystem>();
-            var orchard = _baked.GetComponentInChildren<OrchardSystem>();
-            var weather = _baked.GetComponentInChildren<WeatherController>();
+            var orchard = _baked.GetComponentInChildren<OrchardSystem_AI>();
+            var weather = _baked.GetComponentInChildren<WeatherController_AI>();
             var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
             var field = new Vector2Int(1, 1);
             var tree = new Vector2Int(1, 2);
@@ -179,15 +179,15 @@ namespace MyLittleFarm.Tests.PlayMode
         {
             var grid = _baked.GetComponentInChildren<GridSystem>();
             var player = _baked.GetComponentInChildren<PlayerController>();
-            var inventory = _baked.GetComponentInChildren<InventorySystem>();
+            var inventory = _baked.GetComponentInChildren<InventorySystem_AI>();
             var wallet = _baked.GetComponentInChildren<WalletSystem>();
             var fishPond = _baked.GetComponentInChildren<FishPond>();
             var camera = _baked.GetComponentInChildren<IsometricCameraController>();
-            var save = _baked.GetComponentInChildren<SaveSystem>();
+            var save = _baked.GetComponentInChildren<SaveSystem_AI>();
             Assert.That(fishPond, Is.Not.Null);
             Assert.That(grid.GetCellType(new Vector2Int(-15, 8)), Is.EqualTo(CellType.Water));
-            var input = _baked.GetComponent<InputReader>();
-            var modalInput = typeof(InputReader).GetProperty(nameof(InputReader.ModalInputActive));
+            var input = _baked.GetComponent<InputReader_AI>();
+            var modalInput = typeof(InputReader_AI).GetProperty(nameof(InputReader_AI.ModalInputActive));
             // This additive test skips the slot screen. Release its input gate as selecting a slot would.
             modalInput.SetValue(input, false);
             yield return new WaitForSecondsRealtime(.25f);
@@ -210,12 +210,12 @@ namespace MyLittleFarm.Tests.PlayMode
             var water = (Vector3)typeof(FishPond).GetField("_waterPoint", fields).GetValue(fishPond);
             var towardWater = Vector3.ProjectOnPlane(water - player.transform.position, Vector3.up).normalized;
             var towardCamera = Vector3.ProjectOnPlane(camera.transform.position - player.transform.position, Vector3.up).normalized;
-            Assert.That(typeof(InputReader).GetProperty("FishingActive", fields).GetValue(input), Is.True);
+            Assert.That(typeof(InputReader_AI).GetProperty("FishingActive", fields).GetValue(input), Is.True);
             Assert.That(Vector3.Dot(towardWater, towardCamera), Is.LessThan(-.97f));
             Assert.That(Vector3.Dot(towardWater, camera.transform.forward), Is.GreaterThan(.5f));
             yield return new WaitForSecondsRealtime(2.6f);
             now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-            var interaction = _baked.GetComponentInChildren<InteractionSystem>();
+            var interaction = _baked.GetComponentInChildren<InteractionSystem_AI>();
             Assert.That(interaction.Interact(now), Is.True, "The moved camera no longer needs the marker under the cursor.");
             Assert.That(interaction.Interact(now), Is.False, "A second hook cannot award fish.");
             Assert.That(inventory.GetAmount(FishPond.FishId), Is.Zero);
@@ -233,11 +233,11 @@ namespace MyLittleFarm.Tests.PlayMode
             save.Restore(restored);
             Assert.That(fishPond.NextCatchAtUnixMs, Is.EqualTo(snapshot.nextFishCatchAtUnixMs));
             Assert.That(fishPond.Interact(now), Is.False);
-            var market = _baked.GetComponentInChildren<FarmMarket>(true);
+            var market = _baked.GetComponentInChildren<FarmMarket_AI>(true);
             var balance = wallet.Coins;
             player.Teleport(_baked.transform.Find("Sale Crate").position + Vector3.up);
             var cart = new Dictionary<string, int> { [FishPond.FishId] = 1 };
-            Assert.That(market.Checkout(FarmMarket.Category.Sell, cart, out var reason), Is.True, reason);
+            Assert.That(market.Checkout(FarmMarket_AI.Category.Sell, cart, out var reason), Is.True, reason);
             Assert.That(wallet.Coins, Is.EqualTo(balance + FishPond.SellPrice));
             Assert.That(inventory.GetAmount(FishPond.FishId), Is.Zero);
         }
@@ -248,8 +248,8 @@ namespace MyLittleFarm.Tests.PlayMode
             var fishPond = _baked.GetComponentInChildren<FishPond>();
             var camera = _baked.GetComponentInChildren<IsometricCameraController>();
             var player = _baked.GetComponentInChildren<PlayerController>();
-            var input = _baked.GetComponent<InputReader>();
-            var modalInput = typeof(InputReader).GetProperty(nameof(InputReader.ModalInputActive));
+            var input = _baked.GetComponent<InputReader_AI>();
+            var modalInput = typeof(InputReader_AI).GetProperty(nameof(InputReader_AI.ModalInputActive));
             modalInput.SetValue(input, false);
             player.Teleport(fishPond.transform.position + new Vector3(.5f, .76f, 0f));
             camera.RefreshPosition();
@@ -263,12 +263,12 @@ namespace MyLittleFarm.Tests.PlayMode
             AdvanceFishing(challenge, followFish: false);
             yield return new WaitForSecondsRealtime(.4f);
             Assert.That(Quaternion.Angle(camera.transform.rotation, farmCamera), Is.LessThan(1f));
-            Assert.That(_baked.GetComponentInChildren<InventorySystem>().GetAmount(FishPond.FishId), Is.Zero);
+            Assert.That(_baked.GetComponentInChildren<InventorySystem_AI>().GetAmount(FishPond.FishId), Is.Zero);
             Assert.That(fishPond.NextCatchAtUnixMs, Is.Zero);
             Assert.That(fishPond.Interact(now), Is.True, "A missed fish allows another cast immediately.");
             fishPond.Restore(0);
             Assert.That(Quaternion.Angle(camera.transform.rotation, farmCamera), Is.LessThan(1f));
-            Assert.That(typeof(InputReader).GetProperty("FishingActive", fields).GetValue(input), Is.False);
+            Assert.That(typeof(InputReader_AI).GetProperty("FishingActive", fields).GetValue(input), Is.False);
         }
 
         [Test]

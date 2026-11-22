@@ -16,7 +16,7 @@ namespace MyLittleFarm.Core
     /// Создаёт, проверяет и восстанавливает полный снимок игры. GridSystem v2 сохраняется
     /// разреженно по чанкам, а запись на диск выполняется через временный файл.
     /// </summary>
-    public sealed partial class SaveSystem : MonoBehaviour
+    public sealed partial class SaveSystem_AI : MonoBehaviour
     {
         // Версия 5 сохраняет только отличия от базовой карты и поверхность под игровыми слоями.
         public const int CurrentSaveVersion = 21;
@@ -28,11 +28,11 @@ namespace MyLittleFarm.Core
         [SerializeField, Min(10f)] private float autosaveIntervalSeconds = 300f;
 
         // Все зависимости передаются bootstrap, поэтому Update не выполняет поиски по сцене.
-        private InputReader _input;
+        private InputReader_AI _input;
         private PlayerController _player;
         private GridSystem _grid;
-        private CropSystem _crops;
-        private InventorySystem _inventory;
+        private CropSystem_AI _crops;
+        private InventorySystem_AI _inventory;
         private WalletSystem _wallet;
         private BuildSystem _buildings;
         private FarmCatalog _catalog;
@@ -42,12 +42,12 @@ namespace MyLittleFarm.Core
         public DailyMarketOrders DailyOrders {get;private set;}
         [SerializeField] private MarketBalance marketBalance = new MarketBalance();
         internal bool ProtectTutorialSale => _onboarding != null && _onboarding.IsActive && !_onboarding.SaleCompleted;
-        private OrchardSystem _orchard;
-        private AnimalSystem _animals;
+        private OrchardSystem_AI _orchard;
+        private AnimalSystem_AI _animals;
         private OnboardingSystem _onboarding;
         private DayNightCycle _dayNight;
-        private WeatherController _weather;
-        private FarmProgression _progression;
+        private WeatherController_AI _weather;
+        private FarmProgression_AI _progression;
         private FishPond _fishing;
         private float _nextAutosaveAt;
         // false запрещает автозапись после ошибки загрузки, чтобы не затереть повреждённый файл.
@@ -61,10 +61,10 @@ namespace MyLittleFarm.Core
         public string SavePath => SlotPath(ActiveSlot, false);
 
         /// <summary>Передаёт все источники состояния и запускает таймер автосохранения.</summary>
-        public void Configure(InputReader input, PlayerController player, GridSystem grid, CropSystem crops,
-            InventorySystem inventory, WalletSystem wallet, BuildSystem buildings = null, FarmCatalog catalog = null,
+        public void Configure(InputReader_AI input, PlayerController player, GridSystem grid, CropSystem_AI crops,
+            InventorySystem_AI inventory, WalletSystem wallet, BuildSystem buildings = null, FarmCatalog catalog = null,
             QuickSlotSystem slots = null, SectorSystem sector = null, ToolUpgradeSystem upgrades = null,
-            OrchardSystem orchard = null, AnimalSystem animals = null, OnboardingSystem onboarding = null,
+            OrchardSystem_AI orchard = null, AnimalSystem_AI animals = null, OnboardingSystem onboarding = null,
             FishPond fishing = null)
         {
             _input = input;
@@ -84,8 +84,8 @@ namespace MyLittleFarm.Core
             _fishing = fishing;
             var root=grid==null?null:grid.GetComponentInParent<GameBootstrap>();
             _dayNight=root==null?null:root.GetComponentInChildren<DayNightCycle>(true);
-            _weather=root==null?null:root.GetComponentInChildren<WeatherController>(true);
-            _progression=root==null?null:root.GetComponentInChildren<FarmProgression>(true);
+            _weather=root==null?null:root.GetComponentInChildren<WeatherController_AI>(true);
+            _progression=root==null?null:root.GetComponentInChildren<FarmProgression_AI>(true);
             DailyOrders=new DailyMarketOrders(catalog,inventory,wallet,buildings,animals,orchard,marketBalance);
             _persistenceEnabled = false;
             _playTimeSeconds = 0;
@@ -127,6 +127,7 @@ namespace MyLittleFarm.Core
         }
 
         /// <summary>Снимает отделённую копию изменяемого состояния всех подсистем.</summary>
+        // Собираю отдельный снимок фермы, включая рыночную историю, растения, размеры и пастуха.
         public SaveData Capture()
         {
             var position = _player.transform.position;
@@ -194,6 +195,7 @@ namespace MyLittleFarm.Core
             finally{_progression?.EndRestore();}
         }
 
+        // Восстанавливаю живую ферму из проверенного снимка. Память механик берётся из этого слота.
         private void ApplySnapshot(SaveData data, GridSaveData migratedGrid)
         {
             mainMenu?.CloseProduction();
@@ -220,7 +222,7 @@ namespace MyLittleFarm.Core
                 data.onboardingGardenPlanted, new Vector2Int(data.onboardingGardenX, data.onboardingGardenZ),
                 data.onboardingSaleCompleted);
             _upgrades?.Restore(data.toolUpgradeLevel,data.baseHoeGranted);
-            _player.GetComponentInParent<GameBootstrap>()?.GetComponentInChildren<InteractionSystem>(true)?.ResetFieldInteraction();
+            _player.GetComponentInParent<GameBootstrap>()?.GetComponentInChildren<InteractionSystem_AI>(true)?.ResetFieldInteraction();
             _slots?.Restore(data.quickSlotItems,data.selectedQuickSlot,data.selectedQuickMode);
             var requestedPosition = new Vector3(data.player.x, data.player.y, data.player.z);
             if (!_player.TryFindSafeRestorePosition(requestedPosition, out var position))
@@ -398,7 +400,7 @@ namespace MyLittleFarm.Core
                 data.progression.shepherdPriority = ShepherdPriority.FeedFirst;
                 data.progression.shepherdAdapted = false;
             }
-            if(!FarmProgression.IsValid(data.progression)||(data.progression!=null&&_progression==null))
+            if(!FarmProgression_AI.IsValid(data.progression)||(data.progression!=null&&_progression==null))
                 throw new InvalidDataException("Farm progression state is invalid or its system is missing.");
             if (double.IsNaN(data.playTimeSeconds) || double.IsInfinity(data.playTimeSeconds)
                 || data.playTimeSeconds < 0 || data.playTimeSeconds > 1e12)
@@ -413,7 +415,7 @@ namespace MyLittleFarm.Core
                 && savedWeather.cloudCover == 0f && savedWeather.rainIntensity == 0f
                 && savedWeather.transitionRemaining == 0f && savedWeather.holdRemaining == 0f
                 && savedWeather.cloudRotation == 0f) data.weather = null;
-            if(data.weather!=null&&!WeatherController.IsValid(data.weather))
+            if(data.weather!=null&&!WeatherController_AI.IsValid(data.weather))
                 throw new InvalidDataException("Weather state is invalid.");
             if (data.saveVersion >= 5 && data.worldBaseHash != _grid.ComputeBaseMapHash())
             {
@@ -544,7 +546,7 @@ namespace MyLittleFarm.Core
         }
 
         private static void ValidateInventory(List<InventoryEntryData> inventory)
-            => InventorySystem.ValidateEntries(inventory);
+            => InventorySystem_AI.ValidateEntries(inventory);
 
         private Dictionary<Vector2Int, CellData> ValidateGrid(GridSaveData grid, int saveVersion)
         {
@@ -588,7 +590,7 @@ namespace MyLittleFarm.Core
             var positions = new HashSet<Vector2Int>();
             foreach (var crop in crops)
             {
-                if (crop == null || (_catalog == null ? crop.cropId != CropSystem.PrototypeCropId
+                if (crop == null || (_catalog == null ? crop.cropId != CropSystem_AI.PrototypeCropId
                         : !_catalog.TryGetCrop(crop.cropId, out _))
                     || !IsFinite(crop.growDurationSeconds) || crop.growDurationSeconds <= 0f
                     || !IsFinite(crop.weatherGrowthBonusSeconds) || crop.weatherGrowthBonusSeconds<0f
@@ -598,7 +600,7 @@ namespace MyLittleFarm.Core
                     || crop.isRegrowing && (_catalog==null || !_catalog.TryGetCrop(crop.cropId,out var repeat) || repeat.RegrowSeconds<=0)
                     || crop.stageCount < 2 || crop.plantedAtUnixMs < 0 || !positions.Add(crop.Position)
                     || !cells.TryGetValue(crop.Position, out var cell) || cell.type != CellType.Planted
-                    || cell.occupantId != CropSystem.CropOccupantId(crop.Position))
+                    || cell.occupantId != CropSystem_AI.CropOccupantId(crop.Position))
                     throw new InvalidDataException("Crop state does not match its grid cell.");
             }
         }
@@ -613,14 +615,14 @@ namespace MyLittleFarm.Core
             {
                 if (tree == null || !_orchard.TryGetDefinition(tree.treeId, out var definition)
                     || !IsFinite(tree.rainySeconds) || tree.rainySeconds < 0
-                    || tree.rainySeconds > OrchardSystem.Cycle(tree, definition).duration
+                    || tree.rainySeconds > OrchardSystem_AI.Cycle(tree, definition).duration
                     || !HarvestQuality.IsValidSize(tree.harvestSize) || (!tree.sizeReady && tree.harvestSize != HarvestSize.M)
                     || tree.plantedAtUnixMs < 0 || tree.lastHarvestAtUnixMs < 0
                     || tree.plantedAtUnixMs > 253402300799999L || tree.lastHarvestAtUnixMs > 253402300799999L
                     || (tree.lastHarvestAtUnixMs > 0 && tree.lastHarvestAtUnixMs < tree.plantedAtUnixMs)
                     || !positions.Add(tree.Position)
                     || !cells.TryGetValue(tree.Position, out var cell) || cell.type != CellType.Tree
-                    || cell.occupantId != OrchardSystem.TreeOccupantId(tree.Position))
+                    || cell.occupantId != OrchardSystem_AI.TreeOccupantId(tree.Position))
                     throw new InvalidDataException("Tree state does not match its grid cell.");
             }
         }
@@ -644,10 +646,10 @@ namespace MyLittleFarm.Core
                     || animal.lastFedAtUnixMs > 253402300799999L || animal.readyProductCount < 0
                     || animal.readyProductCount > 100
                     || !IsFinite(animal.shepherdWaitSeconds) || animal.shepherdWaitSeconds < 0
-                    || animal.shepherdWaitSeconds > AnimalSystem.ManualCollectionWindow
+                    || animal.shepherdWaitSeconds > AnimalSystem_AI.ManualCollectionWindow
                     || ((animal.definitionId == "cow" || animal.readyProductCount == 0) &&
                         (animal.shepherdObserved || animal.shepherdWaitSeconds != 0))
-                    || animal.shepherdObserved != (animal.shepherdWaitSeconds == AnimalSystem.ManualCollectionWindow))
+                    || animal.shepherdObserved != (animal.shepherdWaitSeconds == AnimalSystem_AI.ManualCollectionWindow))
                     throw new InvalidDataException("Animal state is invalid.");
                 // Валидация должна читать загружаемый снимок: текущая сцена может быть уже изменена.
                 var savedType = savedCells.TryGetValue(animal.Position, out var savedCell)
@@ -733,9 +735,9 @@ namespace MyLittleFarm.Core
         {
             // Обратная проверка не даёт файлу спрятать «осиротевшую» занятость без данных подсистемы.
             var cropIds = new HashSet<string>(StringComparer.Ordinal);
-            foreach (var crop in crops) cropIds.Add(CropSystem.CropOccupantId(crop.Position));
+            foreach (var crop in crops) cropIds.Add(CropSystem_AI.CropOccupantId(crop.Position));
             var treeIds = new HashSet<string>(StringComparer.Ordinal);
-            foreach (var tree in trees) treeIds.Add(OrchardSystem.TreeOccupantId(tree.Position));
+            foreach (var tree in trees) treeIds.Add(OrchardSystem_AI.TreeOccupantId(tree.Position));
             var buildingIds = new HashSet<string>(StringComparer.Ordinal);
             var expectedBuildingCells = new Dictionary<Vector2Int, string>();
             foreach (var building in buildings)
@@ -786,7 +788,7 @@ namespace MyLittleFarm.Core
                         throw new InvalidDataException("Legacy grid contains a duplicate cell.");
                 }
             foreach (var crop in data.crops)
-                cells[crop.Position] = new CellData(CellType.Planted) { occupantId = CropSystem.CropOccupantId(crop.Position) };
+                cells[crop.Position] = new CellData(CellType.Planted) { occupantId = CropSystem_AI.CropOccupantId(crop.Position) };
             foreach (var building in data.buildings)
             {
                 var definition = Definition(building.definitionId, BuildingDefinition.LegacyCatalog);

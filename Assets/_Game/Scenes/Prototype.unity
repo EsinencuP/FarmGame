@@ -7004,7 +7004,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d7a6e3c8b38a481aa5e1d391db92cd67, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: MyLittleFarm.Runtime::MyLittleFarm.Core.SaveSystem
+  m_EditorClassIdentifier: MyLittleFarm.Runtime::MyLittleFarm.Core.SaveSystem_AI
   slotMenu: {fileID: 447999996}
   mainMenu: {fileID: 794098826}
   previewCamera: {fileID: 1158205259}
@@ -8157,7 +8157,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 532922a8b95916b4099e58b80e6f3c18, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: MyLittleFarm.Runtime::MyLittleFarm.UI.FarmInventoryUI
+  m_EditorClassIdentifier: MyLittleFarm.Runtime::MyLittleFarm.UI.FarmInventoryUI_AI
   inventory: {fileID: 745516155}
   wallet: {fileID: 1114614228}
   catalog: {fileID: 1153719261}
@@ -25190,7 +25190,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 830399e277a434f429961cb2009b6313, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: MyLittleFarm.Runtime::MyLittleFarm.Gameplay.World.WeatherController
+  m_EditorClassIdentifier: MyLittleFarm.Runtime::MyLittleFarm.Gameplay.World.WeatherController_AI
   lighting: {fileID: 800800748}
   focus: {fileID: 356378616}
   rainParticles: {fileID: 1030917791}
@@ -26817,7 +26817,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3fe6b260403346829071813f030e3eea, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: MyLittleFarm.Runtime::MyLittleFarm.Gameplay.Animals.AnimalSystem
+  m_EditorClassIdentifier: MyLittleFarm.Runtime::MyLittleFarm.Gameplay.Animals.AnimalSystem_AI
   cowAsset: {fileID: 0}
   maxCows: 8
   chickenAsset: {fileID: 0}
@@ -36242,7 +36242,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 445079a6b41b40319d99109ab7a9749e, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: MyLittleFarm.Runtime::MyLittleFarm.Gameplay.Economy.InventorySystem
+  m_EditorClassIdentifier: MyLittleFarm.Runtime::MyLittleFarm.Gameplay.Economy.InventorySystem_AI
   startingCarrotSeeds: 8
 --- !u!1 &749219454
 GameObject:
@@ -40647,7 +40647,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: bd7dc9c4a3447b84ba17431b59540ccf, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: MyLittleFarm.Runtime::MyLittleFarm.UI.FarmJournalUI
+  m_EditorClassIdentifier: MyLittleFarm.Runtime::MyLittleFarm.UI.FarmJournalUI_AI
   progress: {fileID: 1916896671}
   input: {fileID: 1538524814}
   shade: {fileID: 977228627}
@@ -64835,7 +64835,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3291cd7a991d47c58faa65994b48406f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: MyLittleFarm.Runtime::MyLittleFarm.Gameplay.World.InteractionSystem
+  m_EditorClassIdentifier: MyLittleFarm.Runtime::MyLittleFarm.Gameplay.World.InteractionSystem_AI
   sellingDistance: 2.4
   promptRefreshInterval: 0.1
 --- !u!1 &1282174184
@@ -71296,7 +71296,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5346ca10b409404cba5a75c0263e4270, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: MyLittleFarm.Runtime::MyLittleFarm.Gameplay.Farming.CropSystem
+  m_EditorClassIdentifier: MyLittleFarm.Runtime::MyLittleFarm.Gameplay.Farming.CropSystem_AI
   growDurationSeconds: 8
   yieldAmount: 2
   stageCount: 3
@@ -77750,7 +77750,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: aeba1b570eb444b4bf19a40c2493a811, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: MyLittleFarm.Runtime::MyLittleFarm.Core.InputReader
+  m_EditorClassIdentifier: MyLittleFarm.Runtime::MyLittleFarm.Core.InputReader_AI
   onboardingPointerBlock: {fileID: 366539579}
   clockSpeedPointerBlock: {fileID: 637420437}
   navigationPointerBlock: {fileID: 1241798579}
@@ -77913,7 +77913,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e8a41ab9717c87c4c82b1d68bda9eda4, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: MyLittleFarm.Runtime::MyLittleFarm.Gameplay.Economy.FarmMarket
+  m_EditorClassIdentifier: MyLittleFarm.Runtime::MyLittleFarm.Gameplay.Economy.FarmMarket_AI
   catalog: {fileID: 1153719261}
   inventory: {fileID: 745516155}
   wallet: {fileID: 1114614228}
@@ -84976,7 +84976,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 17d92dc5aee578746a7d9f30b16da962, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: MyLittleFarm.Runtime::MyLittleFarm.UI.FarmMarketUI
+  m_EditorClassIdentifier: MyLittleFarm.Runtime::MyLittleFarm.UI.FarmMarketUI_AI
   market: {fileID: 1538524818}
   font: {fileID: 12800000, guid: 38f2cef0dd0f9e342943027128ab0c5e, type: 3}
   panel: {fileID: 992696798}
@@ -93340,7 +93340,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 406350609d0748ecbdb1af4705dbca57, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: MyLittleFarm.Runtime::MyLittleFarm.Gameplay.Farming.OrchardSystem
+  m_EditorClassIdentifier: MyLittleFarm.Runtime::MyLittleFarm.Gameplay.Farming.OrchardSystem_AI
   appleTreeAsset: {fileID: 11400000, guid: b8abd7c65f44c7042a37f5cc5ed3e6c1, type: 2}
   additionalTreeAssets: []
   firstHarvestSeconds: 30
@@ -97524,7 +97524,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a43bd16eeffde464782a959c8e6d0486, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: MyLittleFarm.Runtime::MyLittleFarm.Gameplay.World.FarmProgression
+  m_EditorClassIdentifier: MyLittleFarm.Runtime::MyLittleFarm.Gameplay.World.FarmProgression_AI
   journal: {fileID: 837591498}
   gameMenus: {fileID: 794098826}
   seedCaches:

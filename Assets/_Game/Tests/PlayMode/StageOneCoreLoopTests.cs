@@ -27,12 +27,12 @@ namespace MyLittleFarm.Tests.PlayMode
             var shop = UnityEngine.Object.FindFirstObjectByType<SeedShopSystem>();
             var sector = UnityEngine.Object.FindFirstObjectByType<SectorSystem>();
             var upgrades = UnityEngine.Object.FindFirstObjectByType<ToolUpgradeSystem>();
-            var inventory = UnityEngine.Object.FindFirstObjectByType<InventorySystem>();
+            var inventory = UnityEngine.Object.FindFirstObjectByType<InventorySystem_AI>();
             var wallet = UnityEngine.Object.FindFirstObjectByType<WalletSystem>();
-            var interaction = UnityEngine.Object.FindFirstObjectByType<InteractionSystem>();
+            var interaction = UnityEngine.Object.FindFirstObjectByType<InteractionSystem_AI>();
             var selling = UnityEngine.Object.FindFirstObjectByType<SellingSystem>();
             var grid = UnityEngine.Object.FindFirstObjectByType<GridSystem>();
-            var save = UnityEngine.Object.FindFirstObjectByType<SaveSystem>();
+            var save = UnityEngine.Object.FindFirstObjectByType<SaveSystem_AI>();
             var buildings = UnityEngine.Object.FindFirstObjectByType<BuildSystem>();
             var player = UnityEngine.Object.FindFirstObjectByType<PlayerController>();
             var cells = new[] { new Vector2Int(2, 0), new Vector2Int(3, 0),
@@ -96,7 +96,7 @@ namespace MyLittleFarm.Tests.PlayMode
             Assert.That(upgrades.TryUpgrade(), Is.True);
             Assert.That(upgrades.TryUpgrade(), Is.True);
             var snapshot = save.Capture();
-            Assert.That(snapshot.saveVersion, Is.EqualTo(SaveSystem.CurrentSaveVersion));
+            Assert.That(snapshot.saveVersion, Is.EqualTo(SaveSystem_AI.CurrentSaveVersion));
 
             // Восстановление проверяет сохранение трёх независимых настроек прогресса.
             wallet.SetCoins(0);
@@ -120,7 +120,7 @@ namespace MyLittleFarm.Tests.PlayMode
             var sector = UnityEngine.Object.FindFirstObjectByType<SectorSystem>();
             var upgrades = UnityEngine.Object.FindFirstObjectByType<ToolUpgradeSystem>();
             var slots = UnityEngine.Object.FindFirstObjectByType<QuickSlotSystem>();
-            var save = UnityEngine.Object.FindFirstObjectByType<SaveSystem>();
+            var save = UnityEngine.Object.FindFirstObjectByType<SaveSystem_AI>();
             var grid = UnityEngine.Object.FindFirstObjectByType<GridSystem>();
             var path = Path.Combine(Application.temporaryCachePath, $"stage-one-{Guid.NewGuid():N}.json");
 

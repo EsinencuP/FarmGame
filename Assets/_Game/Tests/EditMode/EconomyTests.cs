@@ -15,14 +15,14 @@ namespace MyLittleFarm.Tests.EditMode
             var root = new GameObject("Overflow Test");
             try
             {
-                var inventory = root.AddComponent<InventorySystem>();
-                inventory.Add(InventorySystem.CarrotId, 3);
+                var inventory = root.AddComponent<InventorySystem_AI>();
+                inventory.Add(InventorySystem_AI.CarrotId, 3);
                 var wallet = root.AddComponent<WalletSystem>();
                 wallet.SetCoins(int.MaxValue - 1);
                 var selling = root.AddComponent<SellingSystem>();
                 selling.Configure(inventory, wallet);
                 Assert.That(selling.SellAllCarrots(), Is.Zero);
-                Assert.That(inventory.GetAmount(InventorySystem.CarrotId), Is.EqualTo(3));
+                Assert.That(inventory.GetAmount(InventorySystem_AI.CarrotId), Is.EqualTo(3));
                 Assert.That(wallet.Coins, Is.EqualTo(int.MaxValue - 1));
                 Assert.Throws<System.OverflowException>(() => wallet.AddCoins(2));
                 Assert.That(wallet.Coins, Is.EqualTo(int.MaxValue - 1));
@@ -37,9 +37,9 @@ namespace MyLittleFarm.Tests.EditMode
             var root = new GameObject("Economy Test");
             try
             {
-                var inventory = root.AddComponent<InventorySystem>();
+                var inventory = root.AddComponent<InventorySystem_AI>();
                 inventory.ConfigurePrototypeInventory();
-                inventory.Add(InventorySystem.CarrotId, 3);
+                inventory.Add(InventorySystem_AI.CarrotId, 3);
                 var wallet = root.AddComponent<WalletSystem>();
                 wallet.Configure(25);
                 var selling = root.AddComponent<SellingSystem>();
@@ -51,7 +51,7 @@ namespace MyLittleFarm.Tests.EditMode
                 finally { GameEvents.InventoryChanged -= ObserveSale; }
 
                 Assert.That(earned, Is.EqualTo(3 * selling.CarrotSellPrice));
-                Assert.That(inventory.GetAmount(InventorySystem.CarrotId), Is.Zero);
+                Assert.That(inventory.GetAmount(InventorySystem_AI.CarrotId), Is.Zero);
                 Assert.That(wallet.Coins, Is.EqualTo(40));
                 Assert.That(observedCoins, Is.EqualTo(40));
                 Assert.That(observedCarrots, Is.Zero);
@@ -59,7 +59,7 @@ namespace MyLittleFarm.Tests.EditMode
                 void ObserveSale()
                 {
                     observedCoins = wallet.Coins;
-                    observedCarrots = inventory.GetAmount(InventorySystem.CarrotId);
+                    observedCarrots = inventory.GetAmount(InventorySystem_AI.CarrotId);
                 }
             }
             finally
@@ -75,15 +75,15 @@ namespace MyLittleFarm.Tests.EditMode
             var root = new GameObject("Inventory Test");
             try
             {
-                var inventory = root.AddComponent<InventorySystem>();
+                var inventory = root.AddComponent<InventorySystem_AI>();
                 inventory.ConfigurePrototypeInventory();
-                inventory.Add(InventorySystem.CarrotId, 4);
+                inventory.Add(InventorySystem_AI.CarrotId, 4);
                 var snapshot = inventory.Capture();
-                inventory.TryRemove(InventorySystem.CarrotSeedId, 3);
+                inventory.TryRemove(InventorySystem_AI.CarrotSeedId, 3);
                 inventory.Restore(snapshot);
 
-                Assert.That(inventory.GetAmount(InventorySystem.CarrotSeedId), Is.EqualTo(8));
-                Assert.That(inventory.GetAmount(InventorySystem.CarrotId), Is.EqualTo(4));
+                Assert.That(inventory.GetAmount(InventorySystem_AI.CarrotSeedId), Is.EqualTo(8));
+                Assert.That(inventory.GetAmount(InventorySystem_AI.CarrotId), Is.EqualTo(4));
             }
             finally
             {

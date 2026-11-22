@@ -59,11 +59,11 @@ namespace MyLittleFarm.Gameplay.Building
         private BuildingLayout _layout;
         // Зависимости дают доступ к сетке, посевам, деньгам, вводу и лучу камеры.
         private GridSystem _grid;
-        private CropSystem _crops;
+        private CropSystem_AI _crops;
         private WalletSystem _wallet;
-        private InputReader _input;
+        private InputReader_AI _input;
         private Camera _camera;
-        private MyLittleFarm.Gameplay.Animals.AnimalSystem _animals;
+        private MyLittleFarm.Gameplay.Animals.AnimalSystem_AI _animals;
         // Preview — временная геометрия, а два материала обозначают допустимое и запрещённое место.
         private GameObject _preview;
         private GameObject _previewModel;
@@ -101,17 +101,17 @@ namespace MyLittleFarm.Gameplay.Building
         public FeederStore Feeders {get;private set;}
         public WarehouseStore Warehouses { get; private set; }
         public BuildingDefinition SelectedDefinition => BuildingDefinition.Catalog[_selected];
-        public void BindAnimals(MyLittleFarm.Gameplay.Animals.AnimalSystem animals) => _animals = animals;
+        public void BindAnimals(MyLittleFarm.Gameplay.Animals.AnimalSystem_AI animals) => _animals = animals;
 
         /// <summary>Подключает зависимости, создаёт пустой layout и объект предпросмотра.</summary>
         public void Configure(
-            InputReader input,
+            InputReader_AI input,
             GridSystem grid,
-            CropSystem crops,
+            CropSystem_AI crops,
             WalletSystem wallet,
             Camera camera,
             bool allowSceneCreation = false,
-            InventorySystem inventory = null)
+            InventorySystem_AI inventory = null)
         {
             _input = input; _grid = grid; _crops = crops; _wallet = wallet; _camera = camera;
             Feeders=inventory==null?null:new FeederStore(this,inventory);
@@ -292,8 +292,8 @@ namespace MyLittleFarm.Gameplay.Building
         private string ManagementPrompt()
         {
             var action = _management == Management.Move ? "переноса" : "сноса";
-            return $"Выберите готовую постройку для {action} · {InputReader.ActionHint}\n"
-                + $"Настроить · {InputReader.KeyLabel(InputReader.Command.Customize)}   |   Отмена · Esc";
+            return $"Выберите готовую постройку для {action} · {InputReader_AI.ActionHint}\n"
+                + $"Настроить · {InputReader_AI.KeyLabel(InputReader_AI.Command.Customize)}   |   Отмена · Esc";
         }
 
         /// <summary>Включает или выключает режим, сбрасывая незавершённый перенос и удаление.</summary>
@@ -349,7 +349,7 @@ namespace MyLittleFarm.Gameplay.Building
                 var state = _layout.Get(_deleteId);
                 if (state == null) { _deleteId = null; return; }
                 CurrentPrompt = FarmText.Get("construction.deletePrompt", _layout.Definition(state.definitionId).Name,
-                    FarmText.Coins(state.Refund), InputReader.KeyLabel(InputReader.Command.Interact));
+                    FarmText.Coins(state.Refund), InputReader_AI.KeyLabel(InputReader_AI.Command.Interact));
                 if (_input.ConfirmPressed || (_input.InteractPressed && !_input.PointerInteractPressed))
                 {
                     TryRemove(_deleteId, out var reason);
@@ -449,8 +449,8 @@ namespace MyLittleFarm.Gameplay.Building
             return FarmText.Get("construction.placement", definition.Name,
                 moving ? FarmText.Get("construction.freeMove") : FarmText.Coins(definition.Price),
                 definition.RotatedWidth(turns), definition.RotatedDepth(turns),
-                valid ? FarmText.Get("construction.valid") : reason, InputReader.ActionHint, InputReader.BuildRotateHint,
-                InputReader.KeyLabel(InputReader.Command.Build));
+                valid ? FarmText.Get("construction.valid") : reason, InputReader_AI.ActionHint, InputReader_AI.BuildRotateHint,
+                InputReader_AI.KeyLabel(InputReader_AI.Command.Build));
         }
 
         private Material GhostMaterial(Shader shader, Color tint)

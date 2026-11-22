@@ -17,9 +17,9 @@ namespace MyLittleFarm.Editor
             var root = UnityEngine.Object.FindAnyObjectByType<GameBootstrap>();
             if (root == null || root.gameObject.scene.path != "Assets/_Game/Scenes/Prototype.unity")
                 throw new InvalidOperationException("Open Prototype first.");
-            var saves = root.GetComponentInChildren<SaveSystem>(true);
+            var saves = root.GetComponentInChildren<SaveSystem_AI>(true);
             var hud = root.GetComponentInChildren<HUDController>(true);
-            var input = root.GetComponent<InputReader>();
+            var input = root.GetComponent<InputReader_AI>();
             if (saves == null || hud == null || input == null) throw new MissingReferenceException("Baked systems are missing.");
             var ui = hud.GetComponentInChildren<SaveSlotsUI>(true);
             if (ui == null) ui = SaveSlotsUI.Create(hud.transform, saves, input, Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf"));

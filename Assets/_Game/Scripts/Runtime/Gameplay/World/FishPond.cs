@@ -17,8 +17,8 @@ namespace MyLittleFarm.Gameplay.World
         private const float Reach = 1.8f;
         private const float BiteDuration = 4f;
         private enum Phase { Idle, Waiting, Fighting, Reeling }
-        private InventorySystem _inventory;
-        private InputReader _input;
+        private InventorySystem_AI _inventory;
+        private InputReader_AI _input;
         private Transform _player;
         private IsometricCameraController _camera;
         private Transform _hudParent;
@@ -39,8 +39,8 @@ namespace MyLittleFarm.Gameplay.World
         internal bool IsFishing => _phase != Phase.Idle;
         private bool BobberInWater => _phase is Phase.Waiting or Phase.Fighting;
 
-        internal static FishPond Create(Transform parent, GridSystem grid, InventorySystem inventory,
-            InputReader input, PlayerController player, IsometricCameraController camera, Transform hudParent, Font hudFont)
+        internal static FishPond Create(Transform parent, GridSystem grid, InventorySystem_AI inventory,
+            InputReader_AI input, PlayerController player, IsometricCameraController camera, Transform hudParent, Font hudFont)
         {
             var shore = new Vector2Int(-13, 8);
             var water = new Vector2Int(-15, 8);
@@ -129,10 +129,10 @@ namespace MyLittleFarm.Gameplay.World
             return _phase switch
             {
                 Phase.Waiting => Time.unscaledTime >= _biteAt
-                    ? FarmText.Get("fishing.hook", InputReader.ActionHint) : FarmText.Get("fishing.wait"),
+                    ? FarmText.Get("fishing.hook", InputReader_AI.ActionHint) : FarmText.Get("fishing.wait"),
                 Phase.Fighting => FarmText.Get("fishing.controls"),
                 Phase.Reeling => "",
-                _ => InputReader.ActionHint + " — забросить удочку"
+                _ => InputReader_AI.ActionHint + " — забросить удочку"
             };
         }
 

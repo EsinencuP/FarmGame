@@ -30,8 +30,8 @@ namespace MyLittleFarm.UI
             controlsGuide.text = FarmText.Get("settings.bindingHelp");
             controlsGuide.fontSize = 22;
             var resetBindings = AddBindingButton(content, FarmText.Get("settings.resetBindings"));
-            resetBindings.onClick.AddListener(() => { InputReader.ResetBindings(); RefreshBindingLabels(); });
-            foreach (var command in InputReader.Commands)
+            resetBindings.onClick.AddListener(() => { InputReader_AI.ResetBindings(); RefreshBindingLabels(); });
+            foreach (var command in InputReader_AI.Commands)
             {
                 var button = AddBindingButton(content, "");
                 button.name = "Bind " + command;
@@ -57,14 +57,14 @@ namespace MyLittleFarm.UI
             return button;
         }
 
-        private void CaptureBinding(InputReader.Command command, Text label)
+        private void CaptureBinding(InputReader_AI.Command command, Text label)
         {
             CancelControlCapture();
             var previous = FarmUIFocus.Selected;
             FarmUITheme.Focus(null);
             _capturingControl = true;
-            label.text = FarmText.Get("settings.waitForKey", InputReader.CommandLabel(command));
-            InputReader.BeginBindingCapture(command, message =>
+            label.text = FarmText.Get("settings.waitForKey", InputReader_AI.CommandLabel(command));
+            InputReader_AI.BeginBindingCapture(command, message =>
             {
                 _capturingControl = false;
                 RefreshBindingLabels();
@@ -81,15 +81,15 @@ namespace MyLittleFarm.UI
         {
             for (var i = 0; i < _bindingLabels.Count; i++)
             {
-                var command = InputReader.Commands[i];
-                _bindingLabels[i].text = InputReader.CommandLabel(command) + "   ·   " + InputReader.KeyLabel(command);
+                var command = InputReader_AI.Commands[i];
+                _bindingLabels[i].text = InputReader_AI.CommandLabel(command) + "   ·   " + InputReader_AI.KeyLabel(command);
                 _bindingLabels[i].color = FarmUITheme.Ink;
             }
         }
 
         private void CancelControlCapture()
         {
-            if (_capturingControl) InputReader.CancelBindingCapture();
+            if (_capturingControl) InputReader_AI.CancelBindingCapture();
         }
     }
 }

@@ -32,17 +32,17 @@ namespace MyLittleFarm.Tests.EditMode
                 var layout=canvas.GetComponent<ResponsiveHudLayout>();
                 var router=canvas.GetComponent<InteractionPromptUI>();
                 var card=canvas.GetComponentInChildren<BuildPromptUI>(true);
-                var snapshot=UnityEditor.EditorJsonUtility.ToJson(farm.GetComponentInChildren<SaveSystem>());
+                var snapshot=UnityEditor.EditorJsonUtility.ToJson(farm.GetComponentInChildren<SaveSystem_AI>());
                 foreach(var mode in new[]{ResponsiveHudLayout.PreviewMode.BuildAllowed,ResponsiveHudLayout.PreviewMode.BuildBlocked})
                 {
                     layout.SetEditorPreview(mode);Canvas.ForceUpdateCanvases();
                     Assert.That(card.gameObject.activeSelf,Is.True);
                     Assert.That(card.GetComponent<RectTransform>().rect.height,Is.EqualTo(180f));
                     Assert.That(card.PromptText.text,
-                        Does.Contain("Подтвердить · " + InputReader.ActionHint)
-                            .And.Contain("Повернуть · " + InputReader.BuildRotateHint)
+                        Does.Contain("Подтвердить · " + InputReader_AI.ActionHint)
+                            .And.Contain("Повернуть · " + InputReader_AI.BuildRotateHint)
                             .And.Contain("Отмена · Esc / ПКМ")
-                            .And.Contain("Строительство · " + InputReader.KeyLabel(InputReader.Command.Build)));
+                            .And.Contain("Строительство · " + InputReader_AI.KeyLabel(InputReader_AI.Command.Build)));
                     Assert.That(card.PromptText.preferredHeight,Is.LessThanOrEqualTo(card.PromptText.rectTransform.rect.height));
                     var canvasRect = canvas.GetComponent<RectTransform>().rect;
                     var cardRect = card.GetComponent<RectTransform>();
@@ -60,7 +60,7 @@ namespace MyLittleFarm.Tests.EditMode
                 Assert.That(canvas.transform.Find("Interaction Prompt").GetComponent<Text>().enabled,Is.True);
                 Assert.That(field.GetValue(build),Is.Null,"Preview must not call BuildPrototype/Configure.");
                 Assert.That(typeof(InteractionPromptUI).GetField("_buildings",BindingFlags.Instance|BindingFlags.NonPublic).GetValue(router),Is.Null);
-                Assert.That(UnityEditor.EditorJsonUtility.ToJson(farm.GetComponentInChildren<SaveSystem>()),Is.EqualTo(snapshot));
+                Assert.That(UnityEditor.EditorJsonUtility.ToJson(farm.GetComponentInChildren<SaveSystem_AI>()),Is.EqualTo(snapshot));
             }
             finally{EditorSceneManager.ClosePreviewScene(scene);}
         }

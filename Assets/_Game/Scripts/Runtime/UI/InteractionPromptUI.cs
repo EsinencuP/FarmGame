@@ -9,12 +9,12 @@ namespace MyLittleFarm.UI
     public sealed class InteractionPromptUI : MonoBehaviour
     {
         // Источники формируют текст, promptText является единственным отображаемым компонентом.
-        private InteractionSystem _interaction;
+        private InteractionSystem_AI _interaction;
         private Text _promptText;
         private BuildSystem _buildings;
         [SerializeField] private BuildPromptUI buildPrompt;
 
-        public void Configure(InteractionSystem interaction, Text promptText, BuildSystem buildings = null,
+        public void Configure(InteractionSystem_AI interaction, Text promptText, BuildSystem buildings = null,
             BuildPromptUI constructionPrompt = null)
         {
             // BuildingSystem необязателен, чтобы компонент можно было использовать без строительства.

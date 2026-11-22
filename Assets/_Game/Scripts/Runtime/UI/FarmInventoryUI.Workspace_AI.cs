@@ -10,7 +10,7 @@ using UnityEngine.UI;
 
 namespace MyLittleFarm.UI
 {
-    public sealed partial class FarmInventoryUI
+    public sealed partial class FarmInventoryUI_AI
     {
         private ItemWorkspace _workspace;
         private void OpenWorkspace(string warehouse,Action back)
@@ -37,7 +37,7 @@ namespace MyLittleFarm.UI
         /// <summary>One quantity per item ID; grids are projections and quick slots contain references.</summary>
         private sealed class ItemWorkspace
         {
-            private readonly FarmInventoryUI ui;
+            private readonly FarmInventoryUI_AI ui;
             private readonly RectTransform root,left,right;
             private readonly ScrollRect leftScroll,rightScroll;
             private readonly Text selected,detail,status,rightTitle;
@@ -57,7 +57,7 @@ namespace MyLittleFarm.UI
             private BuildSystem Build=>ui.inventory.GetComponentInParent<GameBootstrap>()?.GetComponentInChildren<BuildSystem>(true);
             private WarehouseStore Storage=>Build?.Warehouses;
             public Button First=>filters[0];
-            public ItemWorkspace(FarmInventoryUI owner)
+            public ItemWorkspace(FarmInventoryUI_AI owner)
             {
                 ui=owner;font=ui.heading.font;
                 root=FarmUITheme.Rect(ui.panel,"Item workspace");FarmUITheme.Stretch(root);
@@ -83,9 +83,9 @@ namespace MyLittleFarm.UI
                 {
                     var n=i;refs[i]=Button("",28+i*106,682,96,80,()=>ui.quickSlots.Select(n),"ghost");
                     refIcons[i]=FarmUITheme.Icon(refs[i].transform,"inventory");Place(refIcons[i].rectTransform,24,5,48,44);
-                    var key=FarmUITheme.Label(refs[i].transform,InputReader.KeyLabel(InputReader.Command.Seed1+i),font,16);Place(key.rectTransform,4,2,26,22);
+                    var key=FarmUITheme.Label(refs[i].transform,InputReader_AI.KeyLabel(InputReader_AI.Command.Seed1+i),font,16);Place(key.rectTransform,4,2,26,22);
                     refAmounts[i]=FarmUITheme.Label(refs[i].transform,"",font,18);Place(refAmounts[i].rectTransform,4,52,88,24);
-                    FarmItemDrag.Install(refs[i].gameObject,()=>SlotPayload(n),p=>FarmItemDrag.DropOnSlot(p,n,ui.inventory,ui.quickSlots));
+                    FarmItemDrag_AI.Install(refs[i].gameObject,()=>SlotPayload(n),p=>FarmItemDrag_AI.DropOnSlot(p,n,ui.inventory,ui.quickSlots));
                 }
                 hand=Button("Руки",700,682,150,48,()=>ui.quickSlots.SelectTool(QuickSlotSystem.SelectionMode.Hand),"secondary");
                 hoe=Button("Мотыга",862,682,150,48,()=>ui.quickSlots.SelectTool(QuickSlotSystem.SelectionMode.Hoe),"secondary");
@@ -106,10 +106,10 @@ namespace MyLittleFarm.UI
                 scroll.content=content;
                 var grid=content.gameObject.AddComponent<GridLayoutGroup>();grid.constraint=GridLayoutGroup.Constraint.FixedColumnCount;grid.constraintCount=5;
                 grid.cellSize=new Vector2(100,100);grid.spacing=new Vector2(10,10);grid.padding=new RectOffset(18,18,12,12);
-                FarmItemDrag.Install(viewport.gameObject,null,p=>DropStorage(p,name=="Warehouse"));return scroll;
+                FarmItemDrag_AI.Install(viewport.gameObject,null,p=>DropStorage(p,name=="Warehouse"));return scroll;
             }
             public void SetVisible(bool visible)=>root.gameObject.SetActive(visible);
-            public void Open(string id){warehouse=id;item=null;fromWarehouse=false;amount.text="1";status.text="Перетащите предмет: на склад, обратно или в быстрый слот. Количество задаётся выше.";FarmItemDrag.Cancel();}
+            public void Open(string id){warehouse=id;item=null;fromWarehouse=false;amount.text="1";status.text="Перетащите предмет: на склад, обратно или в быстрый слот. Количество задаётся выше.";FarmItemDrag_AI.Cancel();}
             private int Category(string id)
             {id=HarvestQuality.ParseStack(id).itemId;if(id.EndsWith("_seed")||id.EndsWith("_sapling"))return 1;return ui.catalog.Crops.Any(c=>c.HarvestItemId==id)?2:3;}
             private string Name(string stackId)
@@ -126,7 +126,7 @@ namespace MyLittleFarm.UI
             private string Describe(string stackId)
             {
                 var (id, size) = HarvestQuality.ParseStack(stackId);
-                if(id=="apple_sapling")return "Яблоня доступна бесплатно. Назначьте саженец на слот или выберите дерево для посадки клавишей "+InputReader.KeyLabel(InputReader.Command.Apple)+".";
+                if(id=="apple_sapling")return "Яблоня доступна бесплатно. Назначьте саженец на слот или выберите дерево для посадки клавишей "+InputReader_AI.KeyLabel(InputReader_AI.Command.Apple)+".";
                 var text=Name(stackId)+"\n";
                 if(ui.catalog.TryGetItem(id,out var definition))text+="Продажа по базовой котировке: "+HarvestQuality.Price(definition.SellPrice, 100, size)+" монет за шт.\n";
                 var crop=ui.catalog.Crops.FirstOrDefault(c=>c.SeedItemId==id || c.HarvestItemId==id);
@@ -181,7 +181,7 @@ namespace MyLittleFarm.UI
                     var index=cells.Count;var image=FarmUITheme.Image(content,"Stack "+index,"Skin/slot");var b=image.gameObject.AddComponent<Button>();b.targetGraphic=image;
                     var icon=FarmUITheme.Icon(image.transform,"inventory");Place(icon.rectTransform,21,7,58,58);
                     var count=FarmUITheme.Label(image.transform,"",font,19);Place(count.rectTransform,3,69,94,27);
-                    b.onClick.AddListener(()=>Select(index,stored));FarmItemDrag.Install(b.gameObject,()=>ItemPayload(index,stored),p=>DropStorage(p,stored));cells.Add(b);
+                    b.onClick.AddListener(()=>Select(index,stored));FarmItemDrag_AI.Install(b.gameObject,()=>ItemPayload(index,stored),p=>DropStorage(p,stored));cells.Add(b);
                 }
                 for(var i=0;i<cells.Count;i++)
                 {
@@ -198,15 +198,15 @@ namespace MyLittleFarm.UI
             private int Maximum()=>item==null?0:Count(item,fromWarehouse);
             private void Change(int delta){if(!int.TryParse(amount.text,out var n))n=1;amount.text=Math.Max(1,Math.Min((long)Math.Max(1,Maximum()),(long)n+delta)).ToString();}
             private bool Quantity(out int n){if(int.TryParse(amount.text,out n)&&n>0)return true;status.text="Введите целое положительное количество.";return false;}
-            private FarmItemDrag.Payload ItemPayload(int index,bool stored)
+            private FarmItemDrag_AI.Payload ItemPayload(int index,bool stored)
             {
                 var list=stored?rightIds:leftIds;if(index>=list.Count)return null;var id=list[index];
                 var n=item==id&&fromWarehouse==stored?(Quantity(out var selectedAmount)?selectedAmount:0):1;
                 if(n<1)return null;
-                return FarmItemDrag.Snapshot(stored?FarmItemDrag.Source.Warehouse:FarmItemDrag.Source.Inventory,id,n,0,warehouse,ui.inventory,ui.quickSlots,Storage,Icon(id));
+                return FarmItemDrag_AI.Snapshot(stored?FarmItemDrag_AI.Source.Warehouse:FarmItemDrag_AI.Source.Inventory,id,n,0,warehouse,ui.inventory,ui.quickSlots,Storage,Icon(id));
             }
-            private FarmItemDrag.Payload SlotPayload(int i)
-            {var id=ui.quickSlots.ItemAt(i);return id==null?null:FarmItemDrag.Snapshot(FarmItemDrag.Source.QuickSlot,id,0,i,warehouse,ui.inventory,ui.quickSlots,Storage,Icon(id));}
+            private FarmItemDrag_AI.Payload SlotPayload(int i)
+            {var id=ui.quickSlots.ItemAt(i);return id==null?null:FarmItemDrag_AI.Snapshot(FarmItemDrag_AI.Source.QuickSlot,id,0,i,warehouse,ui.inventory,ui.quickSlots,Storage,Icon(id));}
             private bool Near()
             {
                 // Player is a sibling of systems in the baked hierarchy.
@@ -215,10 +215,10 @@ namespace MyLittleFarm.UI
                 if(warehouse!=null && motor!=null && Build.WarehouseInReach(warehouse,motor.transform.position))return true;
                 status.text="Подойдите к складу и откройте его снова.";return false;
             }
-            private void DropStorage(FarmItemDrag.Payload p,bool destinationStored)
+            private void DropStorage(FarmItemDrag_AI.Payload p,bool destinationStored)
             {
-                if(warehouse==null || p.From==FarmItemDrag.Source.QuickSlot || (p.From==FarmItemDrag.Source.Warehouse)==destinationStored)return;
-                if(!FarmItemDrag.Current(p,ui.inventory,ui.quickSlots,Storage) || p.Warehouse!=warehouse || !Near()){status.text="Действие устарело. Повторите перенос.";return;}
+                if(warehouse==null || p.From==FarmItemDrag_AI.Source.QuickSlot || (p.From==FarmItemDrag_AI.Source.Warehouse)==destinationStored)return;
+                if(!FarmItemDrag_AI.Current(p,ui.inventory,ui.quickSlots,Storage) || p.Warehouse!=warehouse || !Near()){status.text="Действие устарело. Повторите перенос.";return;}
                 Storage.Transfer(warehouse,p.Item,p.Amount,destinationStored,p.Token,p.InventoryRevision,p.StorageRevision,out var message);status.text=message;
             }
             private void Transfer(bool stored)

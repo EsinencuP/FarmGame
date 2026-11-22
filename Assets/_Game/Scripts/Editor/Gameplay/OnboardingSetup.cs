@@ -73,7 +73,7 @@ namespace MyLittleFarm.Editor
             Stretch(label.rectTransform, Vector2.zero, Vector2.zero);
             Set(overlay, "card", card); Set(overlay, "hint", hint); Set(overlay, "skip", skip);
             Set(onboarding, "marker", marker); Set(onboarding, "overlay", overlay);
-            Set(root.GetComponent<InputReader>(), "onboardingPointerBlock", card);
+            Set(root.GetComponent<InputReader_AI>(), "onboardingPointerBlock", card);
             var layout = hud.GetComponent<ResponsiveHudLayout>();
             if (layout != null)
             {

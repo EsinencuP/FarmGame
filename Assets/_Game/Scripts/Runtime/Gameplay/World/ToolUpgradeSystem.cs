@@ -21,7 +21,7 @@ namespace MyLittleFarm.Gameplay.World
         public int NextPrice => Level == 0 ? firstUpgradePrice : Level == 1 ? secondUpgradePrice : 0;
 
         /// <summary>Новая ферма получает постоянную мотыгу; рынок продаёт следующие уровни.</summary>
-        public void Configure(InputReader input, WalletSystem wallet)
+        public void Configure(InputReader_AI input, WalletSystem wallet)
         {
             _wallet = wallet;
             Level = 0;

@@ -28,7 +28,7 @@ namespace MyLittleFarm.Editor
             sky.SetTexture("_CloudTex",clouds.GetTexture("_Tex"));EditorUtility.SetDirty(sky);
             var holder=root.transform.Find("World Weather");
             if(holder==null){var go=new GameObject("World Weather");go.transform.SetParent(root.transform,false);Undo.RegisterCreatedObjectUndo(go,"Add world weather");holder=go.transform;}
-            var weather=holder.GetComponent<WeatherController>();if(weather==null)weather=holder.gameObject.AddComponent<WeatherController>();
+            var weather=holder.GetComponent<WeatherController_AI>();if(weather==null)weather=holder.gameObject.AddComponent<WeatherController_AI>();
             var rain=holder.GetComponentInChildren<ParticleSystem>(true);
             if(rain==null){var go=(GameObject)PrefabUtility.InstantiatePrefab(EnsureRainPrefab(),holder);rain=go.GetComponent<ParticleSystem>();}
             var settings=new SerializedObject(weather);

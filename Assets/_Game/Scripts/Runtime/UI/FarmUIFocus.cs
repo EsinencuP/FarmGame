@@ -61,7 +61,7 @@ namespace MyLittleFarm.UI
         private void Update()
         {
             var active = _panel != null && _panel.gameObject.activeInHierarchy;
-            var usable = active && !InputReader.CapturingBinding && _changedFrame != Time.frameCount;
+            var usable = active && !InputReader_AI.CapturingBinding && _changedFrame != Time.frameCount;
             _events.sendNavigationEvents = usable;
             var keyboard = Keyboard.current;
             if (!usable || keyboard == null) return;
@@ -93,7 +93,7 @@ namespace MyLittleFarm.UI
 
         private void LateUpdate()
         {
-            if (_panel == null || !_panel.gameObject.activeInHierarchy || InputReader.CapturingBinding) return;
+            if (_panel == null || !_panel.gameObject.activeInHierarchy || InputReader_AI.CapturingBinding) return;
             if (FarmSettingsUI.ReduceMotion)
                 foreach (var scrollRect in _scrolls)
                     if (scrollRect != null && scrollRect.isActiveAndEnabled) scrollRect.StopMovement();

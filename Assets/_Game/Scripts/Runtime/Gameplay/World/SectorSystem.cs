@@ -14,7 +14,7 @@ namespace MyLittleFarm.Gameplay.World
         [SerializeField] private Color lockedTerrainColor = new Color(0.18f, 0.25f, 0.16f);
 
         // Сектор хранится в сцене заранее. Право доступа не зависит от росписи грунта.
-        private InputReader _input;
+        private InputReader_AI _input;
         private GridSystem _grid;
         private WalletSystem _wallet;
         private TilemapChunk _sectorChunk;
@@ -31,7 +31,7 @@ namespace MyLittleFarm.Gameplay.World
         }
 
         /// <summary>Подключает выгруженный сектор без создания нового объекта в Play Mode.</summary>
-        public void Configure(InputReader input, GridSystem grid, WalletSystem wallet, TilemapChunk sectorChunk)
+        public void Configure(InputReader_AI input, GridSystem grid, WalletSystem wallet, TilemapChunk sectorChunk)
         {
             _input = input;
             _grid = grid;

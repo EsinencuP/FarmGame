@@ -5,8 +5,8 @@ namespace MyLittleFarm.Gameplay.World
     public sealed class FarmAchievement
     {
         public readonly string Id,Name,Description;
-        public readonly Func<FarmProgression,bool> IsEarned;
-        public FarmAchievement(string id,string name,string description,Func<FarmProgression,bool> earned)
+        public readonly Func<FarmProgression_AI,bool> IsEarned;
+        public FarmAchievement(string id,string name,string description,Func<FarmProgression_AI,bool> earned)
         {Id=id;Name=name;Description=description;IsEarned=earned;}
     }
     public static class FarmAchievements

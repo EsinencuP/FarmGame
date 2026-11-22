@@ -23,20 +23,20 @@ namespace MyLittleFarm.Editor
             if(!AssetDatabase.IsValidFolder(Folder))AssetDatabase.CreateFolder("Assets/_Game/Content/World","Depth");
             ConfigureCrop("carrot",5,9,1,false);ConfigureCrop("tomato",11,15,2,false);
             ConfigureCrop("cucumber",18,22,1,false);ConfigureCrop("corn",0,0,0,true);
-            var progress=root.GetComponentInChildren<FarmProgression>(true);
-            if(progress==null){var go=new GameObject("Farm Progression");go.transform.SetParent(root.transform,false);progress=go.AddComponent<FarmProgression>();}
+            var progress=root.GetComponentInChildren<FarmProgression_AI>(true);
+            if(progress==null){var go=new GameObject("Farm Progression");go.transform.SetParent(root.transform,false);progress=go.AddComponent<FarmProgression_AI>();}
             var caches=new RareSeedCache[3];var locations=new[]{new Vector2Int(-14,19),new Vector2Int(-2,31),new Vector2Int(28,20)};
             var names=new[]{"Западный пруд","Северный лес","Восточный холм"};
             var prefab=CachePrefab();
             for(var i=0;i<3;i++)
             {
-                foreach(var cache in root.GetComponentsInChildren<RareSeedCache>(true))if(cache.Id==FarmProgression.CacheIds[i]){caches[i]=cache;break;}
+                foreach(var cache in root.GetComponentsInChildren<RareSeedCache>(true))if(cache.Id==FarmProgression_AI.CacheIds[i]){caches[i]=cache;break;}
                 if(caches[i]==null)
                 {
                     var instance=(GameObject)PrefabUtility.InstantiatePrefab(prefab,root.transform);instance.name="Rare Seeds — "+names[i];
                     instance.transform.position=SurfaceAt(root,new Vector3(locations[i].x+.5f,0,locations[i].y+.5f));
                     caches[i]=instance.GetComponent<RareSeedCache>();
-                    var settings=new SerializedObject(caches[i]);settings.FindProperty("cacheId").stringValue=FarmProgression.CacheIds[i];settings.FindProperty("locationName").stringValue=names[i];settings.ApplyModifiedPropertiesWithoutUndo();
+                    var settings=new SerializedObject(caches[i]);settings.FindProperty("cacheId").stringValue=FarmProgression_AI.CacheIds[i];settings.FindProperty("locationName").stringValue=names[i];settings.ApplyModifiedPropertiesWithoutUndo();
                 }
             }
             var helper=root.transform.Find("Hired Shepherd");
@@ -51,8 +51,8 @@ namespace MyLittleFarm.Editor
             }
             helper.gameObject.SetActive(false);
             var hud=root.GetComponentInChildren<HUDController>(true);
-            var journal=hud.GetComponentInChildren<FarmJournalUI>(true);
-            if(journal==null)journal=FarmJournalUI.Create(hud.transform,progress,root.GetComponent<InputReader>(),Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf"));
+            var journal=hud.GetComponentInChildren<FarmJournalUI_AI>(true);
+            if(journal==null)journal=FarmJournalUI_AI.Create(hud.transform,progress,root.GetComponent<InputReader_AI>(),Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf"));
             if(journal.ClockText==null)
             {
                 var clock=SaveSlotsUI.Label(journal.transform,"",Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf"),21);

@@ -19,8 +19,8 @@ namespace MyLittleFarm.Gameplay.World
         [SerializeField] private OnboardingOverlay overlay;
         private GridSystem _grid;
         private BuildSystem _buildings;
-        private CropSystem _crops;
-        private InventorySystem _inventory;
+        private CropSystem_AI _crops;
+        private InventorySystem_AI _inventory;
         private WalletSystem _wallet;
         private Transform _player, _market;
         private int _step;
@@ -46,18 +46,18 @@ namespace MyLittleFarm.Gameplay.World
         {
             switch (step)
             {
-                case 0: return FarmText.Get("onboarding.house", InputReader.KeyLabel(InputReader.Command.Build), InputReader.ActionHint);
-                case 1: return FarmText.Get("onboarding.storage", InputReader.KeyLabel(InputReader.Command.Build));
-                case 2: return planted ? FarmText.Get("onboarding.harvest", InputReader.ActionHint)
-                    : FarmText.Get("onboarding.plant", InputReader.KeyLabel(InputReader.Command.Seed1), InputReader.ActionHint);
-                case 3: return FarmText.Get("onboarding.buy", InputReader.MarketHint);
-                case 4: return FarmText.Get("onboarding.sell", InputReader.MarketHint);
+                case 0: return FarmText.Get("onboarding.house", InputReader_AI.KeyLabel(InputReader_AI.Command.Build), InputReader_AI.ActionHint);
+                case 1: return FarmText.Get("onboarding.storage", InputReader_AI.KeyLabel(InputReader_AI.Command.Build));
+                case 2: return planted ? FarmText.Get("onboarding.harvest", InputReader_AI.ActionHint)
+                    : FarmText.Get("onboarding.plant", InputReader_AI.KeyLabel(InputReader_AI.Command.Seed1), InputReader_AI.ActionHint);
+                case 3: return FarmText.Get("onboarding.buy", InputReader_AI.MarketHint);
+                case 4: return FarmText.Get("onboarding.sell", InputReader_AI.MarketHint);
                 default: return string.Empty;
             }
         }
 
-        public void Configure(GridSystem grid, BuildSystem buildings, CropSystem crops,
-            InventorySystem inventory, WalletSystem wallet, Transform player, Transform market)
+        public void Configure(GridSystem grid, BuildSystem buildings, CropSystem_AI crops,
+            InventorySystem_AI inventory, WalletSystem wallet, Transform player, Transform market)
         {
             _grid = grid; _buildings = buildings; _crops = crops;
             _inventory = inventory; _wallet = wallet; _player = player; _market = market;
@@ -84,8 +84,8 @@ namespace MyLittleFarm.Gameplay.World
         {
             if (!IsActive || _suppliesGranted || _wallet == null || _inventory == null) return;
             _wallet.AddCoins(Mathf.Min(25, int.MaxValue - _wallet.Coins));
-            var seeds = _inventory.GetAmount(InventorySystem.CarrotSeedId);
-            if (seeds < 4) _inventory.Add(InventorySystem.CarrotSeedId, 4 - seeds);
+            var seeds = _inventory.GetAmount(InventorySystem_AI.CarrotSeedId);
+            if (seeds < 4) _inventory.Add(InventorySystem_AI.CarrotSeedId, 4 - seeds);
             _suppliesGranted = true;
         }
         public int Capture() => _step;

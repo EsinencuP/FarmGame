@@ -12,7 +12,7 @@ namespace MyLittleFarm.Core
     [Serializable]
     public sealed class SaveData
     {
-        // Версия определяет, какую схему данных умеет прочитать SaveSystem.
+        // Версия определяет, какую схему данных умеет прочитать SaveSystem_AI.
         public int saveVersion = 1;
         // UTC-время записи используется для диагностики и проверки корректности файла.
         public long savedAtUnixMs;
@@ -88,6 +88,7 @@ namespace MyLittleFarm.Core
     {public string id,itemId;public int amount,unitPrice,bonus;public bool completed,personalized;}
 
     [Serializable]
+    // Одна запись на товар. Храню вчерашние и сегодняшние числа для расчёта рынка и заказов.
     public sealed class MarketActivityData
     {
         public string itemId;
@@ -134,6 +135,7 @@ namespace MyLittleFarm.Core
     {
         public string itemId;
         public int amount;
+        // Старый файл без размера получит M, потому что у M значение 0.
         public HarvestSize size;
         public string StackId => HarvestQuality.StackId(itemId, size);
     }

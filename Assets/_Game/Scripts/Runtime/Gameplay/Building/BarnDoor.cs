@@ -55,7 +55,7 @@ namespace MyLittleFarm.Gameplay.Building
         }
 
         public string Prompt(Vector3 player) => !ReachedFromFront(player) ? "Подойдите к входу в коровник"
-            : InputReader.ActionHint + (_opening ? " — закрыть дверь · вход в загон справа" : " — открыть дверь коровника");
+            : InputReader_AI.ActionHint + (_opening ? " — закрыть дверь · вход в загон справа" : " — открыть дверь коровника");
 
         public bool TryToggle(Vector3 player)
         {

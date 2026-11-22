@@ -18,8 +18,8 @@ namespace MyLittleFarm.Editor
             if(scene.path!="Assets/_Game/Scenes/Prototype.unity")throw new InvalidOperationException("Open Prototype first.");
             var root=UnityEngine.Object.FindAnyObjectByType<GameBootstrap>();
             var cycle=root.GetComponentInChildren<DayNightCycle>(true);
-            var journal=root.GetComponentInChildren<FarmJournalUI>(true);
-            var input=root.GetComponent<InputReader>();
+            var journal=root.GetComponentInChildren<FarmJournalUI_AI>(true);
+            var input=root.GetComponent<InputReader_AI>();
             var layout=root.GetComponentInChildren<ResponsiveHudLayout>(true);
             if(cycle==null||journal==null||input==null||layout==null)throw new MissingReferenceException("Clock and HUD must be authored first.");
             var ui=journal.GetComponentInChildren<ClockSpeedUI>(true);

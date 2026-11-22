@@ -106,7 +106,7 @@ namespace MyLittleFarm.Core
             gameObject.AddComponent<RuntimeMaterials>();
             CreateLighting(transform);
 
-            var input = gameObject.AddComponent<InputReader>();
+            var input = gameObject.AddComponent<InputReader_AI>();
             var grid = CreateSystem<GridSystem>("Grid System");
             grid.Configure(bakedCellSize, bakedChunkSizeX, bakedChunkSizeZ, true);
             CreateStartChunk(transform);
@@ -115,7 +115,7 @@ namespace MyLittleFarm.Core
 
             var catalog = CreateSystem<FarmCatalog>("Farm Catalog");
             catalog.Configure();
-            var inventory = CreateSystem<InventorySystem>("Inventory System");
+            var inventory = CreateSystem<InventorySystem_AI>("Inventory System");
             inventory.ConfigurePrototypeInventory();
             var wallet = CreateSystem<WalletSystem>("Wallet System");
             wallet.Configure(startingCoins);
@@ -131,15 +131,15 @@ namespace MyLittleFarm.Core
 
             var soil = CreateSystem<SoilSystem>("Soil System");
             soil.Configure(grid);
-            var crops = CreateSystem<CropSystem>("Crop System");
+            var crops = CreateSystem<CropSystem_AI>("Crop System");
             crops.Configure(grid, catalog);
-            var orchard = CreateSystem<OrchardSystem>("Orchard System");
+            var orchard = CreateSystem<OrchardSystem_AI>("Orchard System");
             orchard.Configure(grid, inventory, catalog);
-            var animals = CreateSystem<AnimalSystem>("Animal System");
+            var animals = CreateSystem<AnimalSystem_AI>("Animal System");
             animals.Configure(grid, inventory, catalog, wallet);
             CreatePenMockup(grid, animals);
             var onboarding = CreateSystem<OnboardingSystem>("Onboarding System");
-            var progression = CreateSystem<FarmProgression>("Farm Progression");
+            var progression = CreateSystem<FarmProgression_AI>("Farm Progression");
 
             var player = CreatePlayer(grid.CellToWorld(playerStartCell) + Vector3.up * playerStartHeight, input, grid);
             animals.BindPlayer(player.GetComponent<CharacterController>());
@@ -160,7 +160,7 @@ namespace MyLittleFarm.Core
             onboarding.Configure(grid, buildings, crops, inventory, wallet, player.transform, saleCrate);
             progression.Configure(input,wallet,inventory,catalog,buildings,orchard,animals,sector,player.transform,saleCrate);
 
-            var interaction = CreateSystem<InteractionSystem>("Interaction System");
+            var interaction = CreateSystem<InteractionSystem_AI>("Interaction System");
             interaction.Configure(
                 input,
                 player.transform,
@@ -177,7 +177,7 @@ namespace MyLittleFarm.Core
                 orchard,
                 animals);
 
-            var saveSystem = CreateSystem<SaveSystem>("Save System");
+            var saveSystem = CreateSystem<SaveSystem_AI>("Save System");
             saveSystem.Configure(input, player, grid, crops, inventory, wallet, buildings, catalog,
                 slots, sector, upgrades, orchard, animals, onboarding);
             CreateSystem<ActionFeedbackSystem>("Action Feedback");
@@ -199,7 +199,7 @@ namespace MyLittleFarm.Core
             return systemObject.AddComponent<T>();
         }
 
-        private PlayerController CreatePlayer(Vector3 position, InputReader input, GridSystem grid)
+        private PlayerController CreatePlayer(Vector3 position, InputReader_AI input, GridSystem grid)
         {
             // Капсула служит временной моделью; CharacterController обеспечивает движение и столкновения.
             var playerObject = GameObject.CreatePrimitive(PrimitiveType.Capsule);
@@ -220,7 +220,7 @@ namespace MyLittleFarm.Core
             return player;
         }
 
-        private IsometricCameraController CreateCamera(InputReader input, Transform player)
+        private IsometricCameraController CreateCamera(InputReader_AI input, Transform player)
         {
             // Создаёт основную камеру и настраивает слежение за Transform игрока.
             var cameraObject = new GameObject("Isometric Camera");
@@ -254,7 +254,7 @@ namespace MyLittleFarm.Core
         /// Выгружает ограду загона как редактируемые секции с проходом на юге.
         /// Игровые коллайдеры добавляются при инициализации сохранённой сцены.
         /// </summary>
-        private void CreatePenMockup(GridSystem grid, AnimalSystem animals)
+        private void CreatePenMockup(GridSystem grid, AnimalSystem_AI animals)
         {
             var minimum = animals.PenMinCell;
             var maximum = animals.PenMaxCell;
@@ -385,7 +385,7 @@ namespace MyLittleFarm.Core
             light.shadows = LightShadows.Soft;
         }
 
-        private void CreateHud(InventorySystem inventory, WalletSystem wallet, InteractionSystem interaction,
+        private void CreateHud(InventorySystem_AI inventory, WalletSystem wallet, InteractionSystem_AI interaction,
             BuildSystem buildings, FarmCatalog catalog, QuickSlotSystem slots,
             SectorSystem sector, ToolUpgradeSystem upgrades, SeedShopSystem shop,
             OnboardingSystem onboarding)
@@ -446,7 +446,7 @@ namespace MyLittleFarm.Core
             var hud = canvasObject.AddComponent<HUDController>();
             hud.Configure(inventory, wallet, stats, status, catalog, slots, sector, upgrades, shop,
                 seedIcons, harvestIcons, coinIcon, toolIcon,
-                GetComponentInChildren<AnimalSystem>(true),
+                GetComponentInChildren<AnimalSystem_AI>(true),
                 onboarding, onboardingText);
             var promptController = canvasObject.AddComponent<InteractionPromptUI>();
             var buildPrompt = BuildPromptUI.Create(canvasObject.transform, prompt.font);
@@ -523,7 +523,7 @@ namespace MyLittleFarm.Core
 
             _isBuilt = true;
             RequireComponent<RuntimeMaterials>(gameObject);
-            var input = RequireComponent<InputReader>(gameObject);
+            var input = RequireComponent<InputReader_AI>(gameObject);
             var grid = RequireChild<GridSystem>();
             // Runtime использует значения самого GridSystem, которые дизайнер меняет в его Inspector.
             grid.ConfigureFromInspector();
@@ -531,7 +531,7 @@ namespace MyLittleFarm.Core
 
             var catalog = RequireChild<FarmCatalog>();
             catalog.Configure();
-            var inventory = RequireChild<InventorySystem>();
+            var inventory = RequireChild<InventorySystem_AI>();
             inventory.ConfigurePrototypeInventory();
             var wallet = RequireChild<WalletSystem>();
             wallet.Configure(startingCoins);
@@ -548,14 +548,14 @@ namespace MyLittleFarm.Core
 
             var soil = RequireChild<SoilSystem>();
             soil.Configure(grid);
-            var crops = RequireChild<CropSystem>();
+            var crops = RequireChild<CropSystem_AI>();
             crops.Configure(grid, catalog);
-            var orchard = RequireChild<OrchardSystem>();
+            var orchard = RequireChild<OrchardSystem_AI>();
             orchard.Configure(grid, inventory, catalog);
-            var animals = RequireChild<AnimalSystem>();
+            var animals = RequireChild<AnimalSystem_AI>();
             animals.Configure(grid, inventory, catalog, wallet);
             var onboarding = RequireChild<OnboardingSystem>();
-            var progression = RequireChild<FarmProgression>();
+            var progression = RequireChild<FarmProgression_AI>();
             var player = RequireChild<PlayerController>();
             player.Configure(input, grid);
             animals.BindPlayer(player.GetComponent<CharacterController>());
@@ -586,7 +586,7 @@ namespace MyLittleFarm.Core
             onboarding.Configure(grid, buildings, crops, inventory, wallet, player.transform, saleCrate);
             progression.Configure(input,wallet,inventory,catalog,buildings,orchard,animals,sector,player.transform,saleCrate);
 
-            var interaction = RequireChild<InteractionSystem>();
+            var interaction = RequireChild<InteractionSystem_AI>();
             interaction.Configure(input, player.transform, saleCrate, selector, grid, soil, crops,
                 inventory, selling, catalog, slots, upgrades, orchard, animals);
             var hud = RequireChild<HUDController>();
@@ -594,7 +594,7 @@ namespace MyLittleFarm.Core
             var fishing = Application.isPlaying
                 ? FishPond.Create(transform, grid, inventory, input, player, cameraController, hud.transform, stats.font) : null;
             interaction.BindFishing(fishing);
-            var saveSystem = RequireChild<SaveSystem>();
+            var saveSystem = RequireChild<SaveSystem_AI>();
             saveSystem.Configure(input, player, grid, crops, inventory, wallet, buildings, catalog,
                 slots, sector, upgrades, orchard, animals, onboarding, fishing);
             RequireChild<ActionFeedbackSystem>();
@@ -622,7 +622,7 @@ namespace MyLittleFarm.Core
             }
         }
 
-        private void ConfigureLandscapeLanterns(GridSystem grid, AnimalSystem animals)
+        private void ConfigureLandscapeLanterns(GridSystem grid, AnimalSystem_AI animals)
         {
             var group = transform.Find("World Lighting/Farm Lanterns");
             if (group == null) return;

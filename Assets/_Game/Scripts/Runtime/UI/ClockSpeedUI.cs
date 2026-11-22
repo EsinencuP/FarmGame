@@ -10,7 +10,7 @@ namespace MyLittleFarm.UI
     public sealed class ClockSpeedUI : MonoBehaviour
     {
         [SerializeField] private DayNightCycle cycle;
-        [SerializeField] private InputReader input;
+        [SerializeField] private InputReader_AI input;
         [SerializeField] private Button button;
         [SerializeField] private Text label;
         private bool _bound;
@@ -44,7 +44,7 @@ namespace MyLittleFarm.UI
             if(label!=null)label.text="×"+cycle.ClockSpeed;
         }
 
-        public static ClockSpeedUI Create(Transform parent,DayNightCycle worldClock,InputReader reader,Font font)
+        public static ClockSpeedUI Create(Transform parent,DayNightCycle worldClock,InputReader_AI reader,Font font)
         {
             var control=SaveSlotsUI.Button(parent,"Скорость суток · ×1",font);
             control.name="Day Night Speed";

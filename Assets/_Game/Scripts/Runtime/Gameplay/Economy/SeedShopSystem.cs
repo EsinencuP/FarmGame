@@ -18,18 +18,18 @@ namespace MyLittleFarm.Gameplay.Economy
         public Vector3 TradePosition => _player == null ? transform.position : _player.position;
 
         // Ссылки передаются bootstrap и не ищутся каждый кадр.
-        private InputReader _input;
+        private InputReader_AI _input;
         private FarmCatalog _catalog;
         private QuickSlotSystem _slots;
-        private InventorySystem _inventory;
+        private InventorySystem_AI _inventory;
         private WalletSystem _wallet;
         private Transform _player;
         private Transform _stall;
         private GridSystem _grid;
 
         /// <summary>Подключает каталог, инвентарь, деньги и выбранный быстрый слот.</summary>
-        public void Configure(InputReader input, FarmCatalog catalog, QuickSlotSystem slots,
-            InventorySystem inventory, WalletSystem wallet, Transform player = null,
+        public void Configure(InputReader_AI input, FarmCatalog catalog, QuickSlotSystem slots,
+            InventorySystem_AI inventory, WalletSystem wallet, Transform player = null,
             Transform stall = null, GridSystem grid = null)
         {
             _input = input;

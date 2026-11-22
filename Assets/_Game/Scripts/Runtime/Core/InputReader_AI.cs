@@ -8,7 +8,7 @@ namespace MyLittleFarm.Core
     /// игровые команды и не зависят напрямую от Input System.
     /// </summary>
     [DefaultExecutionOrder(-200)]
-    public sealed partial class InputReader : MonoBehaviour
+    public sealed partial class InputReader_AI : MonoBehaviour
     {
         [SerializeField] private RectTransform onboardingPointerBlock;
         [SerializeField] private RectTransform clockSpeedPointerBlock;
@@ -97,6 +97,7 @@ namespace MyLittleFarm.Core
             PausePressed = farm && !FishingActive && escape;
             InventoryPressed = !capturing && !BuildModeActive && Pressed(Command.Inventory);
             MarketPressed = farm && Pressed(Command.Market);
+            // H работает в обычной игре, когда курсор не перекрыт интерфейсом.
             WaterPressed = farm && !WorldPointerBlocked && Pressed(Command.Water);
             JournalPressed = farm && Pressed(Command.Guide);
             BuildTogglePressed = !capturing && (!modal || ConstructionCatalogueActive) && Pressed(Command.Build);

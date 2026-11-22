@@ -17,6 +17,7 @@ namespace MyLittleFarm.Gameplay.Farming
         public float weatherGrowthBonusSeconds;
         public int stageCount;
         public bool isRegrowing;
+        // Полив, дождь и уже выбранный размер относятся к одному циклу роста.
         public bool manuallyWatered;
         public float rainySeconds;
         public bool sizeReady;

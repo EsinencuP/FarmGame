@@ -64,8 +64,8 @@ namespace MyLittleFarm.Editor
             }
             var houses=config.FindProperty("houseLevelPrefabs");houses.arraySize=3;
             for(var level=0;level<3;level++)houses.GetArrayElementAtIndex(level).objectReferenceValue=EnsureHouse(level);
-            var canvas=root.GetComponentInChildren<Canvas>(true);var input=root.GetComponent<InputReader>();
-            if(canvas==null||input==null)throw new MissingReferenceException("Baked Canvas/InputReader is missing.");
+            var canvas=root.GetComponentInChildren<Canvas>(true);var input=root.GetComponent<InputReader_AI>();
+            if(canvas==null||input==null)throw new MissingReferenceException("Baked Canvas/InputReader_AI is missing.");
             var ui=canvas.GetComponentInChildren<BuildCustomizationUI>(true);
             if(ui==null)ui=BuildCustomizationUI.Create(canvas.transform,build,input,Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf"));
             config.FindProperty("customizationUI").objectReferenceValue=ui;config.ApplyModifiedPropertiesWithoutUndo();

@@ -24,13 +24,13 @@ namespace MyLittleFarm.Tests.PlayMode
         public IEnumerator MarketPricesUseSuccessfulTradesAndRejectStaleQuotes()
         {
             yield return null;
-            var market = Farm.gameObject.AddComponent<FarmMarket>();
-            var items = Component<InventorySystem>();
+            var market = Farm.gameObject.AddComponent<FarmMarket_AI>();
+            var items = Component<InventorySystem_AI>();
             var wallet = Component<WalletSystem>();
-            var save = Component<SaveSystem>();
+            var save = Component<SaveSystem_AI>();
             market.Configure(Component<FarmCatalog>(), items, wallet, Component<SeedShopSystem>(),
-                Component<ToolUpgradeSystem>(), Component<SectorSystem>(), Component<AnimalSystem>(),
-                Component<BuildSystem>(), Component<FarmProgression>());
+                Component<ToolUpgradeSystem>(), Component<SectorSystem>(), Component<AnimalSystem_AI>(),
+                Component<BuildSystem>(), Component<FarmProgression_AI>());
             Component<OnboardingSystem>().Restore(OnboardingSystem.StepCount, true, true, default, true);
             var booth = Farm.GetComponentsInChildren<InteractionTarget>().First(target => target.Kind == InteractionTargetKind.Market);
             Component<PlayerController>().Teleport(booth.transform.position + new Vector3(1.2f, 1, 0));
@@ -40,17 +40,17 @@ namespace MyLittleFarm.Tests.PlayMode
             items.Add("pumpkin", 1);
 
             var cart = new Dictionary<string, int> { ["carrot"] = 12 };
-            Assert.That(market.Quote(FarmMarket.Category.Sell, cart, out var original, out _), Is.True);
-            Assert.That(market.Checkout(FarmMarket.Category.Sell, cart, out var reason), Is.True, reason);
+            Assert.That(market.Quote(FarmMarket_AI.Category.Sell, cart, out var original, out _), Is.True);
+            Assert.That(market.Checkout(FarmMarket_AI.Category.Sell, cart, out var reason), Is.True, reason);
             Assert.That(wallet.Coins, Is.EqualTo(1000 + original));
             Assert.That(save.DailyOrders.SalePriceRule("carrot").percent, Is.EqualTo(75));
             Assert.That(save.DailyOrders.SalePriceRule("tomato").percent, Is.EqualTo(120));
 
             cart["carrot"] = 1;
-            Assert.That(market.Checkout(FarmMarket.Category.Sell, cart, out _,
+            Assert.That(market.Checkout(FarmMarket_AI.Category.Sell, cart, out _,
                 new Dictionary<string, int> { ["carrot"] = original / 12 }), Is.False);
             Assert.That(items.GetAmount("carrot"), Is.EqualTo(2));
-            Assert.That(market.Checkout(FarmMarket.Category.Seeds,
+            Assert.That(market.Checkout(FarmMarket_AI.Category.Seeds,
                 new Dictionary<string, int> { ["pumpkin_seed"] = 10 }, out reason), Is.True, reason);
             Assert.That(save.DailyOrders.SalePriceRule("pumpkin").percent, Is.EqualTo(90));
             save.Restore(RoundTrip(save.Capture()));
@@ -63,10 +63,10 @@ namespace MyLittleFarm.Tests.PlayMode
         public IEnumerator WateringAndSizedStacksSurviveTransfersAndMigration()
         {
             yield return null;
-            var items = Component<InventorySystem>();
+            var items = Component<InventorySystem_AI>();
             var build = Component<BuildSystem>();
-            var save = Component<SaveSystem>();
-            var crop = Component<CropSystem>();
+            var save = Component<SaveSystem_AI>();
+            var crop = Component<CropSystem_AI>();
             var soil = Component<SoilSystem>();
             Component<WalletSystem>().SetCoins(1000);
             Assert.That(build.TryPlace("storage", new Vector2Int(3, 3), 0, out var reason), Is.True, reason);
@@ -103,8 +103,8 @@ namespace MyLittleFarm.Tests.PlayMode
         {
             yield return null;
             var build = Component<BuildSystem>();
-            var items = Component<InventorySystem>();
-            var save = Component<SaveSystem>();
+            var items = Component<InventorySystem_AI>();
+            var save = Component<SaveSystem_AI>();
             Component<WalletSystem>().SetCoins(1000);
             Assert.That(build.TryPlace("mill", new Vector2Int(4, 3), 0, out var reason), Is.True, reason);
             var mill = build.Capture().Find(row => row.definitionId == "mill");
@@ -133,10 +133,10 @@ namespace MyLittleFarm.Tests.PlayMode
         public IEnumerator ShepherdPrefersDifferentTasksAfterObservedManualAndMissedEggs()
         {
             yield return null;
-            var progress = Component<FarmProgression>();
-            var animals = Component<AnimalSystem>();
-            var items = Component<InventorySystem>();
-            var save = Component<SaveSystem>();
+            var progress = Component<FarmProgression_AI>();
+            var animals = Component<AnimalSystem_AI>();
+            var items = Component<InventorySystem_AI>();
+            var save = Component<SaveSystem_AI>();
             var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
             Component<WalletSystem>().SetCoins(1000);
             var booth = Farm.GetComponentsInChildren<InteractionTarget>().First(target => target.Kind == InteractionTargetKind.Market);
@@ -150,7 +150,7 @@ namespace MyLittleFarm.Tests.PlayMode
             MakeReady(state[0], now);
             MakeReady(state[1], now);
             animals.Restore(state);
-            var observe = typeof(AnimalSystem).GetMethod("ObserveReadyEggs", BindingFlags.Instance | BindingFlags.NonPublic);
+            var observe = typeof(AnimalSystem_AI).GetMethod("ObserveReadyEggs", BindingFlags.Instance | BindingFlags.NonPublic);
             observe.Invoke(animals, new object[] { 12f });
             observe.Invoke(animals, new object[] { 12f });
             Assert.That(progress.Data.shepherdObservations, Is.EqualTo(new[] { false, false }));

@@ -9,8 +9,8 @@ namespace MyLittleFarm.UI
     /// <summary>Pointer selection and event-driven quantities on the existing six seed images.</summary>
     public sealed class FarmQuickSlotUI : MonoBehaviour
     {
-        [SerializeField] private InputReader input;
-        [SerializeField] private InventorySystem inventory;
+        [SerializeField] private InputReader_AI input;
+        [SerializeField] private InventorySystem_AI inventory;
         [SerializeField] private FarmCatalog catalog;
         [SerializeField] private QuickSlotSystem slots;
         [SerializeField] private Button[] buttons;
@@ -37,12 +37,12 @@ namespace MyLittleFarm.UI
             for (var i = 0; i < buttons.Length; i++)
             {
                 var index = i; buttons[i].onClick.AddListener(() => Select(index));
-                FarmItemDrag.Install(buttons[i].gameObject,()=>
+                FarmItemDrag_AI.Install(buttons[i].gameObject,()=>
                 {
                     if(input.ModalInputActive || input.BuildModeActive)return null;
                     input.SuppressGameplayThisFrame=true;
-                    var id=slots.ItemAt(index);return id==null?null:FarmItemDrag.Snapshot(FarmItemDrag.Source.QuickSlot,id,0,index,null,inventory,slots,null,Icon(id));
-                },p=>{if(!input.ModalInputActive&&!input.BuildModeActive){input.SuppressGameplayThisFrame=true;FarmItemDrag.DropOnSlot(p,index,inventory,slots);}});
+                    var id=slots.ItemAt(index);return id==null?null:FarmItemDrag_AI.Snapshot(FarmItemDrag_AI.Source.QuickSlot,id,0,index,null,inventory,slots,null,Icon(id));
+                },p=>{if(!input.ModalInputActive&&!input.BuildModeActive){input.SuppressGameplayThisFrame=true;FarmItemDrag_AI.DropOnSlot(p,index,inventory,slots);}});
             }
             Refresh();
         }
@@ -51,15 +51,15 @@ namespace MyLittleFarm.UI
 
         private void RefreshKeyLabels()
         {
-            if (_keyLabels == null || _bindingRevision == InputReader.BindingRevision) return;
-            _bindingRevision = InputReader.BindingRevision;
+            if (_keyLabels == null || _bindingRevision == InputReader_AI.BindingRevision) return;
+            _bindingRevision = InputReader_AI.BindingRevision;
             for (var i = 0; i < _keyLabels.Length && i < 6; i++)
-                if (_keyLabels[i] != null) _keyLabels[i].text = InputReader.KeyLabel(InputReader.Command.Seed1 + i);
+                if (_keyLabels[i] != null) _keyLabels[i].text = InputReader_AI.KeyLabel(InputReader_AI.Command.Seed1 + i);
         }
         private void OnDisable()
         {
             if (!Application.isPlaying) return;
-            FarmItemDrag.Cancel();GameEvents.InventoryChanged -= Refresh; if(buttons!=null)foreach (var button in buttons) button.onClick.RemoveAllListeners();
+            FarmItemDrag_AI.Cancel();GameEvents.InventoryChanged -= Refresh; if(buttons!=null)foreach (var button in buttons) button.onClick.RemoveAllListeners();
         }
         private void Select(int index)
         {
@@ -117,7 +117,7 @@ namespace MyLittleFarm.UI
                 image.sprite = FarmUITheme.Sprite("Icons/" + FarmUITheme.ItemIcon(FarmCatalog.CropIds[i] + "_seed"));
             }
         }
-        public static void Install(RectTransform bar, InputReader input, InventorySystem inventory, FarmCatalog catalog, QuickSlotSystem slots, Font font)
+        public static void Install(RectTransform bar, InputReader_AI input, InventorySystem_AI inventory, FarmCatalog catalog, QuickSlotSystem slots, Font font)
         {
             var existing = bar.GetComponent<FarmQuickSlotUI>();
             if (existing != null) { existing.RepairIconLayout(); return; }

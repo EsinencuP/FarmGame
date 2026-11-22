@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace MyLittleFarm.Gameplay.Animals
 {
-    public sealed partial class AnimalSystem
+    public sealed partial class AnimalSystem_AI
     {
         [Header("Cows")]
         [SerializeField] private AnimalDefinition cowAsset;

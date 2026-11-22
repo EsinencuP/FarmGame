@@ -79,7 +79,7 @@ namespace MyLittleFarm.UI
             _panel.sizeDelta = new Vector2(250f, 132f);
             _controls.gameObject.SetActive(false);
             _title.text = FarmText.Get(ready ? "fishing.bite" : "fishing.wait");
-            _hint.text = ready ? FarmText.Get("fishing.hook", InputReader.ActionHint) : FarmText.Get("fishing.cancel");
+            _hint.text = ready ? FarmText.Get("fishing.hook", InputReader_AI.ActionHint) : FarmText.Get("fishing.cancel");
         }
 
         internal void ShowChallenge(FishingChallenge challenge)

@@ -15,7 +15,7 @@ namespace MyLittleFarm.Gameplay.World
     /// Сам не хранит состояние, а вызывает специализированные системы в нужном порядке.
     /// </summary>
     [DefaultExecutionOrder(-50)]
-    public sealed partial class InteractionSystem : MonoBehaviour
+    public sealed partial class InteractionSystem_AI : MonoBehaviour
     {
         [Header("Interaction")]
         [Tooltip("Максимальная горизонтальная дистанция до точки продажи.")]
@@ -24,21 +24,21 @@ namespace MyLittleFarm.Gameplay.World
         [SerializeField, Min(0.02f)] private float promptRefreshInterval = 0.1f;
 
         // Зависимости предоставляют ввод, положение игрока, выбранную клетку и игровые данные.
-        private InputReader _input;
+        private InputReader_AI _input;
         private Transform _player;
         private CharacterController _playerBody;
         private Transform _saleCrate;
         private CellSelector _selector;
         private GridSystem _grid;
         private SoilSystem _soil;
-        private CropSystem _crops;
-        private InventorySystem _inventory;
+        private CropSystem_AI _crops;
+        private InventorySystem_AI _inventory;
         private SellingSystem _selling;
         private FarmCatalog _catalog;
         private QuickSlotSystem _slots;
         private ToolUpgradeSystem _upgrades;
-        private OrchardSystem _orchard;
-        private AnimalSystem _animals;
+        private OrchardSystem_AI _orchard;
+        private AnimalSystem_AI _animals;
         private FishPond _fishing;
         public void BindFishing(FishPond fishing) => _fishing = fishing;
         // Ограничивает перестроение текста подсказки десятью разами в секунду.
@@ -52,20 +52,20 @@ namespace MyLittleFarm.Gameplay.World
 
         /// <summary>Подключает все системы, необходимые для обработки контекстного действия.</summary>
         public void Configure(
-            InputReader input,
+            InputReader_AI input,
             Transform player,
             Transform saleCrate,
             CellSelector selector,
             GridSystem grid,
             SoilSystem soil,
-            CropSystem crops,
-            InventorySystem inventory,
+            CropSystem_AI crops,
+            InventorySystem_AI inventory,
             SellingSystem selling,
             FarmCatalog catalog = null,
             QuickSlotSystem slots = null,
             ToolUpgradeSystem upgrades = null,
-            OrchardSystem orchard = null,
-            AnimalSystem animals = null)
+            OrchardSystem_AI orchard = null,
+            AnimalSystem_AI animals = null)
         {
             _input = input;
             _player = player;
@@ -126,6 +126,7 @@ namespace MyLittleFarm.Gameplay.World
             }
         }
 
+        // Беру растение под курсором и передаю полив грядке или дереву после проверки дистанции.
         private void WaterSelected(long nowUnixMs)
         {
             if (!_selector.HasSelection) return;
@@ -171,7 +172,7 @@ namespace MyLittleFarm.Gameplay.World
             if(target!=null&&target.Kind==InteractionTargetKind.Helper)
             {
                 if (!IsNearTarget(target)) return false;
-                GameEvents.RaiseStatusChanged($"Пастух кормит кур пшеницей и собирает яйца · {InputReader.KeyLabel(InputReader.Command.Guide)} — справочник");
+                GameEvents.RaiseStatusChanged($"Пастух кормит кур пшеницей и собирает яйца · {InputReader_AI.KeyLabel(InputReader_AI.Command.Guide)} — справочник");
                 return true;
             }
             if (target != null && target.Kind == InteractionTargetKind.Animal)
@@ -288,7 +289,7 @@ namespace MyLittleFarm.Gameplay.World
             if(target!=null&&target.Kind==InteractionTargetKind.SeedCache)
                 return target.GetComponent<RareSeedCache>()?.Prompt??string.Empty;
             if(target!=null&&target.Kind==InteractionTargetKind.Helper)
-                return FarmText.Get("world.helper", InputReader.KeyLabel(InputReader.Command.Guide));
+                return FarmText.Get("world.helper", InputReader_AI.KeyLabel(InputReader_AI.Command.Guide));
             if (target != null && target.Kind == InteractionTargetKind.Animal)
                 return _animals == null ? string.Empty : _animals.TargetPrompt(target.TargetId, _player.position);
             if (target != null && target.Kind == InteractionTargetKind.Tree)
@@ -302,25 +303,25 @@ namespace MyLittleFarm.Gameplay.World
             {
                 var door = _grid.Buildings?.DoorFor(target.TargetId);
                 if (door != null) return door.Prompt(_player.position);
-                if(_grid.Buildings?.IsFeeder(target.TargetId)==true)return _grid.Buildings.FeederInReach(target.TargetId,_player.position)?InputReader.ActionHint+" — кормушка · пшеница "+_grid.Buildings.Feeders.Amount(target.TargetId)+" / 12":"Подойдите к кормушке";
+                if(_grid.Buildings?.IsFeeder(target.TargetId)==true)return _grid.Buildings.FeederInReach(target.TargetId,_player.position)?InputReader_AI.ActionHint+" — кормушка · пшеница "+_grid.Buildings.Feeders.Amount(target.TargetId)+" / 12":"Подойдите к кормушке";
                 if(_grid.Buildings?.IsWarehouse(target.TargetId)==true)
-                    return _grid.Buildings.WarehouseInReach(target.TargetId,_player.position)?InputReader.ActionHint+" — открыть склад":"Подойдите к складу";
+                    return _grid.Buildings.WarehouseInReach(target.TargetId,_player.position)?InputReader_AI.ActionHint+" — открыть склад":"Подойдите к складу";
                 if (_grid.Buildings?.RecipeFor(target.TargetId) != null)
                     return _grid.Buildings.ProductionInReach(target.TargetId,_player.position,sellingDistance)
-                        ? _grid.Buildings.Production.Prompt(target.TargetId, _grid.Buildings.RecipeFor(target.TargetId), DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), InputReader.ActionHint)
+                        ? _grid.Buildings.Production.Prompt(target.TargetId, _grid.Buildings.RecipeFor(target.TargetId), DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), InputReader_AI.ActionHint)
                         : "Подойдите ближе к постройке";
-                return FarmText.Get("world.buildingHint", InputReader.KeyLabel(InputReader.Command.Build), InputReader.KeyLabel(InputReader.Command.Customize));
+                return FarmText.Get("world.buildingHint", InputReader_AI.KeyLabel(InputReader_AI.Command.Build), InputReader_AI.KeyLabel(InputReader_AI.Command.Customize));
             }
             if (target != null && target.Kind == InteractionTargetKind.Market && !IsNearTarget(target))
                 return FarmText.Get("world.approachMarket");
             if ((target != null && target.Kind == InteractionTargetKind.Market && IsNearTarget(target))
                 || (target == null && IsNearSaleCrate()))
             {
-                return FarmText.Get("market.openHint", InputReader.MarketHint);
+                return FarmText.Get("market.openHint", InputReader_AI.MarketHint);
             }
 
             if (!_selector.HasSelection && _animals != null && _animals.HasNearby(_player.position))
-                return _animals.NearbyPrompt(_player.position).Replace(InputReader.ActionHint, InputReader.KeyLabel(InputReader.Command.Interact));
+                return _animals.NearbyPrompt(_player.position).Replace(InputReader_AI.ActionHint, InputReader_AI.KeyLabel(InputReader_AI.Command.Interact));
 
             if (!_selector.HasSelection || !_grid.TryGetCell(_selector.SelectedPosition, out var cell))
             {
@@ -328,7 +329,7 @@ namespace MyLittleFarm.Gameplay.World
             }
             if(cell.type==CellType.Tree)return _orchard?.HarvestPrompt(_selector.SelectedPosition,DateTimeOffset.UtcNow.ToUnixTimeMilliseconds())??string.Empty;
             if(_slots?.Mode==QuickSlotSystem.SelectionMode.Item && _orchard!=null && _orchard.TryGetSapling(_slots.SelectedItemId,out var tree))
-                return TreePlantBlock(_selector.SelectedPosition, tree) ?? InputReader.ActionHint + " — посадить «" + tree.DisplayName + "»";
+                return TreePlantBlock(_selector.SelectedPosition, tree) ?? InputReader_AI.ActionHint + " — посадить «" + tree.DisplayName + "»";
             var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
             var field = FieldPrompt(PlanField(_selector.SelectedPosition, now));
             var quality = IsWithinReach(_selector.SelectedPosition) ? _crops?.QualityHint(_selector.SelectedPosition, now) : null;

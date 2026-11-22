@@ -11,25 +11,25 @@ using UnityEngine;
 namespace MyLittleFarm.Gameplay.World
 {
     [DefaultExecutionOrder(-30)]
-    public sealed class FarmProgression : MonoBehaviour
+    public sealed class FarmProgression_AI : MonoBehaviour
     {
         public const int ShepherdPrice=80;
         public const long CounterLimit=1_000_000_000_000_000;
         public static readonly string[] CacheIds={"pond","forest","hill"};
-        [SerializeField] private FarmJournalUI journal;
+        [SerializeField] private FarmJournalUI_AI journal;
         [SerializeField] private FarmMenuUI gameMenus;
         public void ConfigureGuideNavigation(FarmMenuUI menu) => gameMenus = menu;
         [SerializeField] private RareSeedCache[] seedCaches;
         [SerializeField] private GameObject shepherdVisual;
         private FarmProgressData _data=new FarmProgressData();
         private WalletSystem _wallet;
-        private InventorySystem _inventory;
+        private InventorySystem_AI _inventory;
         private FarmCatalog _catalog;
         private BuildSystem _buildings;
-        private OrchardSystem _orchard;
-        private AnimalSystem _animals;
+        private OrchardSystem_AI _orchard;
+        private AnimalSystem_AI _animals;
         private SectorSystem _sectors;
-        private InputReader _input;
+        private InputReader_AI _input;
         private Transform _player,_market;
         private DayNightCycle _dayNight;
         private QuickSlotSystem _slots;
@@ -59,7 +59,7 @@ namespace MyLittleFarm.Gameplay.World
             get
             {
                 var minutes=Mathf.FloorToInt(Hour*60);var crop=_slots?.SelectedCrop;
-                var guide=InputReader.KeyLabel(InputReader.Command.Guide);
+                var guide=InputReader_AI.KeyLabel(InputReader_AI.Command.Guide);
                 var hint=crop==null?$"{guide} — справочник":crop.RareSeeds?$"Кукуруза: редкие семена · {guide}"
                     :crop.BonusHarvestYield>0?crop.BonusDescription:$"{guide} — справочник";
                 return (minutes/60).ToString("00")+":"+(minutes%60).ToString("00")+"   ·   "+(Hour>=6&&Hour<12?"Утро":Hour>=12&&Hour<18?"День":Hour>=18&&Hour<22?"Вечер":"Ночь")+"\n"+hint;
@@ -89,30 +89,31 @@ namespace MyLittleFarm.Gameplay.World
         {
             if (_data.firstJuiceSold) return FarmText.Get("press.goal.done");
             if (_inventory.GetAmount(ApplePresses.JuiceId) > 0)
-                return FarmText.Get("press.goal.sell", InputReader.MarketHint, FarmText.Coins(ApplePresses.JuicePrice));
+                return FarmText.Get("press.goal.sell", InputReader_AI.MarketHint, FarmText.Coins(ApplePresses.JuicePrice));
             if (_buildings.Presses?.HasBatches == true)
-                return FarmText.Get("press.goal.collect", InputReader.ActionHint);
+                return FarmText.Get("press.goal.collect", InputReader_AI.ActionHint);
             if (_inventory.GetAmount(ApplePresses.FruitId) < ApplePresses.AppleCost)
             {
                 if (_orchard.SelectedDefinition != null && _orchard.SelectedDefinition.FruitItemId != ApplePresses.FruitId)
-                    return "Для сока нужны яблоки. Выберите бесплатную яблоню в инвентаре · " + InputReader.KeyLabel(InputReader.Command.Inventory);
+                    return "Для сока нужны яблоки. Выберите бесплатную яблоню в инвентаре · " + InputReader_AI.KeyLabel(InputReader_AI.Command.Inventory);
                 return FarmText.Get("press.goal.apples", ApplePresses.AppleCost,
-                    InputReader.KeyLabel(InputReader.Command.Apple), InputReader.ActionHint);
+                    InputReader_AI.KeyLabel(InputReader_AI.Command.Apple), InputReader_AI.ActionHint);
             }
             if (!HasBuilding(ApplePresses.BuildingId))
                 return FarmText.Get("press.goal.build", FarmText.Coins(ApplePresses.BuildingPrice),
-                    InputReader.KeyLabel(InputReader.Command.Build));
-            return FarmText.Get("press.goal.start", InputReader.ActionHint, FarmText.Duration(ApplePresses.BatchSeconds));
+                    InputReader_AI.KeyLabel(InputReader_AI.Command.Build));
+            return FarmText.Get("press.goal.start", InputReader_AI.ActionHint, FarmText.Duration(ApplePresses.BatchSeconds));
         }
         public bool HasManor
         {
             get{if(_buildings!=null)foreach(var b in _buildings.CaptureReady())if(b.definitionId=="house"&&b.appearanceLevel==2)return true;return false;}
         }
-        public void Configure(InputReader input,WalletSystem wallet,InventorySystem inventory,FarmCatalog catalog,
-            BuildSystem buildings,OrchardSystem orchard,AnimalSystem animals,SectorSystem sectors,Transform player,Transform market)
+        public void Configure(InputReader_AI input,WalletSystem wallet,InventorySystem_AI inventory,FarmCatalog catalog,
+            BuildSystem buildings,OrchardSystem_AI orchard,AnimalSystem_AI animals,SectorSystem sectors,Transform player,Transform market)
         {
             _input=input;_wallet=wallet;_inventory=inventory;_catalog=catalog;_buildings=buildings;
             _orchard=orchard;_animals=animals;_sectors=sectors;_player=player;_market=market;
+            // Подключаю наблюдение за яйцами. Оно работает после найма пастуха.
             if (_animals != null)
             {
                 _animals.ShepherdObserving = () => _configured && !_restoring && _data.shepherdHired;
@@ -207,6 +208,7 @@ namespace MyLittleFarm.Gameplay.World
             get{if(_player==null||_market==null)return false;var delta=_player.position-_market.position;delta.y=0;
                 return delta.sqrMagnitude<=2.4f*2.4f||(_buildings!=null&&_buildings.IsNearMarket(_player.position,2.4f));}
         }
+        // Проверяю, что пастух ещё не нанят и игрок может оплатить найм у рынка.
         public bool HireShepherd()
         {
             if(!_configured||_restoring||_data.shepherdHired||!NearMarket||!_wallet.TrySpend(ShepherdPrice))return false;
@@ -214,11 +216,13 @@ namespace MyLittleFarm.Gameplay.World
         }
         internal void GrantShepherd() { _data.shepherdHired=true;ApplyVisuals();Evaluate(true);Changed?.Invoke(); }
         public bool CanHireShepherd=>!_data.shepherdHired&&NearMarket&&Balance>=ShepherdPrice;
+        // Подписываю в журнале текущий режим и объясняю, почему он выбран.
         public string ShepherdStatus => _data.shepherdPriority == ShepherdPriority.CollectFirst
             ? "Сначала сбор · вы часто оставляли готовые яйца"
             : _data.shepherdAdapted ? "Сначала кормление · вы снова собираете яйца сами"
             : "Сначала кормление · наблюдает, как часто вы собираете яйца";
 
+        // Храню последние три случая: игрок успел забрать яйцо или пропустил окно.
         private void ObserveEggCollection(bool manual)
         {
             var observations = _data.shepherdObservations;
@@ -227,6 +231,7 @@ namespace MyLittleFarm.Gameplay.World
             var timely = 0;
             foreach (var observed in observations) if (observed) timely++;
             var next = _data.shepherdPriority;
+            // Два ручных сбора — сначала кормим. Два пропуска — сначала собираем.
             if (timely >= 2) next = ShepherdPriority.FeedFirst;
             else if (observations.Count - timely >= 2) next = ShepherdPriority.CollectFirst;
             if (_data.shepherdPriority == next) return;
@@ -235,6 +240,7 @@ namespace MyLittleFarm.Gameplay.World
             _shepherdChanged = true;
         }
 
+        // Когда ферма активна, даю пастуху выбрать дело примерно раз в пять секунд.
         private void Update()
         {
             if (Time.timeScale <= 0) return;
@@ -246,6 +252,7 @@ namespace MyLittleFarm.Gameplay.World
             _nextCareAt=Time.unscaledTime+5;
             _animals.AutomaticCare(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), _data.shepherdPriority);
         }
+        // Проверяю статистику и данные пастуха перед загрузкой.
         public static bool IsValid(FarmProgressData data)
         {
             if(data==null)return true; // v1–10 have no historical counters.

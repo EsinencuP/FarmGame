@@ -10,7 +10,7 @@ namespace MyLittleFarm.Gameplay.Farming
 {
     /// <summary>Сажает яблони, рассчитывает повторное плодоношение и выдаёт урожай.</summary>
     [DefaultExecutionOrder(-60)]
-    public sealed class OrchardSystem : MonoBehaviour
+    public sealed class OrchardSystem_AI : MonoBehaviour
     {
         [Header("Apple Tree Placeholder")]
         [SerializeField] private TreeDefinition appleTreeAsset;
@@ -30,8 +30,8 @@ namespace MyLittleFarm.Gameplay.Farming
             new Dictionary<Vector2Int, TreeView>();
         private readonly List<ScriptableObject> _placeholders = new List<ScriptableObject>();
         private IWorldGridWriter _grid;
-        private InventorySystem _inventory;
-        private WeatherController _weather;
+        private InventorySystem_AI _inventory;
+        private WeatherController_AI _weather;
         private TreeDefinition _appleTree;
         private readonly Dictionary<string, TreeDefinition> _definitions = new Dictionary<string, TreeDefinition>(StringComparer.Ordinal);
         private readonly List<TreeDefinition> _orderedDefinitions = new List<TreeDefinition>();
@@ -88,11 +88,11 @@ namespace MyLittleFarm.Gameplay.Farming
         }
 
         /// <summary>Подключает слой мира, инвентарь и каталог предметов.</summary>
-        public void Configure(IWorldGridWriter grid, InventorySystem inventory, FarmCatalog catalog)
+        public void Configure(IWorldGridWriter grid, InventorySystem_AI inventory, FarmCatalog catalog)
         {
             _grid = grid;
             _inventory = inventory;
-            _weather = GetComponentInParent<GameBootstrap>()?.GetComponentInChildren<WeatherController>(true);
+            _weather = GetComponentInParent<GameBootstrap>()?.GetComponentInChildren<WeatherController_AI>(true);
             _appleTree = appleTreeAsset != null ? appleTreeAsset : CreateApplePlaceholder();
             _definitions.Clear(); _orderedDefinitions.Clear();
             Register(_appleTree, catalog);
@@ -157,6 +157,7 @@ namespace MyLittleFarm.Gameplay.Farming
         }
 
         /// <summary>Собирает яблоки, если прошёл первый или очередной интервал плодоношения.</summary>
+        // Собираю плоды одного размера и начинаю новый цикл на том же дереве.
         public bool TryHarvest(Vector2Int position, long nowUnixMs, out int yield)
         {
             yield = 0;
@@ -189,6 +190,7 @@ namespace MyLittleFarm.Gameplay.Farming
         }
 
         /// <summary>Возвращает состояние деревьев для сохранения без ссылок на сценовые объекты.</summary>
+        // Делаю снимок сада с дождём, поливом и размером партии.
         public List<TreeRuntimeState> Capture()
         {
             var result = new List<TreeRuntimeState>(_trees.Count);
@@ -212,6 +214,7 @@ namespace MyLittleFarm.Gameplay.Farming
         };
 
         /// <summary>Восстанавливает проверенные деревья поверх уже загруженного grid-состояния.</summary>
+        // Восстанавливаю деревья и начинаю отсчёт нового дождя от загрузки.
         public void Restore(List<TreeRuntimeState> trees)
         {
             ClearAll();
@@ -309,6 +312,7 @@ namespace MyLittleFarm.Gameplay.Farming
             state.rainSample = _weather?.GrowthBonusSeconds ?? 0;
         }
 
+        // Беру дождь только за время роста. При созревании запоминаю размер партии.
         private void UpdateQuality(TreeRuntimeState state, TreeDefinition definition, long nowUnixMs)
         {
             if (state.sizeReady) return;
@@ -329,6 +333,7 @@ namespace MyLittleFarm.Gameplay.Farming
         private static int Moisture(TreeRuntimeState state, float duration) => HarvestQuality.Moisture(
             state.manuallyWatered ? HarvestQuality.ManualMoisture : 0, state.rainySeconds, duration);
 
+        // Поливаю растущее дерево один раз за текущий цикл.
         public bool TryWater(Vector2Int position, long nowUnixMs)
         {
             if (_changing || !_trees.TryGetValue(position, out var state) || state.manuallyWatered ||
@@ -337,11 +342,12 @@ namespace MyLittleFarm.Gameplay.Farming
             return true;
         }
 
+        // Показываю, когда будет сбор и как полив влияет на размер.
         public string HarvestPrompt(Vector2Int position, long nowUnixMs)
         {
             if (!_trees.TryGetValue(position, out var state) || !TryGetDefinition(state.treeId, out var definition)) return string.Empty;
             UpdateQuality(state, definition, nowUnixMs);
-            if (state.sizeReady) return InputReader.ActionHint + " — собрать: " + definition.DisplayName + " · " + state.harvestSize;
+            if (state.sizeReady) return InputReader_AI.ActionHint + " — собрать: " + definition.DisplayName + " · " + state.harvestSize;
             var (start, duration) = Cycle(state, definition);
             var remaining = Mathf.Max(0, duration - (float)((nowUnixMs - start) / 1000.0));
             return definition.DisplayName + " · до урожая " + MyLittleFarm.UI.FarmText.Duration(remaining) +

@@ -23,7 +23,7 @@ namespace MyLittleFarm.Tests.PlayMode
         {
             yield return null;
             var pen = Farm.transform.Find("Chicken Pen Mockup");
-            var animals = UnityEngine.Object.FindFirstObjectByType<AnimalSystem>();
+            var animals = UnityEngine.Object.FindFirstObjectByType<AnimalSystem_AI>();
             var buildings = UnityEngine.Object.FindFirstObjectByType<BuildSystem>();
             var wallet = UnityEngine.Object.FindFirstObjectByType<WalletSystem>();
 
@@ -44,10 +44,10 @@ namespace MyLittleFarm.Tests.PlayMode
         public IEnumerator AppleTreeRepeatsHarvestAndSurvivesSaveFile()
         {
             yield return null;
-            var orchard = UnityEngine.Object.FindFirstObjectByType<OrchardSystem>();
+            var orchard = UnityEngine.Object.FindFirstObjectByType<OrchardSystem_AI>();
             var grid = UnityEngine.Object.FindFirstObjectByType<GridSystem>();
-            var inventory = UnityEngine.Object.FindFirstObjectByType<InventorySystem>();
-            var save = UnityEngine.Object.FindFirstObjectByType<SaveSystem>();
+            var inventory = UnityEngine.Object.FindFirstObjectByType<InventorySystem_AI>();
+            var save = UnityEngine.Object.FindFirstObjectByType<SaveSystem_AI>();
             var position = new Vector2Int(1, 2);
             var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 
@@ -83,10 +83,10 @@ namespace MyLittleFarm.Tests.PlayMode
         public IEnumerator ChickenFeedEggAndRestoreLoop()
         {
             yield return null;
-            var animals = UnityEngine.Object.FindFirstObjectByType<AnimalSystem>();
-            var inventory = UnityEngine.Object.FindFirstObjectByType<InventorySystem>();
+            var animals = UnityEngine.Object.FindFirstObjectByType<AnimalSystem_AI>();
+            var inventory = UnityEngine.Object.FindFirstObjectByType<InventorySystem_AI>();
             var grid = UnityEngine.Object.FindFirstObjectByType<GridSystem>();
-            var save = UnityEngine.Object.FindFirstObjectByType<SaveSystem>();
+            var save = UnityEngine.Object.FindFirstObjectByType<SaveSystem_AI>();
             var wallet = UnityEngine.Object.FindFirstObjectByType<WalletSystem>();
             var selling = UnityEngine.Object.FindFirstObjectByType<SellingSystem>();
             var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
@@ -129,7 +129,7 @@ namespace MyLittleFarm.Tests.PlayMode
         {
             yield return null;
             var onboarding = UnityEngine.Object.FindFirstObjectByType<OnboardingSystem>();
-            var save = UnityEngine.Object.FindFirstObjectByType<SaveSystem>();
+            var save = UnityEngine.Object.FindFirstObjectByType<SaveSystem_AI>();
             foreach (var action in new[] { "house", "chest" })
                 GameEvents.RaiseProgressAction(action);
             GameEvents.RaiseActionFeedback("plant", new Vector3(1.5f, 0f, 1.5f));

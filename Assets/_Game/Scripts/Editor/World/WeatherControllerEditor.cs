@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace MyLittleFarm.Editor
 {
-    [CustomEditor(typeof(WeatherController))]
+    [CustomEditor(typeof(WeatherController_AI))]
     public sealed class WeatherControllerEditor : UnityEditor.Editor
     {
         private bool _preview;
@@ -14,11 +14,11 @@ namespace MyLittleFarm.Editor
         private void Restore()
         {
             if(!_preview||target==null||Application.isPlaying)return;
-            ((WeatherController)target).RestorePreview();_preview=false;SceneView.RepaintAll();
+            ((WeatherController_AI)target).RestorePreview();_preview=false;SceneView.RepaintAll();
         }
         public override void OnInspectorGUI()
         {
-            DrawDefaultInspector();var weather=(WeatherController)target;
+            DrawDefaultInspector();var weather=(WeatherController_AI)target;
             EditorGUILayout.Space();
             EditorGUILayout.LabelField("Rain growth speed",weather.GrowthMultiplier.ToString("0.00")+"x");
             EditorGUILayout.LabelField("Fade remaining",weather.TransitionRemaining.ToString("0.0")+" seconds");

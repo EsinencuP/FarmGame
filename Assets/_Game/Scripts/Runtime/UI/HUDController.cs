@@ -26,14 +26,14 @@ namespace MyLittleFarm.UI
         public void UseCompactPresentation() { compactPresentation = true; Refresh(); }
 
         // Источники данных и текстовые компоненты назначаются bootstrap-скриптом.
-        private InventorySystem _inventory;
+        private InventorySystem_AI _inventory;
         private WalletSystem _wallet;
         private FarmCatalog _catalog;
         private QuickSlotSystem _slots;
         private SectorSystem _sector;
         private ToolUpgradeSystem _upgrades;
         private SeedShopSystem _shop;
-        private AnimalSystem _animals;
+        private AnimalSystem_AI _animals;
         private Image[] _seedIcons;
         private Image[] _harvestIcons;
         private Image _coinIcon;
@@ -46,11 +46,11 @@ namespace MyLittleFarm.UI
         private readonly StringBuilder _statsBuilder = new StringBuilder(512);
 
         /// <summary>Назначает зависимости, подписывается на события и сразу заполняет интерфейс.</summary>
-        public void Configure(InventorySystem inventory, WalletSystem wallet, Text statsText, Text statusText,
+        public void Configure(InventorySystem_AI inventory, WalletSystem wallet, Text statsText, Text statusText,
             FarmCatalog catalog = null, QuickSlotSystem slots = null, SectorSystem sector = null,
             ToolUpgradeSystem upgrades = null, SeedShopSystem shop = null,
             Image[] seedIcons = null, Image[] harvestIcons = null, Image coinIcon = null, Image toolIcon = null,
-            AnimalSystem animals = null,
+            AnimalSystem_AI animals = null,
             OnboardingSystem onboarding = null, Text onboardingText = null)
         {
             Unsubscribe();
@@ -126,7 +126,7 @@ namespace MyLittleFarm.UI
 
             if (_catalog == null)
             {
-                _statsText.text = $"МОНЕТЫ  {_wallet.Coins}\nСЕМЕНА  {_inventory.GetAmount(InventorySystem.CarrotSeedId)}\nМОРКОВЬ  {_inventory.GetAmount(InventorySystem.CarrotId)}";
+                _statsText.text = $"МОНЕТЫ  {_wallet.Coins}\nСЕМЕНА  {_inventory.GetAmount(InventorySystem_AI.CarrotSeedId)}\nМОРКОВЬ  {_inventory.GetAmount(InventorySystem_AI.CarrotId)}";
                 return;
             }
             var lines = _statsBuilder;

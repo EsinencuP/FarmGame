@@ -19,13 +19,13 @@ namespace MyLittleFarm.Tests.PlayMode
     /// <summary>Exercises real multi-material ghost prefabs, input routing and the independent construction card.</summary>
     public sealed class BuildPreviewUiTests : FarmPlayModeFixture
     {
-        private InputReader _input;
+        private InputReader_AI _input;
         private BuildSystem _build;
         private Camera _camera;
         private GridSystem _grid;
         private void Setup()
         {
-            _input=Farm.GetComponent<InputReader>();_input.enabled=false;
+            _input=Farm.GetComponent<InputReader_AI>();_input.enabled=false;
             _build=Farm.GetComponentInChildren<BuildSystem>();_grid=Farm.GetComponentInChildren<GridSystem>();
             _camera=Farm.GetComponentInChildren<Camera>();
             var serialized=new SerializedObject(_build);var array=serialized.FindProperty("visualPrefabs");array.arraySize=5;
@@ -39,7 +39,7 @@ namespace MyLittleFarm.Tests.PlayMode
             Farm.GetComponentInChildren<WalletSystem>().SetCoins(100);
             _build.SetActive(true);Point(new Vector2Int(0,3));
         }
-        private void Set(string name,object value)=>typeof(InputReader).GetProperty(name).SetValue(_input,value);
+        private void Set(string name,object value)=>typeof(InputReader_AI).GetProperty(name).SetValue(_input,value);
         private void Point(Vector2Int cell){Set("HasPointer",true);Set("PointerPosition",(Vector2)_camera.WorldToScreenPoint(_grid.CellToWorld(cell)));}
         private Transform Ghost=>_build.transform.Find("Building model preview");
 
@@ -94,7 +94,7 @@ namespace MyLittleFarm.Tests.PlayMode
             var normal=Farm.GetComponentsInChildren<Text>(true).Single(t=>t.name=="Interaction Prompt");
             Assert.That(card.gameObject.activeSelf,Is.True);Assert.That(normal.enabled,Is.False);
             Assert.That(card.PromptText.text,
-                Does.Contain(InputReader.BuildRotateHint).And.Contain("Esc").And.Contain(InputReader.ActionHint));
+                Does.Contain(InputReader_AI.BuildRotateHint).And.Contain("Esc").And.Contain(InputReader_AI.ActionHint));
             var cameraRotation=_camera.transform.rotation;
             Set("RotateBuildingPressed",true);Set("RotateLeftPressed",true);yield return null;
             Set("RotateBuildingPressed",false);Set("RotateLeftPressed",false);yield return null;
@@ -164,7 +164,7 @@ namespace MyLittleFarm.Tests.PlayMode
             Set("InteractPressed",true);yield return null;Set("InteractPressed",false);yield return null;
             var card=Farm.GetComponentInChildren<BuildPromptUI>(true);
             Assert.That(card.PromptText.text,
-                Does.Contain("Подтвердить · " + InputReader.KeyLabel(InputReader.Command.Interact) + " / Enter")
+                Does.Contain("Подтвердить · " + InputReader_AI.KeyLabel(InputReader_AI.Command.Interact) + " / Enter")
                     .And.Contain("Отмена · Esc / ПКМ"));
             Assert.That(Ghost.gameObject.activeSelf,Is.False);
             Set("PointerInteractPressed",true);Set("InteractPressed",true);yield return null;

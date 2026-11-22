@@ -7,9 +7,9 @@ using UnityEngine.UI;
 namespace MyLittleFarm.UI
 {
     /// <summary>Kit-style catalogue, selected-item details and editable order, with explicit checkout.</summary>
-    public sealed class FarmMarketUI : MonoBehaviour
+    public sealed class FarmMarketUI_AI : MonoBehaviour
     {
-        [SerializeField] private FarmMarket market;
+        [SerializeField] private FarmMarket_AI market;
         [SerializeField] private Font font;
         [SerializeField] private RectTransform panel, cartContent;
         [SerializeField] private Button[] tabs, cards;
@@ -21,8 +21,8 @@ namespace MyLittleFarm.UI
         [SerializeField] private InputField quantityInput;
         [SerializeField] private Button maximum;
         private readonly Dictionary<string, int>[] _carts = { new Dictionary<string, int>(), new Dictionary<string, int>(), new Dictionary<string, int>(), new Dictionary<string, int>(),new Dictionary<string,int>() };
-        private List<FarmMarket.Offer> _offers;
-        private FarmMarket.Category _category;
+        private List<FarmMarket_AI.Offer> _offers;
+        private FarmMarket_AI.Category _category;
         private string _selected;
         private int _quantity = 1;
         private bool _dirty;
@@ -132,7 +132,7 @@ namespace MyLittleFarm.UI
         private void SelectCategory(int index)
         {
             _receipt = null;
-            _category = (FarmMarket.Category)index; _selected = null; _quantity = 1; status.text = "";
+            _category = (FarmMarket_AI.Category)index; _selected = null; _quantity = 1; status.text = "";
             for (var i = 0; i < tabs.Length; i++) FarmUITheme.Style(tabs[i], i == index ? "secondary" : "ghost");
             Refresh(); FarmUITheme.Focus(tabs[index]);
         }
@@ -141,8 +141,8 @@ namespace MyLittleFarm.UI
             if (_offers == null || index >= _offers.Count) return;
             _receipt = null; _selected = _offers[index].Id; _quantity = 1; Details(); Paint(); Basket();
         }
-        private FarmMarket.Offer Selected => _offers == null ? null : _offers.Find(o => o.Id == _selected);
-        private int Remaining(FarmMarket.Offer offer) => Mathf.Max(0, offer.Maximum - (Cart.TryGetValue(offer.Id, out var value) ? value : 0));
+        private FarmMarket_AI.Offer Selected => _offers == null ? null : _offers.Find(o => o.Id == _selected);
+        private int Remaining(FarmMarket_AI.Offer offer) => Mathf.Max(0, offer.Maximum - (Cart.TryGetValue(offer.Id, out var value) ? value : 0));
         private void Less() { _quantity = Mathf.Max(1, _quantity - 1); Details(); }
         private void More()
         {
@@ -155,7 +155,7 @@ namespace MyLittleFarm.UI
         {
             var offer = Selected; if (offer == null) return;
             var limit = Remaining(offer);
-            if (_category != FarmMarket.Category.Sell && _category!=FarmMarket.Category.Orders && offer.Price > 0)
+            if (_category != FarmMarket_AI.Category.Sell && _category!=FarmMarket_AI.Category.Orders && offer.Price > 0)
             {
                 long reserved = 0;
                 foreach (var line in Cart) { var existing = _offers.Find(o => o.Id == line.Key); if (existing != null) reserved += (long)existing.Price * line.Value; }
@@ -172,10 +172,11 @@ namespace MyLittleFarm.UI
             Cart.TryGetValue(offer.Id, out var owned); Cart[offer.Id] = owned + amount;
             Details(); Basket();
             if (pay.interactable)
-                status.text = FarmText.Get(_category == FarmMarket.Category.Sell ? "market.saleAdded" : "market.added", offer.Name, amount);
+                status.text = FarmText.Get(_category == FarmMarket_AI.Category.Sell ? "market.saleAdded" : "market.added", offer.Name, amount);
         }
         private void Clear() { _receipt = null; Cart.Clear(); Details(); Basket(); }
         private string _receipt;
+        // Передаю в рынок цены, которые были показаны игроку. Так он сможет подтвердить изменившуюся сумму.
         private void Checkout()
         {
             if (Cart.Count == 0) return;
@@ -225,14 +226,14 @@ namespace MyLittleFarm.UI
             _quantity = Mathf.Clamp(_quantity, 1, Mathf.Max(1, Remaining(offer)));
             title.text = offer.Name; portrait.sprite = FarmUITheme.Sprite("Icons/" + offer.Icon);
             var metric = panel.Find("Selected item/Detail metric").GetComponent<Image>();
-            metric.sprite = FarmUITheme.Sprite("Icons/" + (_category == FarmMarket.Category.Upgrades ? "upgrade" : _category == FarmMarket.Category.Animals ? "clock" : "growth"));
+            metric.sprite = FarmUITheme.Sprite("Icons/" + (_category == FarmMarket_AI.Category.Upgrades ? "upgrade" : _category == FarmMarket_AI.Category.Animals ? "clock" : "growth"));
             description.text = offer.Description;
-            unitPrice.text = _category==FarmMarket.Category.Orders && offer.Available?"Награда: "+FarmText.Coins(offer.Price):!offer.Available ? offer.Unavailable : Remaining(offer) > 0
+            unitPrice.text = _category==FarmMarket_AI.Category.Orders && offer.Available?"Награда: "+FarmText.Coins(offer.Price):!offer.Available ? offer.Unavailable : Remaining(offer) > 0
                 ? FarmText.Get("market.unitPrice", FarmText.Coins(offer.Price))
                 : FarmText.Get("market.limit");
             quantityInput.SetTextWithoutNotify(_quantity.ToString()); minus.interactable = _quantity > 1; plus.interactable = _quantity < Remaining(offer);
             add.interactable = offer.Available && Remaining(offer) > 0 && (!Application.isPlaying || market.CanTrade);
-            add.GetComponentInChildren<Text>().text = _category==FarmMarket.Category.Orders?"Выбрать заказ":_category == FarmMarket.Category.Sell ? FarmText.Get("market.addSale") : FarmText.Get("market.addPurchase");
+            add.GetComponentInChildren<Text>().text = _category==FarmMarket_AI.Category.Orders?"Выбрать заказ":_category == FarmMarket_AI.Category.Sell ? FarmText.Get("market.addSale") : FarmText.Get("market.addPurchase");
         }
         private void Basket()
         {
@@ -240,7 +241,7 @@ namespace MyLittleFarm.UI
             // before a domain reload. Nonserialized row caches cannot own authored objects.
             for (var i = cartContent.childCount - 1; i >= 0; i--)
             { var row = cartContent.GetChild(i).gameObject; row.SetActive(false); if (Application.isPlaying) Destroy(row); else DestroyImmediate(row); }
-            cartTitle.text = _category==FarmMarket.Category.Orders?"ВЫБРАННЫЕ ЗАКАЗЫ":FarmText.Get(_category == FarmMarket.Category.Sell ? "market.saleCartTitle" : "market.cartTitle", Cart.Count);
+            cartTitle.text = _category==FarmMarket_AI.Category.Orders?"ВЫБРАННЫЕ ЗАКАЗЫ":FarmText.Get(_category == FarmMarket_AI.Category.Sell ? "market.saleCartTitle" : "market.cartTitle", Cart.Count);
             var index = 0; long sum = 0;
             foreach (var line in Cart)
             {
@@ -263,16 +264,16 @@ namespace MyLittleFarm.UI
             }
             cartContent.sizeDelta = new Vector2(0, Mathf.Max(200, index * 48));
             var valid = market.Quote(_category, Cart, out _, out var reason);
-            total.text = _category==FarmMarket.Category.Orders?"Награда: "+FarmText.Coins(sum):FarmText.Get(_category == FarmMarket.Category.Sell ? "market.sellTotal" : "market.payTotal", FarmText.Coins(sum));
-            pay.GetComponentInChildren<Text>().text = _category==FarmMarket.Category.Orders?"Сдать заказы":_category == FarmMarket.Category.Sell ? FarmText.Get("market.sell") : FarmText.Get("market.pay");
+            total.text = _category==FarmMarket_AI.Category.Orders?"Награда: "+FarmText.Coins(sum):FarmText.Get(_category == FarmMarket_AI.Category.Sell ? "market.sellTotal" : "market.payTotal", FarmText.Coins(sum));
+            pay.GetComponentInChildren<Text>().text = _category==FarmMarket_AI.Category.Orders?"Сдать заказы":_category == FarmMarket_AI.Category.Sell ? FarmText.Get("market.sell") : FarmText.Get("market.pay");
             pay.interactable = Application.isPlaying && market.CanTrade && valid; clear.interactable = Cart.Count > 0;
             status.text = !market.CanTrade && Application.isPlaying ? FarmText.Get("market.approach")
                 : valid ? string.Empty : _receipt ?? reason;
         }
-        public static FarmMarketUI Create(Transform parent, Font font, FarmMarket market)
+        public static FarmMarketUI_AI Create(Transform parent, Font font, FarmMarket_AI market)
         {
             var root = FarmUITheme.Rect(parent, "Market"); FarmUITheme.Stretch(root);
-            var ui = root.gameObject.AddComponent<FarmMarketUI>(); ui.font = font; ui.market = market;
+            var ui = root.gameObject.AddComponent<FarmMarketUI_AI>(); ui.font = font; ui.market = market;
             ui.panel = FarmUITheme.Panel(root, FarmText.Get("market.title"), font, new Vector2(1440, 900));
             var names = new[] { FarmText.Get("market.tabSeeds"), FarmText.Get("market.tabSell"), FarmText.Get("market.tabUpgrades"), FarmText.Get("market.tabAnimals") }; var keys = new[] { "seeds_carrot", "sell", "upgrade", "chicken" };
             ui.tabs = new Button[4];

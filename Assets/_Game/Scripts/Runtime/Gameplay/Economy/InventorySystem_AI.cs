@@ -8,7 +8,7 @@ using UnityEngine;
 namespace MyLittleFarm.Gameplay.Economy
 {
     /// <summary>Хранит количества предметов по стабильным строковым идентификаторам.</summary>
-    public sealed class InventorySystem : MonoBehaviour
+    public sealed class InventorySystem_AI : MonoBehaviour
     {
         // Эти id используются логикой фермы, UI и форматом сохранения.
         public const string CarrotSeedId = "carrot_seed";
@@ -59,9 +59,11 @@ namespace MyLittleFarm.Gameplay.Economy
             Revision++;
         }
 
+        // Считаю один размер, например только XL. Это нужно складу и продаже.
         public int GetStackAmount(string stackId) =>
             stackId != null && _items.TryGetValue(stackId, out var amount) ? amount : 0;
 
+        // Суммирую все размеры одного товара для рецептов, заказов и кормления.
         public int GetAmount(string itemId)
         {
             if (!HarvestQuality.IsSized(itemId)) return GetStackAmount(itemId);

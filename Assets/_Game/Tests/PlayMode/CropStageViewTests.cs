@@ -47,7 +47,7 @@ namespace MyLittleFarm.Tests.PlayMode
             typeof(FarmCatalog).GetField("cropAssets", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(catalog, definitions);
             catalog.Configure();
             var grid = Farm.GetComponentInChildren<GridSystem>();
-            var crops = Farm.GetComponentInChildren<CropSystem>();
+            var crops = Farm.GetComponentInChildren<CropSystem_AI>();
             // Freeze visual polling: the test verifies fixed saved timestamps rather than wall-clock timing.
             crops.enabled = false;
             var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
@@ -59,7 +59,7 @@ namespace MyLittleFarm.Tests.PlayMode
                 var age = stage == 0 ? -60f : definitions[i].GrowDurationSeconds * (stage == 1 ? 0.65f : 1.2f);
                 Assert.That(crops.Plant(position, definitions[i].CropId, now - (long)(age * 1000)), Is.True);
             }
-            var save = Farm.GetComponentInChildren<SaveSystem>();
+            var save = Farm.GetComponentInChildren<SaveSystem_AI>();
             var snapshot = JsonUtility.FromJson<SaveData>(JsonUtility.ToJson(save.Capture()));
             save.Restore(snapshot);
             yield return null;

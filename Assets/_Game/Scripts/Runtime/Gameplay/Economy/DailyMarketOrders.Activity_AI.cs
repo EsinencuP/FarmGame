@@ -9,6 +9,7 @@ using UnityEngine;
 namespace MyLittleFarm.Gameplay.Economy
 {
     [Serializable]
+    // Настройки рынка. Тут можно поменять пороги и скидки прямо в инспекторе.
     public sealed class MarketBalance
     {
         [SerializeField, Range(1, 500)] private int saleThreshold = 12;
@@ -34,20 +35,26 @@ namespace MyLittleFarm.Gameplay.Economy
         private const long MaxProductionSequence = 1_000_000_000_000L;
         private readonly MarketBalance _marketBalance;
 
+        // Смотрю историю товара и возвращаю процент цены вместе с объяснением для игрока.
         public (int percent, string reason) SalePriceRule(string itemId)
         {
+            // Рынок подстраивает цены на урожай. Остальные товары идут по базовой цене.
             if (!IsHarvest(_catalog, itemId)) return (100, "");
             var row = FindActivity(itemId);
+            // Сначала проверяю, не завалил ли игрок рынок этим урожаем.
             if (SaleSignal(row) >= _marketBalance.SaleThreshold * 100)
                 return (_marketBalance.SurplusPercent, "Избыток · много поставок этой культуры");
+            // Много семян — только намёк на будущий урожай, поэтому скидка меньше.
             if (Signal(row?.seedsToday ?? 0, row?.seedsYesterday ?? 0) >= _marketBalance.SeedThreshold * 100)
                 return (_marketBalance.AnticipatedPercent, "Ожидаемый избыток · закуплено много семян или саженцев");
+            // Если этого урожая мало, проверяю, нужен ли рынку заменитель другой культуры.
             if (itemId != "corn" && SaleSignal(row) < _marketBalance.LowSupplyThreshold * 100 &&
                 _data.activity.Exists(other => other.itemId != itemId && SaleSignal(other) >= _marketBalance.SaleThreshold * 100))
                 return (_marketBalance.DemandPercent, "Повышенный спрос · рынок ищет замену культуре в избытке");
             return (100, "Обычный рынок");
         }
 
+        // Запоминаю, сколько товара реально продали. Эта запись повлияет на следующую сделку.
         internal void RecordSale(string itemId, int amount)
         {
             if (!IsHarvest(_catalog, itemId)) return;
@@ -55,6 +62,7 @@ namespace MyLittleFarm.Gameplay.Economy
             row.soldToday = AddCount(row.soldToday, amount);
         }
 
+        // Ищу, какой урожай вырастет из купленных семян, и обновляю его счётчик.
         internal void RecordSeedPurchase(string itemId, int amount)
         {
             var harvestId = itemId == "pear_sapling" ? "pear" : null;
@@ -66,6 +74,7 @@ namespace MyLittleFarm.Gameplay.Economy
             row.seedsToday = AddCount(row.seedsToday, amount);
         }
 
+        // Считаю только партии, которые игрок уже забрал из постройки.
         private void RecordProduction(string itemId)
         {
             if (!IsWorkshopProduct(itemId)) return;
@@ -75,6 +84,7 @@ namespace MyLittleFarm.Gameplay.Economy
             row.lastBatch = _data.productionSequence;
         }
 
+        // Ищу доступный товар с двумя или больше партиями. При равенстве беру тот, который забрали последним.
         private static string ChoosePersonalOrder(MarketOrdersData data, List<string> eligible, int elapsedDays)
         {
             if (elapsedDays > 2) return null;
@@ -91,6 +101,7 @@ namespace MyLittleFarm.Gameplay.Economy
             return best?.itemId;
         }
 
+        // Начались новые сутки: сегодняшние числа становятся вчерашними, старые уходят.
         private void RotateActivity(int days)
         {
             foreach (var row in _data.activity)
@@ -103,7 +114,9 @@ namespace MyLittleFarm.Gameplay.Economy
             _data.activity.RemoveAll(row => row.soldYesterday == 0 && row.seedsYesterday == 0 && row.batchesYesterday == 0);
         }
 
+        // Ищу строку истории по ID товара. Если её ещё нет, получаю null.
         private MarketActivityData FindActivity(string itemId) => _data.activity.Find(row => row.itemId == itemId);
+        // Беру существующую строку или создаю пустую, чтобы записать новое действие.
         private MarketActivityData GetActivity(string itemId)
         {
             var row = FindActivity(itemId);
@@ -113,10 +126,13 @@ namespace MyLittleFarm.Gameplay.Economy
             return row;
         }
 
+        // Ограничиваю счётчик сверху и складываю через long, чтобы большое число не переполнилось.
         private static int AddCount(int count, int amount) => (int)Math.Min(MaxCount, (long)count + amount);
+        // Считаю без дробей: сегодня весит 100, вчера по умолчанию 50.
         private int Signal(int today, int yesterday) => today * 100 + yesterday * _marketBalance.PreviousDayWeight;
         private int SaleSignal(MarketActivityData row) => Signal(row?.soldToday ?? 0, row?.soldYesterday ?? 0);
 
+        // Проверяю, относится ли этот ID к саду или к урожаю из каталога.
         private static bool IsHarvest(FarmCatalog catalog, string itemId)
         {
             if (itemId == "apple" || itemId == "pear") return true;
@@ -126,9 +142,11 @@ namespace MyLittleFarm.Gameplay.Economy
             return false;
         }
 
+        // Для персональных заказов учитываю яблочный сок, муку и сыр.
         private static bool IsWorkshopProduct(string itemId) =>
             itemId == ProductionRecipe.Press.OutputId || itemId == ProductionRecipe.Mill.OutputId || itemId == ProductionRecipe.Dairy.OutputId;
 
+        // Проверяю историю из файла: известные ID, счётчики в пределах и без дублей.
         private static void ValidateActivity(MarketOrdersData data, FarmCatalog catalog)
         {
             if (data.activity == null || data.activity.Count > FarmCatalog.CropIds.Length + 5 ||

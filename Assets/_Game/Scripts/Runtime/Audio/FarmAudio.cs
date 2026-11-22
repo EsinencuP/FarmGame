@@ -22,7 +22,7 @@ namespace MyLittleFarm.Audio
         private Layer _music, _ambience;
         private AudioSource _rain;
         private DayNightCycle _clock;
-        private FarmProgression _progress;
+        private FarmProgression_AI _progress;
         private Transform _player;
         private bool _farm, _focused = true, _paused;
         private float _nextContext, _duckDb, _rainIntensity, _rainGainDb = -12;
@@ -113,7 +113,7 @@ namespace MyLittleFarm.Audio
             _lastPlayed.Clear(); _rainIntensity = 0; _rain.Stop(); _rain.clip = null;
             _farm = scene.path == FarmSceneFlow.GameScene;
             _clock = _farm ? FindAnyObjectByType<DayNightCycle>() : null;
-            _progress = _farm ? FindAnyObjectByType<FarmProgression>() : null;
+            _progress = _farm ? FindAnyObjectByType<FarmProgression_AI>() : null;
             var player = _farm ? FindAnyObjectByType<PlayerController>() : null; _player = player == null ? null : player.transform;
             if (_progress != null) _progress.AchievementUnlocked += Achievement;
             _nextContext = 0; UpdateContext();

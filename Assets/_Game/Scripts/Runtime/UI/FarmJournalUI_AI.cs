@@ -8,10 +8,10 @@ using UnityEngine.UI;
 
 namespace MyLittleFarm.UI
 {
-    public sealed class FarmJournalUI : MonoBehaviour
+    public sealed class FarmJournalUI_AI : MonoBehaviour
     {
-        [SerializeField] private FarmProgression progress;
-        [SerializeField] private InputReader input;
+        [SerializeField] private FarmProgression_AI progress;
+        [SerializeField] private InputReader_AI input;
         [SerializeField] private GameObject shade;
         [SerializeField] private RectTransform panel,body;
         [SerializeField] private GameObject farmTab,badgesTab,discoveriesTab;
@@ -40,7 +40,7 @@ namespace MyLittleFarm.UI
         public Text ClockText=>clock;
         private readonly Queue<string> _toasts=new Queue<string>();
         public bool IsOpen=>shade!=null&&shade.activeSelf;
-        public void Configure(FarmProgression system,InputReader reader){progress=system;input=reader;Bind();}
+        public void Configure(FarmProgression_AI system,InputReader_AI reader){progress=system;input=reader;Bind();}
         private void OnEnable()=>Bind();
         private void Bind()
         {
@@ -122,17 +122,17 @@ namespace MyLittleFarm.UI
                 + "\n\n" + FarmText.Get("journal.bonuses", BonusHints())
                 + "\n\n" + FarmText.Get("journal.shepherd", data.shepherdHired
                     ? FarmText.Get("journal.shepherdHired") + "\n" + progress.ShepherdStatus
-                    : FarmText.Get("journal.shepherdMarket", FarmText.Coins(FarmProgression.ShepherdPrice)));
+                    : FarmText.Get("journal.shepherdMarket", FarmText.Coins(FarmProgression_AI.ShepherdPrice)));
             hire.gameObject.SetActive(false);
-            var text=new StringBuilder(FarmText.Get("journal.rareInfo", InputReader.KeyLabel(InputReader.Command.Seed5)));
+            var text=new StringBuilder(FarmText.Get("journal.rareInfo", InputReader_AI.KeyLabel(InputReader_AI.Command.Seed5)));
             var now=DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
             for(var i=0;i<CacheRoutes.Length;i++)
             {
-                var cache=progress.Cache(FarmProgression.CacheIds[i]);var remaining=cache.nextAvailableUnixMs-now;
+                var cache=progress.Cache(FarmProgression_AI.CacheIds[i]);var remaining=cache.nextAvailableUnixMs-now;
                 text.Append(CacheRoutes[i].Name).Append("  ·  ").Append(!cache.discovered?FarmText.Get("journal.unknownCache"):remaining>0?FarmText.Get("journal.refill", Mathf.CeilToInt(remaining / 60000f)):FarmText.Get("journal.cacheReady")).Append('\n');
                 text.AppendLine(CacheRoutes[i].Route);
             }
-            text.Append(FarmText.Get("journal.rareHint", InputReader.ActionHint, data.rareSeeds));
+            text.Append(FarmText.Get("journal.rareHint", InputReader_AI.ActionHint, data.rareSeeds));
             discoveries.text=text.ToString();PaintBadges(data.achievements);
         }
         private string BonusHints()
@@ -194,10 +194,10 @@ namespace MyLittleFarm.UI
         public void ClearPreview(){if(Application.isPlaying)return;_previewingBadges=false;shade.SetActive(false);ResetToasts();stats.text="";discoveries.text="";foreach(var label in badgeLabels)label.text="";}
         public void PreviewFarm(string text)
         {if(Application.isPlaying)return;_previewingBadges=false;shade.SetActive(true);farmTab.SetActive(true);badgesTab.SetActive(false);discoveriesTab.SetActive(false);pageTitle.gameObject.SetActive(false);stats.text=text;hire.gameObject.SetActive(true);hire.interactable=false;Resize();}
-        public static FarmJournalUI Create(Transform parent,FarmProgression system,InputReader reader,Font font)
+        public static FarmJournalUI_AI Create(Transform parent,FarmProgression_AI system,InputReader_AI reader,Font font)
         {
-            var root=new GameObject("Farm Journal",typeof(RectTransform),typeof(FarmJournalUI));root.transform.SetParent(parent,false);Stretch((RectTransform)root.transform);
-            var ui=root.GetComponent<FarmJournalUI>();ui.progress=system;ui.input=reader;
+            var root=new GameObject("Farm Journal",typeof(RectTransform),typeof(FarmJournalUI_AI));root.transform.SetParent(parent,false);Stretch((RectTransform)root.transform);
+            var ui=root.GetComponent<FarmJournalUI_AI>();ui.progress=system;ui.input=reader;
             ui.clock=SaveSlotsUI.Label(root.transform,"",font,21);ui.clock.raycastTarget=false;
             ui.clock.gameObject.name="World Clock";
             ui.shade=Image(parent:root.transform,name:"Journal backdrop",new Color(.01f,.025f,.015f,.93f));Stretch((RectTransform)ui.shade.transform);

@@ -28,7 +28,7 @@ namespace MyLittleFarm.Core.Grid
         // Зависимости назначаются GameBootstrap.
         private GridSystem _grid;
         private Transform _player;
-        private InputReader _input;
+        private InputReader_AI _input;
         private BuildSystem _buildings;
         private Vector2Int _lastCell;
         private bool _hadLastCell;
@@ -37,7 +37,7 @@ namespace MyLittleFarm.Core.Grid
         public Vector3 HoveredWorldPos { get; private set; }
         public bool IsHoveringValidCell { get; private set; }
         public CellType HoveredCellType { get; private set; } = CellType.OutOfBounds;
-        // Старые имена сохранены как читаемые свойства для InteractionSystem.
+        // Старые имена сохранены как читаемые свойства для InteractionSystem_AI.
         public bool HasSelection => IsHoveringValidCell;
         public Vector2Int SelectedPosition => HoveredCell;
         public InteractionTarget HoveredTarget { get; private set; }
@@ -55,7 +55,7 @@ namespace MyLittleFarm.Core.Grid
         public event Action<Vector2Int, CellType> OnCellChanged;
 
         /// <summary>Назначает сетку, ввод, камеру и игрока без глобального поиска в Update.</summary>
-        public void Configure(GridSystem grid, Transform player, InputReader input = null, Camera camera = null)
+        public void Configure(GridSystem grid, Transform player, InputReader_AI input = null, Camera camera = null)
         {
             // Повторная конфигурация сначала снимает старую подписку, чтобы не получать событие дважды.
             if (_grid != null) _grid.OnCellChanged -= HandleGridCellChanged;

@@ -14,12 +14,12 @@ namespace MyLittleFarm.Gameplay.Economy
         public const int Capacity=12;
         public const float Radius=6;
         private readonly BuildSystem _build;
-        private readonly InventorySystem _inventory;
+        private readonly InventorySystem_AI _inventory;
         private readonly Dictionary<string,int[]> _wheat=new Dictionary<string,int[]>();
         private bool _changing;
         public long Revision {get;private set;}
         public bool IsChanging=>_changing;
-        public FeederStore(BuildSystem build,InventorySystem inventory){_build=build;_inventory=inventory;}
+        public FeederStore(BuildSystem build,InventorySystem_AI inventory){_build=build;_inventory=inventory;}
         public int Amount(string id)=>id!=null && _wheat.TryGetValue(id,out var stock)?stock.Sum():0;
         private int[] Stock(string id)
         {
@@ -55,7 +55,7 @@ namespace MyLittleFarm.Gameplay.Economy
             }
             finally{_changing=false;}
         }
-        // AnimalSystem owns the feeding mutation guard and publishes only after its timer is set.
+        // AnimalSystem_AI owns the feeding mutation guard and publishes only after its timer is set.
         public bool CanSupply(Vector3 position)=>Find(position)!=null;
         private string Find(Vector3 position)
         {

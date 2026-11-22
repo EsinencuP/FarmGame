@@ -40,11 +40,11 @@ namespace MyLittleFarm.Editor
         }
         public static void ApplyTo(GameBootstrap farm)
         {
-            var system = farm.GetComponentInChildren<FarmMarket>(true);
-            if (system == null) system = farm.gameObject.AddComponent<FarmMarket>();
-            system.Configure(farm.GetComponentInChildren<FarmCatalog>(true), farm.GetComponentInChildren<InventorySystem>(true), farm.GetComponentInChildren<WalletSystem>(true),
+            var system = farm.GetComponentInChildren<FarmMarket_AI>(true);
+            if (system == null) system = farm.gameObject.AddComponent<FarmMarket_AI>();
+            system.Configure(farm.GetComponentInChildren<FarmCatalog>(true), farm.GetComponentInChildren<InventorySystem_AI>(true), farm.GetComponentInChildren<WalletSystem>(true),
                 farm.GetComponentInChildren<SeedShopSystem>(true), farm.GetComponentInChildren<ToolUpgradeSystem>(true), farm.GetComponentInChildren<SectorSystem>(true),
-                farm.GetComponentInChildren<AnimalSystem>(true), farm.GetComponentInChildren<BuildSystem>(true), farm.GetComponentInChildren<FarmProgression>(true));
+                farm.GetComponentInChildren<AnimalSystem_AI>(true), farm.GetComponentInChildren<BuildSystem>(true), farm.GetComponentInChildren<FarmProgression_AI>(true));
             var font = AssetDatabase.LoadAssetAtPath<Font>("Assets/_Game/Content/UI/Nunito.ttf");
             var menu = farm.GetComponentInChildren<FarmMenuUI>(true); menu.ConfigureMarket(font, system);
             var prompt = menu.transform.Find("Nearby market prompt").GetComponentInChildren<UnityEngine.UI.Text>(true); prompt.text = "Рынок · P / E";

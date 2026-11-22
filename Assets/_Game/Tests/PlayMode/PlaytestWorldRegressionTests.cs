@@ -44,9 +44,9 @@ namespace MyLittleFarm.Tests.PlayMode
         public IEnumerator ChickenHasSeparatePickAndSolidVolumesAndLegacyOverlapCanRestore()
         {
             yield return null;
-            var animals = System<AnimalSystem>();
+            var animals = System<AnimalSystem_AI>();
             var grid = System<GridSystem>();
-            var save = System<SaveSystem>();
+            var save = System<SaveSystem_AI>();
             var player = System<PlayerController>();
             var cell = new Vector2Int(1, 3);
             var ground = grid.GridToWorld(cell);

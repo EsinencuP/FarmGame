@@ -311,7 +311,7 @@ namespace MyLittleFarm.Editor
         private static void ReplacePen(GameBootstrap root, GridSystem grid)
         {
             var pen = root.transform.Find("Chicken Pen Mockup");
-            var animals = root.GetComponentInChildren<AnimalSystem>(true);
+            var animals = root.GetComponentInChildren<AnimalSystem_AI>(true);
             if (pen == null || animals == null || pen.Find("Farm Fence Models") != null) return;
             for (var i = pen.childCount - 1; i >= 0; i--)
                 Undo.DestroyObjectImmediate(pen.GetChild(i).gameObject);

@@ -19,22 +19,22 @@ namespace MyLittleFarm.Tests.PlayMode
         [UnityTest]
         public IEnumerator PointerClickOutsideWorldDoesNotFeedNearbyChicken()
         {
-            var input = Farm.GetComponent<InputReader>();
+            var input = Farm.GetComponent<InputReader_AI>();
             input.enabled = false;
             var grid = Farm.GetComponentInChildren<GridSystem>();
             var player = Farm.GetComponentInChildren<PlayerController>();
             player.enabled = false;
-            var animals = Farm.GetComponentInChildren<AnimalSystem>();
+            var animals = Farm.GetComponentInChildren<AnimalSystem_AI>();
             Assert.That(animals.AddChicken(new Vector2Int(1,3), 1), Is.True);
             player.Teleport(grid.CellToWorld(new Vector2Int(1,3)) + Vector3.up * 1.1f);
-            var inventory = Farm.GetComponentInChildren<InventorySystem>();
+            var inventory = Farm.GetComponentInChildren<InventorySystem_AI>();
             inventory.Add("wheat", 1);
             var selector = Farm.GetComponentInChildren<CellSelector>();
             selector.enabled = false;
             selector.SelectWorldPoint(Vector3.one * 10000f);
-            typeof(InputReader).GetProperty("PointerInteractPressed", BindingFlags.Public | BindingFlags.Instance)
+            typeof(InputReader_AI).GetProperty("PointerInteractPressed", BindingFlags.Public | BindingFlags.Instance)
                 .SetValue(input, true);
-            Assert.That(Farm.GetComponentInChildren<InteractionSystem>().Interact(1000), Is.False);
+            Assert.That(Farm.GetComponentInChildren<InteractionSystem_AI>().Interact(1000), Is.False);
             Assert.That(inventory.GetAmount("wheat"), Is.EqualTo(1));
             Assert.That(animals.Capture()[0].nextProductAtUnixMs, Is.EqualTo(0));
             yield return null;
@@ -44,13 +44,13 @@ namespace MyLittleFarm.Tests.PlayMode
         public IEnumerator PointerFeedsHoveredChickenInsteadOfNearestAndNeverFallsThrough()
         {
             var grid = Farm.GetComponentInChildren<GridSystem>();
-            var animals = Farm.GetComponentInChildren<AnimalSystem>();
+            var animals = Farm.GetComponentInChildren<AnimalSystem_AI>();
             var selector = Farm.GetComponentInChildren<CellSelector>();
             selector.enabled = false;
             var player = Farm.GetComponentInChildren<PlayerController>();
             player.enabled = false;
-            var inventory = Farm.GetComponentInChildren<InventorySystem>();
-            var interaction = Farm.GetComponentInChildren<InteractionSystem>();
+            var inventory = Farm.GetComponentInChildren<InventorySystem_AI>();
+            var interaction = Farm.GetComponentInChildren<InteractionSystem_AI>();
             var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
             Assert.That(animals.AddChicken(new Vector2Int(1,3), now), Is.True);
             Assert.That(animals.AddChicken(new Vector2Int(2,3), now), Is.True);
@@ -81,13 +81,13 @@ namespace MyLittleFarm.Tests.PlayMode
             var selector = Farm.GetComponentInChildren<CellSelector>();
             selector.enabled = false;
             player.enabled = false;
-            var animals = Farm.GetComponentInChildren<AnimalSystem>();
+            var animals = Farm.GetComponentInChildren<AnimalSystem_AI>();
             Assert.That(animals.AddChicken(new Vector2Int(1,3), 1), Is.True);
             var soil = new Vector2Int(1,2);
             player.Teleport(grid.CellToWorld(soil) + Vector3.up * 1.1f);
             Farm.GetComponentInChildren<QuickSlotSystem>().SelectTool(QuickSlotSystem.SelectionMode.Hoe);
             selector.SelectWorldPoint(grid.CellToWorld(soil));
-            var interaction = Farm.GetComponentInChildren<InteractionSystem>();
+            var interaction = Farm.GetComponentInChildren<InteractionSystem_AI>();
             Assert.That(interaction.Interact(1000), Is.True);
             Assert.That(grid.GetCellType(soil), Is.EqualTo(CellType.Tilled));
             var market = Farm.transform.Find("Sale Crate").GetComponent<InteractionTarget>();

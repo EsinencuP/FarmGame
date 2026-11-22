@@ -9,6 +9,7 @@ namespace MyLittleFarm.Core
         public long revenue, expenses, refunds, plantings, harvests, harvestedUnits, apples, eggs, bonusHarvests, rareSeeds;
         public int highestBalance;
         public bool shepherdHired;
+        // Режим и три последних наблюдения сохраняю, чтобы пастух помнил привычку игрока.
         public ShepherdPriority shepherdPriority;
         public bool shepherdAdapted;
         public List<bool> shepherdObservations=new List<bool>();

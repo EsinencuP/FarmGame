@@ -8,7 +8,7 @@ using UnityEngine;
 namespace MyLittleFarm.Gameplay.Farming
 {
     /// <summary>Управляет посевами, их ростом, сбором, визуальными объектами и снимками сохранения.</summary>
-    public sealed class CropSystem : MonoBehaviour
+    public sealed class CropSystem_AI : MonoBehaviour
     {
         // ID является частью сохранения и не меняется через Inspector.
         public const string PrototypeCropId = "carrot";
@@ -31,7 +31,7 @@ namespace MyLittleFarm.Gameplay.Farming
         private IWorldGridWriter _grid;
         // Каталог определяет параметры каждого вида; null сохраняет совместимость старых тестовых сцен.
         private FarmCatalog _catalog;
-        private WeatherController _weather;
+        private WeatherController_AI _weather;
         private DayNightCycle _dayNight;
         // Each planting/load starts its own baseline: earlier rain never benefits a new crop.
         private readonly Dictionary<Vector2Int,double> _rainBaselines=new Dictionary<Vector2Int,double>();
@@ -58,7 +58,7 @@ namespace MyLittleFarm.Gameplay.Farming
             _grid = grid;
             _catalog = catalog;
             var root=GetComponentInParent<GameBootstrap>();
-            _weather=root==null?null:root.GetComponentInChildren<WeatherController>(true);
+            _weather=root==null?null:root.GetComponentInChildren<WeatherController_AI>(true);
             _dayNight=root==null?null:root.GetComponentInChildren<DayNightCycle>(true);
         }
 
@@ -85,6 +85,7 @@ namespace MyLittleFarm.Gameplay.Farming
             return _grid != null && _grid.GetFarmingCell(position).soilType == CellType.Planted;
         }
 
+        // Забираю данные посева из клетки и добавляю дождь, который успел пройти.
         public bool TryGet(Vector2Int position, out CropRuntimeState crop)
         {
             // Возвращает состояние для подсказки прогресса и попытки сбора.
@@ -99,13 +100,16 @@ namespace MyLittleFarm.Gameplay.Farming
             return true;
         }
 
+        // Складываю вклад ручного полива и дождя для этой грядки.
         private static int Moisture(CropRuntimeState crop) => HarvestQuality.Moisture(
             crop.manuallyWatered ? HarvestQuality.ManualMoisture : 0,
             crop.rainySeconds, crop.growDurationSeconds);
 
+        // Если размер уже выбран, беру его. Иначе считаю по данным этого цикла.
         private static HarvestSize ResolveSize(CropRuntimeState crop) => crop.sizeReady ? crop.harvestSize :
             HarvestQuality.Select(crop.cropId, crop.x, crop.z, crop.plantedAtUnixMs, Moisture(crop));
 
+        // Показываю размер зрелого урожая либо влажность и шанс для растущего.
         public string QualityHint(Vector2Int position, long nowUnixMs)
         {
             if (!TryGet(position, out var crop)) return "";
@@ -113,6 +117,7 @@ namespace MyLittleFarm.Gameplay.Farming
             return HarvestQuality.GrowthHint(Moisture(crop), crop.manuallyWatered);
         }
 
+        // Даём грядке ручной полив один раз за цикл. Готовую грядку полить уже нельзя.
         public bool TryWater(Vector2Int position, long nowUnixMs)
         {
             if (!TryGet(position, out var crop) || crop.IsMature(nowUnixMs) || crop.manuallyWatered) return false;
@@ -122,6 +127,7 @@ namespace MyLittleFarm.Gameplay.Farming
             return true;
         }
 
+        // Считаю, сколько дождя попало в текущий цикл, пока растение росло.
         private RainSample SampleRain(Vector2Int position, FarmingCell farming, long now, float newGrowthBonus)
         {
             if (farming.sizeReady || !_qualityRain.TryGetValue(position, out var sample))
@@ -135,6 +141,7 @@ namespace MyLittleFarm.Gameplay.Farming
                 sample.RainySeconds + (float)Math.Min(rain, Math.Min(elapsed, remaining))));
         }
 
+        // От общего дождевого бонуса отнимаю отметку начала именно этой посадки.
         private float GetWeatherBonus(Vector2Int position,FarmingCell farming)
         {
             if(_weather==null)return farming.weatherGrowthBonusSeconds;
@@ -186,6 +193,7 @@ namespace MyLittleFarm.Gameplay.Farming
         public bool TryHarvest(Vector2Int position, long nowUnixMs, out string itemId, out int yield)
             => TryHarvest(position, nowUnixMs, out itemId, out yield, out _);
 
+        // Возвращаю ID, количество и размер урожая. Повторно плодоносящие культуры запускают новый цикл.
         public bool TryHarvest(Vector2Int position, long nowUnixMs, out string itemId, out int yield, out HarvestSize size)
         {
             // Незрелое растение остаётся неизменным; зрелое удаляется из данных и сцены.
@@ -207,6 +215,7 @@ namespace MyLittleFarm.Gameplay.Farming
                 var recovering=_grid.GetFarmingCell(position);
                 recovering.plantedAtUnixMs=nowUnixMs;recovering.growDurationSeconds=definition.RegrowSeconds;
                 recovering.weatherGrowthBonusSeconds=0;recovering.isRegrowing=true;
+                // У нового цикла свои полив и размер. Сбрасываю флаги предыдущей партии.
                 recovering.manuallyWatered = recovering.sizeReady = false;
                 recovering.rainySeconds = 0;
                 recovering.harvestSize = HarvestSize.M;
@@ -233,6 +242,7 @@ namespace MyLittleFarm.Gameplay.Farming
         public int HarvestYield(string cropId) => _catalog!=null&&_catalog.TryGetCrop(cropId,out var definition)
             ? definition.HarvestYield(HarvestHour) : yieldAmount;
 
+        // Готовлю данные посевов для сохранения, включая дождь и уже выбранный размер.
         public List<CropRuntimeState> Capture()
         {
             // Каждое состояние копируется, чтобы снимок не ссылался на рабочий словарь.
@@ -251,6 +261,7 @@ namespace MyLittleFarm.Gameplay.Farming
             return result;
         }
 
+        // Возвращаю посевы из файла. У созревших сохраняю или рассчитываю размер, у растущих продолжаю считать дождь.
         public void Restore(List<CropRuntimeState> crops)
         {
             // Старые данные и views очищаются перед воссозданием проверенного снимка.
@@ -319,9 +330,10 @@ namespace MyLittleFarm.Gameplay.Farming
             _views.Add(crop.Position, view);
         }
 
-        /// <summary>Строит стабильный ID владельца клетки для связи разреженного грида с CropSystem.</summary>
+        /// <summary>Строит стабильный ID владельца клетки для связи разреженного грида с CropSystem_AI.</summary>
         public static string CropOccupantId(Vector2Int position) => $"crop:{position.x}:{position.y}";
 
+        // Обновляю вид грядок и запоминаю размер, как только растение дозрело.
         private void RefreshViews(long nowUnixMs)
         {
             // Синхронизирует визуальную стадию каждой культуры с рассчитанным прогрессом.

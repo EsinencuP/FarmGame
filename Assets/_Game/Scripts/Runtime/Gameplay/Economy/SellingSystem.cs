@@ -17,12 +17,12 @@ namespace MyLittleFarm.Gameplay.Economy
         [SerializeField, Min(0)] private int carrotSellPrice = DefaultCarrotSellPrice;
 
         // Ссылки позволяют провести удаление товара и начисление денег как одну операцию.
-        private InventorySystem _inventory;
+        private InventorySystem_AI _inventory;
         private WalletSystem _wallet;
         private FarmCatalog _catalog;
 
         /// <summary>Цена одной моркови, установленная в Inspector.</summary>
-        public int CarrotSellPrice => _catalog!=null && _catalog.TryGetItem(InventorySystem.CarrotId,out var item)?item.SellPrice:carrotSellPrice;
+        public int CarrotSellPrice => _catalog!=null && _catalog.TryGetItem(InventorySystem_AI.CarrotId,out var item)?item.SellPrice:carrotSellPrice;
 
         /// <summary>Quantity sale for the inventory UI; caller supplies the existing market reach check.</summary>
         public bool TrySellItem(string itemId, int amount, SeedShopSystem market)
@@ -40,7 +40,7 @@ namespace MyLittleFarm.Gameplay.Economy
             return true;
         }
 
-        public void Configure(InventorySystem inventory, WalletSystem wallet, FarmCatalog catalog = null)
+        public void Configure(InventorySystem_AI inventory, WalletSystem wallet, FarmCatalog catalog = null)
         {
             // Зависимости передаются bootstrap-скриптом после создания экономики.
             _inventory = inventory;
@@ -82,7 +82,7 @@ namespace MyLittleFarm.Gameplay.Economy
         public int SellAllCarrots()
         {
             // До удаления урожая проверяется переполнение будущего баланса.
-            var amount = _inventory.GetAmount(InventorySystem.CarrotId);
+            var amount = _inventory.GetAmount(InventorySystem_AI.CarrotId);
             var price = CarrotSellPrice;
             if (amount <= 0 || price <= 0
                 || !TransactionMath.TryAddSale(price, amount, _wallet.Coins, 0, out var earnedLong))
@@ -91,7 +91,7 @@ namespace MyLittleFarm.Gameplay.Economy
             }
 
             var earned = (int)earnedLong;
-            _inventory.SetAmountSilently(InventorySystem.CarrotId, 0);
+            _inventory.SetAmountSilently(InventorySystem_AI.CarrotId, 0);
             CompleteSale(earned);
             GameEvents.Record("sale",amount:amount,value:earned);
             GameEvents.RaiseStatusChanged($"Продано: {amount} моркови  +{earned} монет");

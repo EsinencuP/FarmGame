@@ -8,9 +8,9 @@ using UnityEngine.UI;
 namespace MyLittleFarm.UI
 {
     /// <summary>Event-driven inventory and market projection over the existing farm economy.</summary>
-    public sealed partial class FarmInventoryUI : MonoBehaviour
+    public sealed partial class FarmInventoryUI_AI : MonoBehaviour
     {
-        [SerializeField] private InventorySystem inventory;
+        [SerializeField] private InventorySystem_AI inventory;
         [SerializeField] private WalletSystem wallet;
         [SerializeField] private FarmCatalog catalog;
         [SerializeField] private QuickSlotSystem quickSlots;
@@ -26,8 +26,8 @@ namespace MyLittleFarm.UI
         [SerializeField] private Button minus, plus, transact, assign, close;
         [SerializeField] private Image growthIcon;
         [SerializeField] private Text growthText;
-        [SerializeField] private OrchardSystem orchard;
-        [SerializeField] private MyLittleFarm.Gameplay.Animals.AnimalSystem animals;
+        [SerializeField] private OrchardSystem_AI orchard;
+        [SerializeField] private MyLittleFarm.Gameplay.Animals.AnimalSystem_AI animals;
         private readonly List<string> _items = new List<string>();
         private string _selected;
         private int _filter, _quantity = 1;
@@ -77,7 +77,7 @@ namespace MyLittleFarm.UI
         private void OnDisable()
         {
             if (!Application.isPlaying) return;
-            FarmItemDrag.Cancel();
+            FarmItemDrag_AI.Cancel();
             GameEvents.InventoryChanged -= Refresh; GameEvents.MoneyChanged -= MoneyChanged;
             foreach (var cell in cells) cell.onClick.RemoveAllListeners(); foreach (var tab in tabs) tab.onClick.RemoveAllListeners();
             foreach (var button in new[] { minus, plus, transact, assign }) button.onClick.RemoveAllListeners();
@@ -119,7 +119,7 @@ namespace MyLittleFarm.UI
             }
             if (!_items.Contains(_selected)) _selected = _items.Count > 0 ? _items[0] : null;
             balance.text = wallet.Coins.ToString("N0");
-            hint.text = _market ? FarmText.Get("inventory.marketHelp") : FarmText.Get("inventory.chooseItem", InputReader.KeyLabel(InputReader.Command.Inventory));
+            hint.text = _market ? FarmText.Get("inventory.marketHelp") : FarmText.Get("inventory.chooseItem", InputReader_AI.KeyLabel(InputReader_AI.Command.Inventory));
             RefreshDetails(); PaintSelection();
         }
         private void PaintSelection()
@@ -154,7 +154,7 @@ namespace MyLittleFarm.UI
                 + "\n\n" + (catalog.IsRareSeed(_selected) ? FarmText.Get("inventory.rareSeed") : FarmText.Get(_market ? "inventory.buyPrice" : "inventory.salePrice", FarmText.Coins(_market ? item.BuyPrice : item.SellPrice)));
             if (sapling && orchard.TryGetSapling(_selected, out var tree))
                 description.text = (orchard.IsFree(tree) ? "Яблоня доступна бесплатно без ограничения." : "В наличии: " + inventory.GetAmount(_selected) + ". На посадку расходуется один саженец.")
-                    + "\n\nВыберите дерево. Посадка · " + InputReader.KeyLabel(InputReader.Command.Apple) + ".\nПосле сбора дерево остаётся и плодоносит повторно.";
+                    + "\n\nВыберите дерево. Посадка · " + InputReader_AI.KeyLabel(InputReader_AI.Command.Apple) + ".\nПосле сбора дерево остаётся и плодоносит повторно.";
             foreach(var recipe in MyLittleFarm.Gameplay.Building.ProductionRecipe.All)
                 if(recipe.OutputId==_selected) description.text += "\n\n"+recipe.Name+": "+recipe.InputName+" × "+recipe.InputAmount+" → "+recipe.OutputName+" × 1 · "+FarmText.Duration(recipe.Seconds)+". Ручной сбор.";
             count.text = _quantity.ToString(); minus.interactable = _quantity > 1; plus.interactable = _quantity < Maximum();
@@ -176,15 +176,15 @@ namespace MyLittleFarm.UI
             {
                 if (orchard.SelectTree(tree.TreeId))
                 {
-                    hint.text = orchard.PlantHint(InputReader.KeyLabel(InputReader.Command.Apple));
+                    hint.text = orchard.PlantHint(InputReader_AI.KeyLabel(InputReader_AI.Command.Apple));
                     GameEvents.RaiseStatusChanged(hint.text);
                 }
                 return;
             }
             for (var i = 0; i < catalog.Crops.Count; i++)
-                if (catalog.Crops[i].SeedItemId == _selected) { quickSlots.Select(i); hint.text = FarmText.Get("inventory.assigned", InputReader.ActionHint); break; }
+                if (catalog.Crops[i].SeedItemId == _selected) { quickSlots.Select(i); hint.text = FarmText.Get("inventory.assigned", InputReader_AI.ActionHint); break; }
         }
-        public void ConfigureReferenceDetails(Font font, OrchardSystem orchardSystem, MyLittleFarm.Gameplay.Animals.AnimalSystem animalSystem)
+        public void ConfigureReferenceDetails(Font font, OrchardSystem_AI orchardSystem, MyLittleFarm.Gameplay.Animals.AnimalSystem_AI animalSystem)
         {
             orchard = orchardSystem; animals = animalSystem;
             var detail = detailIcon.transform.parent;
@@ -202,9 +202,9 @@ namespace MyLittleFarm.UI
             FarmUITheme.Place(balance.rectTransform, Vector2.zero, Vector2.zero, new Vector2(94, 112), new Vector2(598, 54));
             balance.alignment = TextAnchor.MiddleLeft;
         }
-        public static FarmInventoryUI Create(Transform parent, Font font, InventorySystem inventory, WalletSystem wallet, FarmCatalog catalog, QuickSlotSystem slots, SeedShopSystem shop, SellingSystem selling)
+        public static FarmInventoryUI_AI Create(Transform parent, Font font, InventorySystem_AI inventory, WalletSystem wallet, FarmCatalog catalog, QuickSlotSystem slots, SeedShopSystem shop, SellingSystem selling)
         {
-            var root = FarmUITheme.Rect(parent, "Inventory and market"); FarmUITheme.Stretch(root); var ui = root.gameObject.AddComponent<FarmInventoryUI>();
+            var root = FarmUITheme.Rect(parent, "Inventory and market"); FarmUITheme.Stretch(root); var ui = root.gameObject.AddComponent<FarmInventoryUI_AI>();
             ui.inventory = inventory; ui.wallet = wallet; ui.catalog = catalog; ui.quickSlots = slots; ui.shop = shop; ui.selling = selling;
             ui.panel = FarmUITheme.Panel(root, FarmText.Get("inventory.title"), font, new Vector2(1280, 830)); ui.heading = ui.panel.Find("Title ribbon").GetComponentInChildren<Text>();
             ui.tabs = new Button[4]; var names = new[] { FarmText.Get("inventory.tabAll"), FarmText.Get("inventory.tabSeeds"), FarmText.Get("inventory.tabCrops"), FarmText.Get("inventory.tabProducts") }; var keys = new[] { "inventory", "seeds_carrot", "crop_tomato", "egg" };

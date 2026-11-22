@@ -14,18 +14,18 @@ namespace MyLittleFarm.UI
     public sealed class FarmMenuUI : MonoBehaviour
     {
         public enum Page { Game, Main, Pause, Settings, Inventory, Shop, Quit, Guide, Journal, Production, Warehouse, Feeder, Demo }
-        [SerializeField] private InputReader input;
-        [SerializeField] private SaveSystem saves;
+        [SerializeField] private InputReader_AI input;
+        [SerializeField] private SaveSystem_AI saves;
         [SerializeField] private SaveSlotsUI slots;
-        [SerializeField] private FarmJournalUI journal;
+        [SerializeField] private FarmJournalUI_AI journal;
         [SerializeField] private BuildCustomizationUI catalogue;
         [SerializeField] private BuildSystem buildings;
         [SerializeField] private RectTransform safeArea, pausePanel, quitPanel, navigation;
         [SerializeField] private GameObject overlay, shade, loading;
         [SerializeField] private FarmSettingsUI settings;
-        [SerializeField] private FarmInventoryUI inventory;
+        [SerializeField] private FarmInventoryUI_AI inventory;
         [SerializeField] private FarmGuideUI guide;
-        [SerializeField] private FarmMarketUI market;
+        [SerializeField] private FarmMarketUI_AI market;
         [SerializeField] private SeedShopSystem shop;
         private FarmProductionUI production;
         private FarmFeederUI feeder;
@@ -64,7 +64,7 @@ namespace MyLittleFarm.UI
                 if (label.text == "Текущая ферма будет сохранена.") _quitSummary = label;
             EnsureProductionUI();
             EnsureFeederUI();
-            // Prevent one frame of world interaction before SaveSystem opens the startup screen.
+            // Prevent one frame of world interaction before SaveSystem_AI opens the startup screen.
             input.ModalInputActive = true;
         }
         private void EnsureProductionUI()
@@ -85,7 +85,7 @@ namespace MyLittleFarm.UI
             if(!CanOpenFromGame() || player==null || !buildings.WarehouseInReach(id,player.transform.position))return false;
             warehouseBuildingId=id;Show(Page.Warehouse);return true;
         }
-        public void CloseItemScreens(){FarmItemDrag.Cancel();if(_page==Page.Inventory || _page==Page.Warehouse)Back();}
+        public void CloseItemScreens(){FarmItemDrag_AI.Cancel();if(_page==Page.Inventory || _page==Page.Warehouse)Back();}
         private void EnsureFeederUI()
         {if(feeder!=null)return;feeder=FarmFeederUI.Create(safeArea,pauseMessage.font,buildings);feeder.CloseButton.onClick.AddListener(Back);}
         public bool OpenFeeder(string id)
@@ -212,7 +212,7 @@ namespace MyLittleFarm.UI
 
         private void Show(Page page, bool push = true)
         {
-            FarmItemDrag.Cancel();
+            FarmItemDrag_AI.Cancel();
             if (page == Page.Main) { ReturnHome(); return; }
             MyLittleFarm.Audio.FarmAudio.Play(page == Page.Game ? MyLittleFarm.Audio.SoundId.UiClose : MyLittleFarm.Audio.SoundId.UiOpen);
             if (push) _history.Push((_page, FarmUIFocus.Selected)); _page = page;
@@ -236,7 +236,7 @@ namespace MyLittleFarm.UI
             PauseTime(); input.ModalInputActive = true; input.SuppressGameplayThisFrame = true;
             switch (page)
             {
-                case Page.Pause: pauseMessage.text = FarmText.Get("pause.shortcuts", InputReader.KeyLabel(InputReader.Command.Save), InputReader.KeyLabel(InputReader.Command.Load)); FarmUIFocus.Show(pausePanel, resume, Back); break;
+                case Page.Pause: pauseMessage.text = FarmText.Get("pause.shortcuts", InputReader_AI.KeyLabel(InputReader_AI.Command.Save), InputReader_AI.KeyLabel(InputReader_AI.Command.Load)); FarmUIFocus.Show(pausePanel, resume, Back); break;
                 case Page.Settings: settings.Open(Back); break;
                 case Page.Inventory: inventory.Open(false, Back); break;
                 case Page.Feeder: feeder.Open(feederBuildingId);FarmUIFocus.Show(feeder.Panel,feeder.CloseButton,Back);break;
@@ -261,11 +261,11 @@ namespace MyLittleFarm.UI
         private int _shortcutRevision = -1;
         private void RefreshShortcutLabels()
         {
-            if (_shortcutRevision == InputReader.BindingRevision) return;
-            _shortcutRevision = InputReader.BindingRevision;
-            if (marketPrompt != null) marketPrompt.GetComponentInChildren<Text>(true).text = FarmText.Get("market.openHint", InputReader.MarketHint);
+            if (_shortcutRevision == InputReader_AI.BindingRevision) return;
+            _shortcutRevision = InputReader_AI.BindingRevision;
+            if (marketPrompt != null) marketPrompt.GetComponentInChildren<Text>(true).text = FarmText.Get("market.openHint", InputReader_AI.MarketHint);
             var guideLabel = journalShortcut.GetComponentInChildren<Text>(true);
-            if (guideLabel != null) guideLabel.text = FarmText.Get("journal.shortcut", InputReader.KeyLabel(InputReader.Command.Guide));
+            if (guideLabel != null) guideLabel.text = FarmText.Get("journal.shortcut", InputReader_AI.KeyLabel(InputReader_AI.Command.Guide));
         }
         private void Back()
         {
@@ -376,8 +376,8 @@ namespace MyLittleFarm.UI
             if (marketPrompt != null) marketPrompt.gameObject.SetActive(false);
             loading.SetActive(false); Resize(true);
         }
-        public static FarmMenuUI Create(Transform parent, Font font, InputReader input, SaveSystem saves, SaveSlotsUI slots,
-            FarmJournalUI journal, BuildCustomizationUI catalogue, BuildSystem buildings, InventorySystem items, WalletSystem wallet, FarmCatalog catalog, QuickSlotSystem quickSlots, SeedShopSystem shop, SellingSystem selling)
+        public static FarmMenuUI Create(Transform parent, Font font, InputReader_AI input, SaveSystem_AI saves, SaveSlotsUI slots,
+            FarmJournalUI_AI journal, BuildCustomizationUI catalogue, BuildSystem buildings, InventorySystem_AI items, WalletSystem wallet, FarmCatalog catalog, QuickSlotSystem quickSlots, SeedShopSystem shop, SellingSystem selling)
         {
             var root = FarmUITheme.Rect(parent, "Farm UI"); FarmUITheme.Stretch(root); var ui = root.gameObject.AddComponent<FarmMenuUI>();
             ui.input = input; ui.saves = saves; ui.slots = slots; ui.journal = journal; ui.catalogue = catalogue; ui.buildings = buildings;
@@ -392,7 +392,7 @@ namespace MyLittleFarm.UI
             ui.pauseSlots = PauseButton(ui.pausePanel, "Сохранения", "save", font, 2, "ghost"); ui.home = PauseButton(ui.pausePanel, "Главное меню", "home", font, 3, "ghost"); ui.pauseExit = PauseButton(ui.pausePanel, "Выйти из игры", "exit", font, 4, "danger");
             ui.pauseMessage = FarmUITheme.Label(ui.pausePanel, "", font, 20); FarmUITheme.Place(ui.pauseMessage.rectTransform, new Vector2(.5f, 0), new Vector2(.5f, 0), new Vector2(0, 28), new Vector2(560, 64));
             ui.settings = FarmSettingsUI.Create(ui.safeArea, font);
-            ui.inventory = FarmInventoryUI.Create(ui.safeArea, font, items, wallet, catalog, quickSlots, shop, selling);
+            ui.inventory = FarmInventoryUI_AI.Create(ui.safeArea, font, items, wallet, catalog, quickSlots, shop, selling);
             ui.quitPanel = FarmUITheme.Panel(ui.safeArea, "ВЫЙТИ ИЗ ИГРЫ?", font, new Vector2(740, 340));
             var quitText = FarmUITheme.Label(ui.quitPanel, "Текущая ферма будет сохранена.", font, 28); FarmUITheme.Place(quitText.rectTransform, new Vector2(.5f, 1), new Vector2(.5f, 1), new Vector2(0, -86), new Vector2(660, 84));
             ui.quitCancel = FarmUITheme.Button(ui.quitPanel, "Отмена", font, "back", "ghost"); ui.quitConfirm = FarmUITheme.Button(ui.quitPanel, "Выйти", font, "exit", "danger");
@@ -401,7 +401,7 @@ namespace MyLittleFarm.UI
             var loading = FarmUITheme.Image(root, "Loading farm"); FarmUITheme.Stretch(loading.rectTransform); loading.color = new Color(.08f, .12f, .04f, .96f); ui.loading = loading.gameObject;
             var loadingPanel = FarmUITheme.Panel(loading.transform, "ЗАГРУЗКА ФЕРМЫ", font, new Vector2(720, 260));
             var loadingText = FarmUITheme.Label(loadingPanel, "Подготавливаем грядки и постройки…", font, 28); FarmUITheme.Stretch(loadingText.rectTransform, 54);
-            ui.ConfigureGameplayReference(font, catalog, input.GetComponentInChildren<MyLittleFarm.Gameplay.Animals.AnimalSystem>(true), input.GetComponentInChildren<MyLittleFarm.Gameplay.Farming.OrchardSystem>(true), shop);
+            ui.ConfigureGameplayReference(font, catalog, input.GetComponentInChildren<MyLittleFarm.Gameplay.Animals.AnimalSystem_AI>(true), input.GetComponentInChildren<MyLittleFarm.Gameplay.Farming.OrchardSystem_AI>(true), shop);
             ui.Preview(Page.Game); return ui;
         }
 
@@ -416,8 +416,8 @@ namespace MyLittleFarm.UI
             _demoShortcut.onClick.AddListener(ToggleDemo);
             Resize(true);
         }
-        public void ConfigureGameplayReference(Font font, FarmCatalog catalog, MyLittleFarm.Gameplay.Animals.AnimalSystem animals,
-            MyLittleFarm.Gameplay.Farming.OrchardSystem orchard, SeedShopSystem shopSystem)
+        public void ConfigureGameplayReference(Font font, FarmCatalog catalog, MyLittleFarm.Gameplay.Animals.AnimalSystem_AI animals,
+            MyLittleFarm.Gameplay.Farming.OrchardSystem_AI orchard, SeedShopSystem shopSystem)
         {
             shop = shopSystem;
             if (guide == null) guide = FarmGuideUI.Create(safeArea, font, catalog, animals, orchard);
@@ -432,9 +432,9 @@ namespace MyLittleFarm.UI
             marketPrompt.GetComponentInChildren<Text>(true).text = "Рынок · P / E";
             marketPrompt.gameObject.SetActive(false); Resize(true);
         }
-        public void ConfigureMarket(Font font, FarmMarket system)
+        public void ConfigureMarket(Font font, FarmMarket_AI system)
         {
-            if (market == null) market = FarmMarketUI.Create(safeArea, font, system);
+            if (market == null) market = FarmMarketUI_AI.Create(safeArea, font, system);
             market.RepairLayout();
             guide.ConfigureUpgrades(font, system);
             Resize(true);

@@ -22,7 +22,7 @@ namespace MyLittleFarm.Gameplay.World
         private GridSystem _grid;
         private Transform _player;
         private DayNightCycle _clock;
-        private WeatherController _weather;
+        private WeatherController_AI _weather;
         private ParticleSystem _flies;
         private Mesh _butterflyWing;
         private Mesh _birdWing;
@@ -38,7 +38,7 @@ namespace MyLittleFarm.Gameplay.World
             life._grid = grid;
             life._player = player;
             life._clock = clock;
-            life._weather = farm.GetComponentInChildren<WeatherController>(true);
+            life._weather = farm.GetComponentInChildren<WeatherController_AI>(true);
             life._butterflyWing = Wing("Butterfly wing", new Vector3(.11f, 0f, .10f),
                 new Vector3(.20f, 0f, .035f), new Vector3(.12f, 0f, -.08f));
             life._birdWing = Wing("Bird wing", new Vector3(.23f, 0f, .09f),

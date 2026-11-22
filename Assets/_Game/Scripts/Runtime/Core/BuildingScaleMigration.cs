@@ -118,7 +118,7 @@ namespace MyLittleFarm.Core
                     entry.occupantId = state.id;
                 }
             }
-            data.saveVersion = SaveSystem.CurrentSaveVersion;
+            data.saveVersion = SaveSystem_AI.CurrentSaveVersion;
             data.worldBaseHash = grid.ComputeBaseMapHash();
         }
     }

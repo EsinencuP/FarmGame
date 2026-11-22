@@ -11,7 +11,7 @@ using MyLittleFarm.UI;
 namespace MyLittleFarm.Gameplay.Economy
 {
     /// <summary>Quotes and checks an entire order before changing the wallet or owned items.</summary>
-    public sealed class FarmMarket : MonoBehaviour
+    public sealed class FarmMarket_AI : MonoBehaviour
     {
         public enum Category { Seeds, Sell, Upgrades, Animals, Orders }
         public sealed class Offer
@@ -21,28 +21,29 @@ namespace MyLittleFarm.Gameplay.Economy
             public bool Available => string.IsNullOrEmpty(Unavailable);
         }
         [SerializeField] private FarmCatalog catalog;
-        [SerializeField] private InventorySystem inventory;
+        [SerializeField] private InventorySystem_AI inventory;
         [SerializeField] private WalletSystem wallet;
         [SerializeField] private SeedShopSystem proximity;
         [SerializeField] private ToolUpgradeSystem tool;
         [SerializeField] private SectorSystem sector;
-        [SerializeField] private AnimalSystem animals;
+        [SerializeField] private AnimalSystem_AI animals;
         [SerializeField] private BuildSystem buildings;
-        [SerializeField] private FarmProgression progress;
+        [SerializeField] private FarmProgression_AI progress;
         private bool _committing;
         public bool CanTrade => proximity != null && proximity.CanTrade;
-        private SaveSystem _saveSystem;
-        private SaveSystem FarmSave => _saveSystem != null ? _saveSystem :
-            _saveSystem = GetComponentInParent<GameBootstrap>()?.GetComponentInChildren<SaveSystem>(true);
+        private SaveSystem_AI _saveSystem;
+        private SaveSystem_AI FarmSave => _saveSystem != null ? _saveSystem :
+            _saveSystem = GetComponentInParent<GameBootstrap>()?.GetComponentInChildren<SaveSystem_AI>(true);
         public DailyMarketOrders Orders => FarmSave?.DailyOrders;
         public int Balance => wallet == null ? 0 : wallet.Coins;
         public event Action Changed;
         public int Owned(string id) => inventory == null ? 0 : inventory.GetAmount(id);
 
-        public void Configure(FarmCatalog definitions, InventorySystem items, WalletSystem money, SeedShopSystem shop,
-            ToolUpgradeSystem tools, SectorSystem land, AnimalSystem livestock, BuildSystem construction, FarmProgression progression)
+        public void Configure(FarmCatalog definitions, InventorySystem_AI items, WalletSystem money, SeedShopSystem shop,
+            ToolUpgradeSystem tools, SectorSystem land, AnimalSystem_AI livestock, BuildSystem construction, FarmProgression_AI progression)
         { catalog = definitions; inventory = items; wallet = money; proximity = shop; tool = tools; sector = land; animals = livestock; buildings = construction; progress = progression; }
 
+        // Готовлю карточки выбранной вкладки рынка: покупки, продажа, улучшения, животные или заказы.
         public List<Offer> Offers(Category category)
         {
             var result = new List<Offer>();
@@ -63,7 +64,7 @@ namespace MyLittleFarm.Gameplay.Economy
                     Description = "Мотыга · уровень " + (tool.Level + 1) + " / 3\nСейчас: " + tool.AreaLabel + (tool.Level>=2?"":" → "+(tool.Level==0?"1×3":"3×3")) + "\nПлощадь для обработки, посадки и сбора одной культуры.\nРадиус доступа: " + tool.Reach.ToString("0.#") + " м.", Unavailable = tool.Level >= 2 ? FarmText.Get("market.maxLevel") : null });
                 if (sector != null) result.Add(new Offer { Id = "sector", Name = "Новый сектор фермы", Icon = "b_sector", Price = sector.PurchasePrice, Maximum = 1,
                     Description = "Открывает дополнительную территорию фермы.", Unavailable = sector.IsUnlocked ? "Уже приобретён" : Application.isPlaying && !sector.CanPurchase ? "Сектор недоступен" : null });
-                if (progress != null) result.Add(new Offer { Id = "shepherd", Name = "Нанять пастуха", Icon = "quest", Price = FarmProgression.ShepherdPrice, Maximum = 1,
+                if (progress != null) result.Add(new Offer { Id = "shepherd", Name = "Нанять пастуха", Icon = "quest", Price = FarmProgression_AI.ShepherdPrice, Maximum = 1,
                     Description = "Собирает яйца и кормит кур: сначала запас кормушки, затем инвентарь. Коровам нужен ручной сбор молока.", Unavailable = progress.Data.shepherdHired ? FarmText.Get("market.alreadyHired") : null });
                 if (buildings != null && Application.isPlaying)
                     foreach (var house in buildings.CaptureReady())
@@ -98,6 +99,7 @@ namespace MyLittleFarm.Gameplay.Economy
             }
             return result;
         }
+        // Предлагаю продать каждый размер отдельной строкой, чтобы у него была своя цена.
         private void AddSaleStacks(List<Offer> result, string id, CropDefinition crop)
         {
             if (!HarvestQuality.IsSized(id) || Owned(id) == 0)
@@ -110,6 +112,7 @@ namespace MyLittleFarm.Gameplay.Economy
                     AddItem(result, id, Category.Sell, crop, size);
         }
 
+        // Собираю карточку товара: цена, размер стопки, количество и пояснение от рынка.
         private void AddItem(List<Offer> result, string id, Category category, CropDefinition crop, HarvestSize size = HarvestSize.M)
         {
             if (!catalog.TryGetItem(id, out var item)) return;
@@ -124,7 +127,7 @@ namespace MyLittleFarm.Gameplay.Economy
             result.Add(new Offer { Id = stackId, ItemId = id, Name = name, Icon = MyLittleFarm.UI.FarmUITheme.ItemIcon(id),
                 Price = sale ? HarvestQuality.Price(item.SellPrice, percent, size) : item.BuyPrice,
                 Maximum = sale ? stock : Mathf.Min(999, int.MaxValue - stock),
-                Description = (sapling ? "Выберите саженец в инвентаре. Посадка · " + InputReader.KeyLabel(InputReader.Command.Apple)
+                Description = (sapling ? "Выберите саженец в инвентаре. Посадка · " + InputReader_AI.KeyLabel(InputReader_AI.Command.Apple)
                     + "\nДерево остаётся после сбора и плодоносит повторно."
                     : crop == null ? "Продукция фермы" : "Рост · " + MyLittleFarm.UI.FarmGuideUI.Duration(crop.GrowDurationSeconds) + "\nУрожай: " + crop.YieldAmount + " шт." + (crop.RegrowSeconds>0?"\nПовтор через "+FarmGuideUI.Duration(crop.RegrowSeconds)+" без семени.":""))
                     + (rare ? "\nРедкие семена можно найти в тайниках." : "") + "\nВ инвентаре: " + stock
@@ -133,9 +136,11 @@ namespace MyLittleFarm.Gameplay.Economy
                     : rare || !item.CanBuy ? FarmText.Get("market.cacheOnly") : null });
         }
 
+        // Отдаю интерфейсу сумму корзины и причину, если сделка сейчас не проходит.
         public bool Quote(Category category, IReadOnlyDictionary<string, int> cart, out int total, out string reason)
             => Quote(category, cart, Offers(category), null, out total, out reason);
 
+        // Перепроверяю количество, цены и монеты, прежде чем трогать инвентарь.
         private bool Quote(Category category, IReadOnlyDictionary<string, int> cart, List<Offer> offers,
             IReadOnlyDictionary<string, int> displayedPrices, out int total, out string reason)
         {
@@ -161,6 +166,7 @@ namespace MyLittleFarm.Gameplay.Economy
             if (category != Category.Sell && sum > Balance) { reason = FarmText.MissingCoins(sum - Balance); return false; }
             reason = ""; return true;
         }
+        // Подтверждаю сделку. Сначала проверки, потом деньги, предметы и запись в историю.
         public bool Checkout(Category category, IReadOnlyDictionary<string, int> cart, out string reason,
             IReadOnlyDictionary<string, int> displayedPrices = null)
         {
@@ -186,6 +192,7 @@ namespace MyLittleFarm.Gameplay.Economy
                     foreach (var line in order)
                     {
                         inventory.SetStackSilently(line.Key, inventory.GetStackAmount(line.Key) - line.Value);
+                        // Записываю размерную стопку как поставку базового товара: морковь остаётся морковью.
                         Orders?.RecordSale(HarvestQuality.ParseStack(line.Key).itemId, line.Value);
                         sold += line.Value;
                     }
@@ -203,6 +210,7 @@ namespace MyLittleFarm.Gameplay.Economy
                 {
                     foreach (var line in order) inventory.SetAmountSilently(line.Key, Owned(line.Key) + line.Value);
                     wallet.SetCoinsSilently(Balance - total);
+                    // Записываю закупки лишь здесь, когда семена и деньги уже обменялись.
                     foreach (var line in order) Orders?.RecordSeedPurchase(line.Key, line.Value);
                     GameEvents.RaiseInventoryChanged();
                     GameEvents.RaiseMoneyChanged(Balance);

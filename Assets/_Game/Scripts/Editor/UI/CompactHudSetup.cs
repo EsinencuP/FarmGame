@@ -35,7 +35,7 @@ namespace MyLittleFarm.Editor
             var coin = Find<Image>(hud.transform, "Coin Icon");
             coin.transform.SetParent(panel, false); coin.gameObject.SetActive(true); coin.enabled = true; coin.sprite = FarmUITheme.Sprite("Icons/coin");
             coin.color = Color.white; coin.preserveAspect = true; coin.raycastTarget = false;
-            var journal = hud.GetComponentInChildren<FarmJournalUI>(true);
+            var journal = hud.GetComponentInChildren<FarmJournalUI_AI>(true);
             var clockPanel = hud.transform.Find("World Clock Panel") as RectTransform;
             if (clockPanel == null)
             {

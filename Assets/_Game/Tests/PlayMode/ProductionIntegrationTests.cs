@@ -26,7 +26,7 @@ namespace MyLittleFarm.Tests.PlayMode
         public IEnumerator IndependentBatchesMoveAndRoundTripWithoutDoubleCollection()
         {
             yield return null;
-            var build=System<BuildSystem>();var items=System<InventorySystem>();var save=System<SaveSystem>();
+            var build=System<BuildSystem>();var items=System<InventorySystem_AI>();var save=System<SaveSystem_AI>();
             System<SectorSystem>().Restore(true);
             var press=Place("apple_press",1,1);var mill=Place("mill",4,3);var dairy=Place("cheese_dairy",11,1);
             items.Add("apple",3);items.Add("wheat",3);items.Add("milk",2);
@@ -47,7 +47,7 @@ namespace MyLittleFarm.Tests.PlayMode
         public IEnumerator CapacityFailureAndReentrantObserverKeepExactlyOneBatch()
         {
             yield return null;
-            var build=System<BuildSystem>();var items=System<InventorySystem>();var mill=Place("mill",1,1);
+            var build=System<BuildSystem>();var items=System<InventorySystem_AI>();var mill=Place("mill",1,1);
             var now=DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
             Assert.That(build.TryStartProduction(mill.id,now,out _),Is.False);
             items.Add("wheat",6);
@@ -57,7 +57,7 @@ namespace MyLittleFarm.Tests.PlayMode
             finally { GameEvents.InventoryChanged-=observer; }
             Assert.That(items.GetAmount("wheat"),Is.EqualTo(3));items.Add("flour",int.MaxValue);
             Assert.That(build.TryCollectProduction(mill.id,now+30000,out _),Is.False);
-            Assert.That(System<SaveSystem>().Capture().productionBatches.Count,Is.EqualTo(1));
+            Assert.That(System<SaveSystem_AI>().Capture().productionBatches.Count,Is.EqualTo(1));
             items.TryRemove("flour",int.MaxValue);observer=()=>build.TryCollectProduction(mill.id,now+30000,out _);
             GameEvents.InventoryChanged+=observer;
             try { Assert.That(build.TryCollectProduction(mill.id,now+30000,out _),Is.True); }
@@ -69,8 +69,8 @@ namespace MyLittleFarm.Tests.PlayMode
         {
             yield return null;
             var build = System<BuildSystem>();
-            var items = System<InventorySystem>();
-            var save = System<SaveSystem>();
+            var items = System<InventorySystem_AI>();
+            var save = System<SaveSystem_AI>();
             var mill = Place("mill", 1, 1);
             var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
             items.Add("wheat", 3);
@@ -90,7 +90,7 @@ namespace MyLittleFarm.Tests.PlayMode
         public IEnumerator LegacyV12PressKeepsDeadlineAndOutputAndRejectsDuplicates()
         {
             yield return null;
-            var build=System<BuildSystem>();var press=Place("apple_press",1,1);var save=System<SaveSystem>();
+            var build=System<BuildSystem>();var press=Place("apple_press",1,1);var save=System<SaveSystem_AI>();
             var old=save.Capture();old.saveVersion=12;old.selectedTreeId=null;
             var deadline=DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()+12000;
             old.applePressBatches=new List<ApplePressBatchData>{new ApplePressBatchData{buildingId=press.id,readyAtUnixMs=deadline}};
@@ -102,10 +102,10 @@ namespace MyLittleFarm.Tests.PlayMode
             Assert.That(save.Capture().productionBatches[0].readyAtUnixMs,Is.EqualTo(deadline));
             Assert.That(build.TryCollectProduction(press.id,deadline-1,out _),Is.False);
             Assert.That(build.TryCollectProduction(press.id,deadline,out _),Is.True);
-            Assert.That(System<InventorySystem>().GetAmount("apple_juice"),Is.EqualTo(1));
+            Assert.That(System<InventorySystem_AI>().GetAmount("apple_juice"),Is.EqualTo(1));
             var bad=save.Capture();bad.productionBatches.Add(new ProductionBatchData {buildingId=press.id,recipeId="wheat_to_flour",outputItemId="flour",outputAmount=1,readyAtUnixMs=deadline,startedAtUnixMs=deadline-30000});
             Assert.Throws<InvalidDataException>(()=>save.Restore(bad));
-            Assert.That(System<InventorySystem>().GetAmount("apple_juice"),Is.EqualTo(1));
+            Assert.That(System<InventorySystem_AI>().GetAmount("apple_juice"),Is.EqualTo(1));
         }
     }
 }

@@ -73,29 +73,29 @@ Instance ID построек/животных, ID слота, ID предлож�
 
 | Система / файл | Что обнаружено | Действие в соответствующем пункте |
 |---|---|---|
-| `Gameplay/Animals/AnimalSystem.cs` | `_chicken`, один `AnimalDefinitionId`, единый прямоугольник загона, `TryBuyChicken`, `Deliver`, лимит 8 | U1-1: определения по виду, размещение по коровнику/загону, совместимость нынешних кур и instance ID |
+| `Gameplay/Animals/AnimalSystem_AI.cs` | `_chicken`, один `AnimalDefinitionId`, единый прямоугольник загона, `TryBuyChicken`, `Deliver`, лимит 8 | U1-1: определения по виду, размещение по коровнику/загону, совместимость нынешних кур и instance ID |
 | `Gameplay/Animals/AnimalView.cs` | Процедурная курица создаётся независимо от definition; нет Animator/готового продукта | U1-1/U1-4: visual prefab по виду, состояния и world-space иконка; сохранить outline и pick-layer |
-| `Gameplay/Economy/FarmMarket.cs` | Предложение/проверка/выдача животного по строке `chicken`; продукты задаются каталогом | U1-1: безопасная покупка коров; U1-2/3/7: новые предметы, рецепты, заказы, без обхода проверки корзины |
-| `Gameplay/Farming/OrchardSystem.cs` | `_appleTree`, `appleTreeAsset`, `PlantApple`, один `TreeDefinitionId` | U1-2: реестр деревьев и выбор саженца; прежние `apple` и таймеры не менять |
+| `Gameplay/Economy/FarmMarket_AI.cs` | Предложение/проверка/выдача животного по строке `chicken`; продукты задаются каталогом | U1-1: безопасная покупка коров; U1-2/3/7: новые предметы, рецепты, заказы, без обхода проверки корзины |
+| `Gameplay/Farming/OrchardSystem_AI.cs` | `_appleTree`, `appleTreeAsset`, `PlantApple`, один `TreeDefinitionId` | U1-2: реестр деревьев и выбор саженца; прежние `apple` и таймеры не менять |
 | `Gameplay/Farming/TreeDefinition.cs` | Placeholder принудительно ставит `fruitItemId = apple` | U1-2: не использовать этот fallback для груши; отдельное asset-определение |
 | `Gameplay/Farming/TreeView.cs` | 3 плода ставятся по bounds; текущая готовность перекрашивает renderer плода целиком | U1-2: использовать форму груши и корректный материал, проверить размещение и читаемость |
 | `Gameplay/Farming/FarmCatalog.cs` | Фиксированные шесть `CropIds`, встроенные предметы, `FarmProductIds = apple/egg/apple_juice` | U1-2/3/7: дополнить реестры и продаваемые продукты; прежние ID не заменять |
-| `Gameplay/Farming/CropDefinition.cs`, `CropRuntimeState.cs`, `CropSystem.cs` | Нет repeatable/regrow; TryHarvest удаляет растение и делает клетку Tilled | U1-7: состояние восстановления и сохранение таймера, отдельный путь повторного сбора |
+| `Gameplay/Farming/CropDefinition.cs`, `CropRuntimeState_AI.cs`, `CropSystem_AI.cs` | Нет repeatable/regrow; TryHarvest удаляет растение и делает клетку Tilled | U1-7: состояние восстановления и сохранение таймера, отдельный путь повторного сбора |
 | `Gameplay/Economy/QuickSlotSystem.cs` | `Range(0,5)`, слоты соответствуют списку культур | U1-5/7: явные назначения предметов и постоянные инструменты; сохранить старый выбор |
-| `Core/InputReader.Bindings.cs`, `InputReader.cs` | Только Seed1–Seed6; числовой enum сохраняется в настройках | U1-5/7: расширить ввод, новые enum-значения добавлять в конец, не сдвигать старые bindings |
+| `Core/InputReader.Bindings_AI.cs`, `InputReader_AI.cs` | Только Seed1–Seed6; числовой enum сохраняется в настройках | U1-5/7: расширить ввод, новые enum-значения добавлять в конец, не сдвигать старые bindings |
 | `UI/HUDController.cs`, `ResponsiveHudLayout.cs`, `CompactHudSetup.cs`, `FarmUISetup.cs` | Сохранённые ссылки на слоты и ограниченная ширина панели | U1-5/7: обновить UI авторами, проверить минимальные разрешения, а не только длину массива |
 | `UI/FarmGuideUI.cs` | 7 карточек: 6 культур + яблоня; отдельная карточка курицы | U1-1/2/7: список по контенту, второй вид/дерево/культуры |
-| `UI/FarmInventoryUI.cs`, `FarmUITheme.cs` | Фильтры и иконки для текущего каталога, нет склада/drag-and-drop | U1-5: безопасные передачи и назначения; новые товары добавить в ItemIcon |
+| `UI/FarmInventoryUI_AI.cs`, `FarmUITheme.cs` | Фильтры и иконки для текущего каталога, нет склада/drag-and-drop | U1-5: безопасные передачи и назначения; новые товары добавить в ItemIcon |
 | `Gameplay/Building/BuildingDefinition.cs`, `BuildSystem.cs`, `BuildingView.cs` | Каталог в коде, serialized visualPrefabs; прессы выделены через IsApplePress/Presses | U1-1/3/7: новые определения, обёртки и общие партии; не пересоздавать текущий пресс |
 | `Gameplay/Building/ApplePresses.cs` | Один фиксированный вход/выход, партии только для `apple_press` | U1-3: три рецепта с теми же гарантиями переноса и недопущения повторного сбора |
-| `Gameplay/World/InteractionSystem.cs` | PlantApple, яблочные подсказки, отдельная ветка взаимодействия с прессом | U1-2/3/6: выбранный вид дерева/производства/инструмента, точная область и дистанция |
+| `Gameplay/World/InteractionSystem_AI.cs` | PlantApple, яблочные подсказки, отдельная ветка взаимодействия с прессом | U1-2/3/6: выбранный вид дерева/производства/инструмента, точная область и дистанция |
 | `Gameplay/World/ToolUpgradeSystem.cs` | Уровень меняет только Reach, экипировки/площади нет | U1-6: сохранить уровень 0–2, добавить площадь, preview и выдачу мотыги |
-| `Gameplay/World/FarmProgression.cs`, `FarmAchievements.cs` | Пастух кормит/собирает нынешних кур; next-goal и firstJuiceSold привязаны к прессу | U1-1/3/7: не обещать универсального пастуха; исключить двойное кормление кормушкой, сохранить старые достижения |
+| `Gameplay/World/FarmProgression_AI.cs`, `FarmAchievements.cs` | Пастух кормит/собирает нынешних кур; next-goal и firstJuiceSold привязаны к прессу | U1-1/3/7: не обещать универсального пастуха; исключить двойное кормление кормушкой, сохранить старые достижения |
 | `Core/GameBootstrap.cs`, `Editor/ImportedArtSetup.cs`, `PrototypeSceneBaker.cs`, `FarmDepthSetup.cs` | Создание/авторинг рассчитывают на прежние системы и ассеты | Интегрировать новые ссылки адресно; не запускать полный rebuild карты/сцены ради новых префабов |
 
 ### Сохранения — обязательные изменения перед приёмкой U1
 
-`Core/SaveSystem.cs` сейчас допускает quick-slot только 0–5 (около строки 379), treeId только равный единственному TreeDefinitionId (около 514), animal.definitionId только единственного вида (около 534). Партии отдельно Capture/Restore/Validate через ApplePresses. Без этих изменений новая ферма может выглядеть правильно, но отклоняться загрузчиком.
+`Core/SaveSystem_AI.cs` сейчас допускает quick-slot только 0–5 (около строки 379), treeId только равный единственному TreeDefinitionId (около 514), animal.definitionId только единственного вида (около 534). Партии отдельно Capture/Restore/Validate через ApplePresses. Без этих изменений новая ферма может выглядеть правильно, но отклоняться загрузчиком.
 
 `SaveData` уже хранит `treeId`, `animal.definitionId` и instance ID постройки, поэтому расширять нужно правила и дополнительные состояния, а не переименовывать старые поля без миграции. В дальнейшем потребуются новые данные regrow, склада, назначений слотов, общих партий, кормушек, загонов и заказов. Версии повышать по реально внедряемой схеме, начиная с v12; U1-0 формат не меняет. Отсутствующие новые поля старого файла означают безопасные пустые значения, существующие деньги/инвентарь/животные/партии сохраняются.
 

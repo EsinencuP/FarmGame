@@ -16,15 +16,15 @@ namespace MyLittleFarm.UI
         private static readonly Vector2 PanelSize = new Vector2(880, 704);
         private static readonly Vector2 RightCenter = new Vector2(1f, .5f);
         private readonly Font _font;
-        private readonly SaveSystem _saves;
+        private readonly SaveSystem_AI _saves;
         private readonly WalletSystem _wallet;
-        private readonly InventorySystem _inventory;
+        private readonly InventorySystem_AI _inventory;
         private readonly FarmCatalog _catalog;
         private readonly DayNightCycle _clock;
-        private readonly WeatherController _weather;
-        private readonly AnimalSystem _animals;
-        private readonly CropSystem _crops;
-        private readonly OrchardSystem _orchard;
+        private readonly WeatherController_AI _weather;
+        private readonly AnimalSystem_AI _animals;
+        private readonly CropSystem_AI _crops;
+        private readonly OrchardSystem_AI _orchard;
         private readonly BuildSystem _buildings;
         private readonly ToolUpgradeSystem _tools;
         private readonly SectorSystem _sector;
@@ -34,20 +34,20 @@ namespace MyLittleFarm.UI
         public RectTransform Panel { get; }
         public Button InitialFocus { get; }
 
-        public FarmDemoPanel(Transform parent, Font font, SaveSystem saves, Action close,
+        public FarmDemoPanel(Transform parent, Font font, SaveSystem_AI saves, Action close,
             Action<FarmMenuUI.Page> openScreen, Action openCatalogue, Action<FishPond> startFishing)
         {
             _font = font;
             _saves = saves;
             var farm = saves.GetComponentInParent<GameBootstrap>();
             _wallet = farm.GetComponentInChildren<WalletSystem>();
-            _inventory = farm.GetComponentInChildren<InventorySystem>();
+            _inventory = farm.GetComponentInChildren<InventorySystem_AI>();
             _catalog = farm.GetComponentInChildren<FarmCatalog>();
             _clock = farm.GetComponentInChildren<DayNightCycle>();
-            _weather = farm.GetComponentInChildren<WeatherController>();
-            _animals = farm.GetComponentInChildren<AnimalSystem>();
-            _crops = farm.GetComponentInChildren<CropSystem>();
-            _orchard = farm.GetComponentInChildren<OrchardSystem>();
+            _weather = farm.GetComponentInChildren<WeatherController_AI>();
+            _animals = farm.GetComponentInChildren<AnimalSystem_AI>();
+            _crops = farm.GetComponentInChildren<CropSystem_AI>();
+            _orchard = farm.GetComponentInChildren<OrchardSystem_AI>();
             _buildings = farm.GetComponentInChildren<BuildSystem>();
             _tools = farm.GetComponentInChildren<ToolUpgradeSystem>();
             _sector = farm.GetComponentInChildren<SectorSystem>();

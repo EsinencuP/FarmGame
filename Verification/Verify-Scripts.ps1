@@ -89,7 +89,7 @@ Write-Output 'PASS: world-scale chunk grid and non-allocating terrain selection 
 # Параметры движения и камеры должны оставаться настройками Inspector, а не скрытыми константами.
 $playerPath = Join-Path $gameRoot 'Scripts/Runtime/Gameplay/World/PlayerController.cs'
 $cameraPath = Join-Path $gameRoot 'Scripts/Runtime/Gameplay/World/IsometricCameraController.cs'
-$inputPath = Join-Path $gameRoot 'Scripts/Runtime/Core/InputReader.cs'
+$inputPath = Join-Path $gameRoot 'Scripts/Runtime/Core/InputReader_AI.cs'
 $playerSource = [IO.File]::ReadAllText($playerPath)
 $cameraSource = [IO.File]::ReadAllText($cameraPath)
 $inputSource = [IO.File]::ReadAllText($inputPath)
@@ -137,7 +137,7 @@ Write-Output "PASS: actual economy calculations compiled; $economyAssertions ass
 # Минимальная заглушка заменяет только Unity Vector2Int; ChunkData и GridMath берутся из игры без копий.
 $gridDomain = @('Verification/UnityVector2IntStub.cs',
     'Assets/_Game/Scripts/Runtime/Core/Grid/CellType.cs', 'Assets/_Game/Scripts/Runtime/Core/Grid/CellData.cs',
-    'Assets/_Game/Scripts/Runtime/Core/Grid/TerrainCell.cs', 'Assets/_Game/Scripts/Runtime/Core/Grid/FarmingCell.cs',
+    'Assets/_Game/Scripts/Runtime/Core/Grid/TerrainCell.cs', 'Assets/_Game/Scripts/Runtime/Core/Grid/FarmingCell_AI.cs',
     'Assets/_Game/Scripts/Runtime/Core/Grid/BuildingCell.cs', 'Assets/_Game/Scripts/Runtime/Core/Grid/GridMath.cs',
     'Assets/_Game/Scripts/Runtime/Core/Grid/ChunkData.cs',
     'Assets/_Game/Tests/EditMode/GridArchitectureContractChecks.cs') |
@@ -148,7 +148,7 @@ Write-Output "PASS: layered chunk model compiled; $gridAssertions assertions, in
 
 # Первый блок Этапа 2 обязан оставаться data-driven: новые культуры не получают отдельные системы.
 $catalogSource = [IO.File]::ReadAllText((Join-Path $gameRoot 'Scripts/Runtime/Gameplay/Farming/FarmCatalog.cs'))
-$inputSource = [IO.File]::ReadAllText((Join-Path $gameRoot 'Scripts/Runtime/Core/InputReader.cs'))
+$inputSource = [IO.File]::ReadAllText((Join-Path $gameRoot 'Scripts/Runtime/Core/InputReader_AI.cs'))
 $quickSlotSource = [IO.File]::ReadAllText((Join-Path $gameRoot 'Scripts/Runtime/Gameplay/Economy/QuickSlotSystem.cs'))
 foreach ($requiredCrop in @('"carrot"', '"potato"', '"wheat"', '"tomato"', '"corn"', '"cucumber"')) {
     if ($catalogSource -notmatch $requiredCrop) { throw "Stage 2 crop is missing: $requiredCrop" }
@@ -161,9 +161,9 @@ foreach ($requiredToken in @('seedSlot5Key', 'seedSlot6Key', 'SeedSelection', 'R
 Write-Output 'PASS: Stage 2 content block has six data-driven crops and six Inspector-backed seed slots.'
 
 # Вертикальный срез Этапа 2 должен содержать повторный урожай дерева и цикл курицы.
-$orchardSource = [IO.File]::ReadAllText((Join-Path $gameRoot 'Scripts/Runtime/Gameplay/Farming/OrchardSystem.cs'))
-$animalSource = [IO.File]::ReadAllText((Join-Path $gameRoot 'Scripts/Runtime/Gameplay/Animals/AnimalSystem.cs'))
-$saveSource = [IO.File]::ReadAllText((Join-Path $gameRoot 'Scripts/Runtime/Core/SaveSystem.cs'))
+$orchardSource = [IO.File]::ReadAllText((Join-Path $gameRoot 'Scripts/Runtime/Gameplay/Farming/OrchardSystem_AI.cs'))
+$animalSource = [IO.File]::ReadAllText((Join-Path $gameRoot 'Scripts/Runtime/Gameplay/Animals/AnimalSystem_AI.cs'))
+$saveSource = [IO.File]::ReadAllText((Join-Path $gameRoot 'Scripts/Runtime/Core/SaveSystem_AI.cs'))
 foreach ($requiredToken in @('PlantApple', 'TryHarvest', 'RegrowSeconds', 'TreeOccupantId')) {
     if ($orchardSource -notmatch [regex]::Escape($requiredToken)) {
         throw "Apple tree loop contract is missing: $requiredToken"

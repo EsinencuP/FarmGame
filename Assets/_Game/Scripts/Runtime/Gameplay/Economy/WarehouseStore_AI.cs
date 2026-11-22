@@ -10,14 +10,14 @@ namespace MyLittleFarm.Gameplay.Economy
     /// <summary>One unbounded-by-gameplay item store per stable warehouse building ID.</summary>
     public sealed class WarehouseStore
     {
-        private readonly InventorySystem _inventory;
+        private readonly InventorySystem_AI _inventory;
         private readonly BuildSystem _build;
         private readonly Dictionary<string,Dictionary<string,int>> _stores=new Dictionary<string,Dictionary<string,int>>(StringComparer.Ordinal);
         private readonly HashSet<string> _completed=new HashSet<string>(StringComparer.Ordinal);
         private readonly Queue<string> _recent=new Queue<string>();
         private bool _changing;
         public long Revision { get; private set; }
-        public WarehouseStore(InventorySystem inventory,BuildSystem build){_inventory=inventory;_build=build;}
+        public WarehouseStore(InventorySystem_AI inventory,BuildSystem build){_inventory=inventory;_build=build;}
         public int Amount(string warehouse,string item)
         {
             if (!HarvestQuality.IsSized(item)) return StackAmount(warehouse, item);
@@ -50,6 +50,7 @@ namespace MyLittleFarm.Gameplay.Economy
         {if(!_stores.TryGetValue(warehouse,out var items))_stores.Add(warehouse,items=new Dictionary<string,int>(StringComparer.Ordinal));return items;}
         private void Complete(string token)
         {_completed.Add(token);_recent.Enqueue(token);while(_recent.Count>128)_completed.Remove(_recent.Dequeue());Revision++;}
+        // Переношу выбранную стопку с её размером. Сначала проверяю количество и место назначения.
         public bool Transfer(string warehouse,string item,int amount,bool toWarehouse,string token,long inventoryRevision,long storageRevision,out string message)
         {
             if(!Begin(warehouse,token,inventoryRevision,storageRevision,out message))return false;
@@ -111,7 +112,7 @@ namespace MyLittleFarm.Gameplay.Economy
             {
                 if(warehouse==null || string.IsNullOrWhiteSpace(warehouse.buildingId) || !owners.Remove(warehouse.buildingId)
                     || warehouse.items==null || warehouse.items.Count>128)throw new InvalidDataException("Warehouse is duplicated or has no building.");
-                InventorySystem.ValidateEntries(warehouse.items);
+                InventorySystem_AI.ValidateEntries(warehouse.items);
             }
         }
     }

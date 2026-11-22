@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace MyLittleFarm.Gameplay.World
 {
-    public sealed partial class InteractionSystem
+    public sealed partial class InteractionSystem_AI
     {
         private const string RequiresTilledSoil = "сначала обработайте землю мотыгой";
 
@@ -102,14 +102,15 @@ namespace MyLittleFarm.Gameplay.World
         }
         private string FieldPrompt(FieldPlan plan)
         {
-            if(plan.Action==FieldAction.None)return "Выберите мотыгу, семена или зрелую культуру · "+InputReader.KeyLabel(InputReader.Command.Inventory);
+            if(plan.Action==FieldAction.None)return "Выберите мотыгу, семена или зрелую культуру · "+InputReader_AI.KeyLabel(InputReader_AI.Command.Inventory);
             var verb=plan.Action==FieldAction.Till?"Обработать":plan.Action==FieldAction.Plant?"Посадить: "+CropName(plan.CropId):"Собрать: "+CropName(plan.CropId);
             var allowed = plan.Allowed;
-            var text=InputReader.ActionHint+" — "+verb+" · "+allowed+" / "+plan.Cells.Count+" клеток";
+            var text=InputReader_AI.ActionHint+" — "+verb+" · "+allowed+" / "+plan.Cells.Count+" клеток";
             if (allowed > 0 && !plan.Cells[0].Allowed) text += " · соседние клетки";
-            if(plan.Cells.Count==3 && InputReader.CanRotateField)text+=" · "+InputReader.KeyLabel(InputReader.Command.Rotate)+" — повернуть";
+            if(plan.Cells.Count==3 && InputReader_AI.CanRotateField)text+=" · "+InputReader_AI.KeyLabel(InputReader_AI.Command.Rotate)+" — повернуть";
             return allowed==plan.Cells.Count?text:text+"\nПропуск: "+plan.Skips;
         }
+        // Выполняю действие на выбранных клетках. При сборе складываю партии в сумку с их размерами.
         private bool ApplyField(Vector2Int center,long nowUnixMs)
         {
             if(_applyingField)return false;
@@ -133,6 +134,7 @@ namespace MyLittleFarm.Gameplay.World
                         var itemId=_catalog!=null && _catalog.TryGetCrop(plan.CropId,out var definition)?definition.HarvestItemId:plan.CropId;
                         if((long)_inventory.GetAmount(itemId)+_crops.HarvestYield(plan.CropId)<=int.MaxValue && _crops.TryHarvest(cell.Position,nowUnixMs,out var harvested,out var yield,out var size))
                         {
+                            // Размер идёт в сумку вместе с количеством, чтобы потом продать именно эту стопку.
                             _inventory.Add(harvested,yield,size);totalYield+=yield;success=true;
                             var normal=_catalog!=null && _catalog.TryGetCrop(plan.CropId,out var d)?d.YieldAmount:_crops.YieldAmount;
                             GameEvents.Record("harvest",plan.CropId,yield,yield>normal?1:0,_crops.HarvestHour);
@@ -156,7 +158,7 @@ namespace MyLittleFarm.Gameplay.World
                 var verb=plan.Action==FieldAction.Till?"Обработано":plan.Action==FieldAction.Plant?"Засеяно":"Собрано";
                 var message=plan.Action==FieldAction.None?FieldPrompt(plan):verb+": "+done+" / "+plan.Cells.Count+" клеток"+(totalYield>0?" · "+totalYield+" шт.":"");
                 if (done == 0 && plan.Action == FieldAction.Plant && plan.Cells[0].SkipReason == RequiresTilledSoil)
-                    message = "Сначала обработайте землю мотыгой. Выберите «Мотыга» на панели · " + InputReader.ActionHint;
+                    message = "Сначала обработайте землю мотыгой. Выберите «Мотыга» на панели · " + InputReader_AI.ActionHint;
                 else if(plan.Cells.Count>done)message+=". Пропуск: "+plan.Skips;
                 GameEvents.RaiseStatusChanged(message);return done>0;
             }

@@ -83,7 +83,7 @@ namespace MyLittleFarm.Editor
                 _interactionPoints = farm.GetComponentsInChildren<InteractionTarget>(true)
                     .Select(t => XZ(t.transform.position)).ToArray();
                 var caches = farm.GetComponentsInChildren<RareSeedCache>(true);
-                _cachePositions = FarmProgression.CacheIds.Select(id => XZ(caches.Single(c => c.Id == id).transform.position)).ToArray();
+                _cachePositions = FarmProgression_AI.CacheIds.Select(id => XZ(caches.Single(c => c.Id == id).transform.position)).ToArray();
                 _existingProps = farm.GetComponentsInChildren<MeshRenderer>(true)
                     .Where(r => (oldGroup == null || !r.transform.IsChildOf(oldGroup)) &&
                         (r.name.StartsWith("Boundary Tree", StringComparison.Ordinal) ||

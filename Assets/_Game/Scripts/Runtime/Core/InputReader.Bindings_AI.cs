@@ -6,7 +6,7 @@ using UnityEngine.InputSystem.Controls;
 
 namespace MyLittleFarm.Core
 {
-    public sealed partial class InputReader
+    public sealed partial class InputReader_AI
     {
         public enum Command
         {

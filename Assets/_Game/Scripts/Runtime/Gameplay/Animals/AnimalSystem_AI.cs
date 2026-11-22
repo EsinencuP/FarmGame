@@ -10,7 +10,7 @@ namespace MyLittleFarm.Gameplay.Animals
 {
     /// <summary>Содержит кур и коров, сохраняя их определения, производство и привязку к загону.</summary>
     [DefaultExecutionOrder(-55)]
-    public sealed partial class AnimalSystem : MonoBehaviour
+    public sealed partial class AnimalSystem_AI : MonoBehaviour
     {
         [Header("Chicken Placeholder")]
         [SerializeField] private AnimalDefinition chickenAsset;
@@ -29,7 +29,7 @@ namespace MyLittleFarm.Gameplay.Animals
             new Dictionary<string, AnimalView>(StringComparer.Ordinal);
         private readonly List<ScriptableObject> _placeholders = new List<ScriptableObject>();
         private IWorldGridReader _grid;
-        private InventorySystem _inventory;
+        private InventorySystem_AI _inventory;
         private WalletSystem _wallet;
         private AnimalDefinition _chicken;
         private MyLittleFarm.UI.AnimalStatusOverlay _status;
@@ -37,7 +37,7 @@ namespace MyLittleFarm.Gameplay.Animals
         private int _nextAnimalNumber;
 
         /// <summary>Подключает grid, инвентарь и каталог предметов.</summary>
-        public void Configure(IWorldGridReader grid, InventorySystem inventory, FarmCatalog catalog,
+        public void Configure(IWorldGridReader grid, InventorySystem_AI inventory, FarmCatalog catalog,
             WalletSystem wallet = null)
         {
             _grid = grid;
@@ -47,7 +47,7 @@ namespace MyLittleFarm.Gameplay.Animals
             {
                 var farm=GetComponentInParent<GameBootstrap>();
                 _status=GetComponent<MyLittleFarm.UI.AnimalStatusOverlay>() ?? gameObject.AddComponent<MyLittleFarm.UI.AnimalStatusOverlay>();
-                _status.Configure(farm.GetComponent<InputReader>(),farm.GetComponentInChildren<Camera>());
+                _status.Configure(farm.GetComponent<InputReader_AI>(),farm.GetComponentInChildren<Camera>());
             }
             _chicken = chickenAsset != null ? chickenAsset : CreateChickenPlaceholder();
             _cow = cowAsset != null ? cowAsset : Resources.Load<AnimalDefinition>("FarmContent/Cow");
@@ -175,6 +175,7 @@ namespace MyLittleFarm.Gameplay.Animals
 
         /// <summary>Кормит конкретную курицу одной единицей пшеницы.</summary>
         public bool Feed(string animalId, long nowUnixMs, bool quiet=false)=>FeedCore(animalId,nowUnixMs,quiet,false);
+        // Запускаю следующий цикл продукции и списываю одну порцию корма.
         private bool FeedCore(string animalId,long nowUnixMs,bool quiet,bool onlyFeeder)
         {
             if (_mutating || animalId == null || !_animals.TryGetValue(animalId, out var state)
@@ -203,6 +204,7 @@ namespace MyLittleFarm.Gameplay.Animals
         public bool TryCollect(string animalId, out int yield, bool quiet=false)
             => TryCollectCore(animalId, out yield, quiet, false);
 
+        // Выдаю продукцию и отмечаю своевременный ручной сбор, когда это сделал игрок.
         private bool TryCollectCore(string animalId, out int yield, bool quiet, bool byShepherd)
         {
             yield = 0;
@@ -216,6 +218,7 @@ namespace MyLittleFarm.Gameplay.Animals
             try
             {
                 yield = (int)productCount;
+                // Сбор пастухом и сбор после пропуска не добавляю как успех игрока.
                 var timely = !byShepherd && state.definitionId == AnimalDefinitionId && !state.shepherdObserved &&
                     ShepherdObserving?.Invoke() == true;
                 state.readyProductCount = 0;
@@ -236,6 +239,7 @@ namespace MyLittleFarm.Gameplay.Animals
         internal Func<bool> ShepherdObserving { get; set; }
         internal Action<bool> RecordShepherdObservation { get; set; }
 
+        // Даю игроку 12 секунд на ручной сбор. Когда окно истекло, один раз записываю пропуск.
         private void ObserveReadyEggs(float elapsedSeconds)
         {
             if (ShepherdObserving?.Invoke() != true) return;
@@ -249,12 +253,14 @@ namespace MyLittleFarm.Gameplay.Animals
             }
         }
 
+        // Пробую задачу текущего режима. Если не вышло, пробую другой тип задачи.
         public void AutomaticCare(long nowUnixMs, ShepherdPriority priority = ShepherdPriority.FeedFirst)
         {
             var collect = priority == ShepherdPriority.CollectFirst;
             if (!TryCare(nowUnixMs, collect)) TryCare(nowUnixMs, !collect);
         }
 
+        // Выбираю подходящих кур и по очереди пробую выполнить одну задачу.
         private bool TryCare(long nowUnixMs, bool collect)
         {
             // The oldest eligible task wins within each priority, with a stable tie break.
@@ -311,11 +317,11 @@ namespace MyLittleFarm.Gameplay.Animals
             if (!IsWithinReach(id, playerPosition)) return "Животное слишком далеко — подойдите ближе";
             if (!_animals.TryGetValue(id, out var animal)) return string.Empty;
             var cow = animal.definitionId == "cow";
-            if (animal.readyProductCount > 0) return $"{InputReader.ActionHint} — собрать " + (cow ? "молоко" : "яйцо");
+            if (animal.readyProductCount > 0) return $"{InputReader_AI.ActionHint} — собрать " + (cow ? "молоко" : "яйцо");
             if (animal.nextProductAtUnixMs > 0) return cow ? "Корова накормлена — молоко созревает" : "Курица накормлена — яйцо созревает";
-            if(_buildings?.Feeders?.CanSupply(_grid.GridToWorld(animal.Position))==true)return InputReader.ActionHint+" — покормить из кормушки";
+            if(_buildings?.Feeders?.CanSupply(_grid.GridToWorld(animal.Position))==true)return InputReader_AI.ActionHint+" — покормить из кормушки";
             return _inventory != null && _inventory.GetAmount("wheat") > 0
-                ? $"{InputReader.ActionHint} — покормить " + (cow ? "корову пшеницей" : "курицу пшеницей")
+                ? $"{InputReader_AI.ActionHint} — покормить " + (cow ? "корову пшеницей" : "курицу пшеницей")
                 : cow ? "Корове нужна пшеница" : "Курице нужна пшеница";
         }
 
@@ -327,7 +333,7 @@ namespace MyLittleFarm.Gameplay.Animals
             return TargetPrompt(nearest.animalId, playerPosition);
         }
 
-        /// <summary>Снимает независимую копию животных для SaveSystem.</summary>
+        /// <summary>Снимает независимую копию животных для SaveSystem_AI.</summary>
         public List<AnimalRuntimeState> Capture()
         {
             var result = new List<AnimalRuntimeState>(_animals.Count);
@@ -368,6 +374,7 @@ namespace MyLittleFarm.Gameplay.Animals
 
         /// <summary>Обновляет готовность яйца и перемещает визуальные модели с заданным интервалом.</summary>
         private float _nextFeederCare;
+        // Обновляю готовность продукции, проверяю окно сбора и запускаю кормушки.
         private void Update()
         {
             if (Time.timeScale <= 0) return;

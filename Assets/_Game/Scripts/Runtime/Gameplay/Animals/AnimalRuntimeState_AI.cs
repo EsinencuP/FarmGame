@@ -16,6 +16,7 @@ namespace MyLittleFarm.Gameplay.Animals
         public long lastFedAtUnixMs;
         public long nextProductAtUnixMs;
         public int readyProductCount;
+        // Таймер окна и отметка пропуска, чтобы одно яйцо не записалось дважды.
         public float shepherdWaitSeconds;
         public bool shepherdObserved;
         // Optional for legacy chickens; mandatory for cows in v13 and later.

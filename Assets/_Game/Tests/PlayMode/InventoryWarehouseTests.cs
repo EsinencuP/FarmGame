@@ -25,7 +25,7 @@ namespace MyLittleFarm.Tests.PlayMode
         public IEnumerator TransfersRejectReplayReentryAndBulkOverflowWithoutPartialChanges()
         {
             yield return null;
-            var id=Place();var inv=System<InventorySystem>();var storage=System<BuildSystem>().Warehouses;
+            var id=Place();var inv=System<InventorySystem_AI>();var storage=System<BuildSystem>().Warehouses;
             inv.Add("wheat",20);var invRevision=inv.Revision;var storageRevision=storage.Revision;
             var token=Guid.NewGuid().ToString("N");var reentered=false;
             Action observer=()=>reentered=storage.Transfer(id,"wheat",7,true,"reentry",inv.Revision,storage.Revision,out _);
@@ -45,7 +45,7 @@ namespace MyLittleFarm.Tests.PlayMode
         public IEnumerator ReferencesToolsAndEmptySlotRoundTripAndV15KeepsStock()
         {
             yield return null;
-            Place();var inv=System<InventorySystem>();var slots=System<QuickSlotSystem>();var save=System<SaveSystem>();
+            Place();var inv=System<InventorySystem_AI>();var slots=System<QuickSlotSystem>();var save=System<SaveSystem_AI>();
             inv.Add("wheat",11);var before=JsonUtility.ToJson(new WarehouseData{items=inv.Capture()});
             Assert.That(slots.Assign("wheat",0),Is.True);Assert.That(slots.Swap(0,4),Is.True);slots.Clear(1);slots.SelectTool(QuickSlotSystem.SelectionMode.Hoe);
             save.Restore(JsonUtility.FromJson<SaveData>(JsonUtility.ToJson(save.Capture())));
@@ -61,7 +61,7 @@ namespace MyLittleFarm.Tests.PlayMode
         public IEnumerator FilledBuildingMovesAndLoadsByIdAndOnlyEmptyBuildingCanBeRemoved()
         {
             yield return null;
-            var id=Place();var build=System<BuildSystem>();var inv=System<InventorySystem>();var save=System<SaveSystem>();
+            var id=Place();var build=System<BuildSystem>();var inv=System<InventorySystem_AI>();var save=System<SaveSystem_AI>();
             inv.Add("milk",5);Assert.That(build.Warehouses.Transfer(id,"milk",5,true,"put",inv.Revision,build.Warehouses.Revision,out _),Is.True);
             Assert.That(build.TryRemove(id,out _),Is.False);Assert.That(build.TryMove(id,new Vector2Int(4,3),1,out var reason),Is.True,reason);
             save.Restore(JsonUtility.FromJson<SaveData>(JsonUtility.ToJson(save.Capture())));

@@ -11,12 +11,12 @@ namespace MyLittleFarm.Gameplay.World
         private PlayerController _player;
         private QuickSlotSystem _slots;
         private ToolUpgradeSystem _upgrades;
-        private InputReader _input;
+        private InputReader_AI _input;
         private Transform _hand;
         private Transform _grip;
         private readonly GameObject[] _models=new GameObject[3];
         private float _workUntil;
-        public void Configure(PlayerController player,QuickSlotSystem slots,ToolUpgradeSystem upgrades,InputReader input)
+        public void Configure(PlayerController player,QuickSlotSystem slots,ToolUpgradeSystem upgrades,InputReader_AI input)
         {
             _player=player;_slots=slots;_upgrades=upgrades;_input=input;
             var animator=player.GetComponentInChildren<Animator>(true);

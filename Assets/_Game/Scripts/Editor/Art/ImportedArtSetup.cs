@@ -48,7 +48,7 @@ namespace MyLittleFarm.Editor
 
             var catalog = bootstrap.GetComponentInChildren<FarmCatalog>(true);
             var build = bootstrap.GetComponentInChildren<BuildSystem>(true);
-            var orchard = bootstrap.GetComponentInChildren<OrchardSystem>(true);
+            var orchard = bootstrap.GetComponentInChildren<OrchardSystem_AI>(true);
             if (catalog == null || build == null || orchard == null)
                 throw new InvalidOperationException("The baked prototype is missing a gameplay system.");
 

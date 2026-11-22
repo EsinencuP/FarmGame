@@ -36,8 +36,8 @@ namespace MyLittleFarm.Tests.PlayMode
             var wallet = System<WalletSystem>();
             var grid = System<GridSystem>();
             var soil = System<SoilSystem>();
-            var crops = System<CropSystem>();
-            var save = System<SaveSystem>();
+            var crops = System<CropSystem_AI>();
+            var save = System<SaveSystem_AI>();
             wallet.SetCoins(25);
             // Origin — исходный угол дома.
             var origin = new Vector2Int(0, 3);
@@ -153,7 +153,7 @@ namespace MyLittleFarm.Tests.PlayMode
         [UnityTest]
         public IEnumerator LegacySaveLoadsAndInvalidSaveLeavesWorldIntact()
         {
-            var save = System<SaveSystem>();
+            var save = System<SaveSystem_AI>();
             var wallet = System<WalletSystem>();
             var legacy = save.Capture();
             legacy.saveVersion = 1;

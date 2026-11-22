@@ -13,7 +13,7 @@ namespace MyLittleFarm.UI
         [SerializeField] private Button skip;
         [SerializeField] private bool showOnHud = true;
         private OnboardingSystem _onboarding;
-        private InputReader _input;
+        private InputReader_AI _input;
         private int _bindingRevision = -1;
         public RectTransform Card => card;
         public bool IsVisible => card != null && card.gameObject.activeSelf;
@@ -21,7 +21,7 @@ namespace MyLittleFarm.UI
         public void Configure(OnboardingSystem onboarding)
         {
             _onboarding = onboarding;
-            _input = GetComponentInParent<GameBootstrap>()?.GetComponent<InputReader>();
+            _input = GetComponentInParent<GameBootstrap>()?.GetComponent<InputReader_AI>();
             if (skip != null) { skip.onClick.RemoveListener(Skip); skip.onClick.AddListener(Skip); }
             Refresh(0);
         }
@@ -31,14 +31,14 @@ namespace MyLittleFarm.UI
         private void Update()
         {
             if (card == null || _onboarding == null) return;
-            if (card.gameObject.activeSelf != ShouldShow || _bindingRevision != InputReader.BindingRevision)
+            if (card.gameObject.activeSelf != ShouldShow || _bindingRevision != InputReader_AI.BindingRevision)
                 Refresh(0);
         }
         private bool ShouldShow => showOnHud && _onboarding.IsActive && _input?.ModalInputActive != true;
         private void Refresh(int ignored)
         {
             if (_onboarding == null || card == null) return;
-            _bindingRevision = InputReader.BindingRevision;
+            _bindingRevision = InputReader_AI.BindingRevision;
             card.gameObject.SetActive(ShouldShow);
             if (hint != null) hint.text = _onboarding.CurrentHint;
             if (skip != null) skip.gameObject.SetActive(_onboarding.IsActive && _onboarding.CanSkip);

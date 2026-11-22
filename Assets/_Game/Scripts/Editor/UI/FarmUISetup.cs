@@ -32,9 +32,9 @@ namespace MyLittleFarm.Editor
             if (font == null) throw new MissingReferenceException("Nunito font is missing.");
             var hud = farm.GetComponentInChildren<HUDController>(true);
             var slots = farm.GetComponentInChildren<SaveSlotsUI>(true);
-            var saves = farm.GetComponentInChildren<SaveSystem>(true);
-            var input = farm.GetComponent<InputReader>();
-            var journal = farm.GetComponentInChildren<FarmJournalUI>(true);
+            var saves = farm.GetComponentInChildren<SaveSystem_AI>(true);
+            var input = farm.GetComponent<InputReader_AI>();
+            var journal = farm.GetComponentInChildren<FarmJournalUI_AI>(true);
             var catalogue = farm.GetComponentInChildren<BuildCustomizationUI>(true);
             if (hud == null || slots == null || saves == null || input == null || journal == null || catalogue == null) throw new MissingReferenceException("Baked farm systems missing.");
             Undo.RegisterFullObjectHierarchyUndo(hud.gameObject, "Apply Farm UI kit");
@@ -42,7 +42,7 @@ namespace MyLittleFarm.Editor
             foreach (var card in slots.GetComponentsInChildren<SaveSlotCard>(true)) card.EnsureDeleteButton(font);
             var menu = hud.GetComponentInChildren<FarmMenuUI>(true);
             if (menu == null) menu = FarmMenuUI.Create(hud.transform, font, input, saves, slots, journal, catalogue,
-                farm.GetComponentInChildren<BuildSystem>(true), farm.GetComponentInChildren<InventorySystem>(true), farm.GetComponentInChildren<WalletSystem>(true),
+                farm.GetComponentInChildren<BuildSystem>(true), farm.GetComponentInChildren<InventorySystem_AI>(true), farm.GetComponentInChildren<WalletSystem>(true),
                 farm.GetComponentInChildren<FarmCatalog>(true), farm.GetComponentInChildren<QuickSlotSystem>(true), farm.GetComponentInChildren<SeedShopSystem>(true), farm.GetComponentInChildren<SellingSystem>(true));
             menu.transform.SetAsLastSibling();
             RemoveTitlePresentation(menu);
@@ -51,7 +51,7 @@ namespace MyLittleFarm.Editor
             SetReference(input, "navigationPointerBlock", menu.transform.Find("HUD navigation"));
             var quick = hud.transform.Find("Quick Slots"); if (quick == null) quick = hud.transform.Find("QuickSlots");
             if (quick != null) SetReference(input, "quickSlotsPointerBlock", quick);
-            if (quick != null) FarmQuickSlotUI.Install((RectTransform)quick, input, farm.GetComponentInChildren<InventorySystem>(true),
+            if (quick != null) FarmQuickSlotUI.Install((RectTransform)quick, input, farm.GetComponentInChildren<InventorySystem_AI>(true),
                 farm.GetComponentInChildren<FarmCatalog>(true), farm.GetComponentInChildren<QuickSlotSystem>(true), font);
             // Gameplay overlays must not retain the title artwork in their scene dependencies.
             var slotBackdrop = slots.transform.Find("Slot menu backdrop");
@@ -103,7 +103,7 @@ namespace MyLittleFarm.Editor
                 if (text.GetComponentInParent<FarmMenuUI>() != null) continue;
                 // World-facing helper labels retain their high-contrast light text.
                 if (text.GetComponentInParent<Button>() != null || text.GetComponentInParent<SaveSlotCard>() != null
-                    || text.GetComponentInParent<SaveSlotsUI>() != null || text.GetComponentInParent<BuildCustomizationUI>() != null || text.GetComponentInParent<FarmJournalUI>() != null)
+                    || text.GetComponentInParent<SaveSlotsUI>() != null || text.GetComponentInParent<BuildCustomizationUI>() != null || text.GetComponentInParent<FarmJournalUI_AI>() != null)
                     text.color = FarmUITheme.Ink;
                 EditorUtility.SetDirty(text);
             }
