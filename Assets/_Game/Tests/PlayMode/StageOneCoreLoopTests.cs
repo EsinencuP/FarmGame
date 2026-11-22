@@ -62,9 +62,8 @@ namespace MyLittleFarm.Tests.PlayMode
             // Покупки проходят у рынка; после этого игрок возвращается к грядкам.
             for (var index = 0; index < catalog.Crops.Count; index++)
             {
-                Assert.That(slots.Select(index), Is.True);
                 if(catalog.IsRareSeed(catalog.Crops[index].SeedItemId))inventory.Add(catalog.Crops[index].SeedItemId,4);
-                else Assert.That(shop.BuySelected(), Is.True);
+                else Assert.That(shop.TryBuyItem(catalog.Crops[index].SeedItemId, 4), Is.True);
             }
             player.Teleport(grid.CellToWorld(new Vector2Int(3, 0)) + Vector3.up * 1.1f);
 
@@ -76,7 +75,9 @@ namespace MyLittleFarm.Tests.PlayMode
                 slots.SelectTool(QuickSlotSystem.SelectionMode.Hoe);
                 Assert.That(interaction.InteractWithCell(cells[index], now - 120_000), Is.True);
                 yield return new WaitForSecondsRealtime(.2f);
-                Assert.That(slots.Select(index), Is.True);
+                var slot = index % QuickSlotSystem.ItemSlotCount;
+                Assert.That(slots.Assign(crop.SeedItemId, slot), Is.True);
+                Assert.That(slots.Select(slot), Is.True);
                 Assert.That(interaction.InteractWithCell(cells[index], now - 120_000), Is.True);
                 yield return new WaitForSecondsRealtime(.2f);
                 Assert.That(interaction.InteractWithCell(cells[index], now), Is.True);
@@ -103,7 +104,7 @@ namespace MyLittleFarm.Tests.PlayMode
             upgrades.Restore(0);
             save.Restore(snapshot);
             Assert.That(wallet.Coins, Is.EqualTo(snapshot.coins));
-            Assert.That(slots.SelectedIndex, Is.EqualTo(5));
+            Assert.That(slots.SelectedIndex, Is.EqualTo(snapshot.selectedQuickSlot));
             Assert.That(sector.IsUnlocked, Is.True);
             Assert.That(upgrades.Level, Is.EqualTo(2));
             Assert.That(grid.GetCellType(new Vector2Int(10, 0)), Is.EqualTo(CellType.Building));

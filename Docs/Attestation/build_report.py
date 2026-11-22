@@ -9,7 +9,8 @@ from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 from docx.opc.constants import RELATIONSHIP_TYPE as RT
 
-ROOT = Path(r'D:/Evo Web Design/FarmGame')
+ROOT = Path(__file__).resolve().parents[2]
+DESIGN = ROOT / 'Docs/Design'
 SOURCE = Path(r'C:/Users/esinencuP/Downloads/My_Little_Farm_Attestation_Report.docx')
 OUT = ROOT / 'Docs/Attestation/My_Little_Farm_Attestation_Report_Expanded.docx'
 WORK = Path(r'C:/Users/esinencuP/.codex/visualizations/2026/10/12/01a1316d-41a6-7b00-8409-a5110ef7f494/attestation_work')
@@ -192,7 +193,12 @@ for table in doc.tables:
     if table.rows and table.rows[0].cells[0].text=='Файл':
         for row in table.rows[1:]:
             path=row.cells[0].text.strip(); f=ROOT/'Assets/_Game'/path
-            if not f.exists(): raise FileNotFoundError(path)
+            if not f.is_file():
+                # The source report still lists the paths from before the folder reorganization.
+                matches=filename_map.get(Path(path).name,[])
+                if len(matches)!=1: raise FileNotFoundError(path)
+                f=matches[0]
+                path=f.relative_to(ROOT/'Assets/_Game').as_posix()
             p=row.cells[0].paragraphs[0]; p.clear(); link(p,path,f.as_uri(),size=9)
     for row in table.rows:
         for cell in row.cells:
@@ -207,8 +213,8 @@ for table in doc.tables:
                 cell.text='Unity-проверки зафиксированы 8 октября; 12 октября повторены исходники и контракты'
 
 # Direct source links in appendix B.
-source_docs={286:ROOT,288:Path(r'C:/Users/esinencuP/Downloads/Atestarea_RU.docx'),290:ROOT/'My_Little_Farm_GDD_v0.1.docx',294:ROOT/'My_Little_Farm_Unity_Guide.docx',296:ROOT/'Docs/AI/UnityProjectContext.md',298:ROOT/'Docs/AI/AssetReplacementBacklog.md'}
-plan=next(ROOT.glob('*План*.docx')); source_docs[292]=plan
+source_docs={286:ROOT,288:Path(r'C:/Users/esinencuP/Downloads/Atestarea_RU.docx'),290:DESIGN/'My_Little_Farm_GDD_v0.1.docx',294:DESIGN/'My_Little_Farm_Unity_Guide.docx',296:ROOT/'Docs/AI/UnityProjectContext.md',298:ROOT/'Docs/AI/AssetReplacementBacklog.md'}
+plan=next(DESIGN.glob('*План*.docx')); source_docs[292]=plan
 for index,f in source_docs.items():
     if not f.exists(): raise FileNotFoundError(str(f))
     p=orig[index].insert_paragraph_before(); link(p,'Открыть материал проекта',f.as_uri())

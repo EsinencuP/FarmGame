@@ -107,7 +107,7 @@ namespace MyLittleFarm.Tests.EditMode
         }
 
         [Test]
-        public void SavedPrototypeHasNineAlignedSurfacesAndGroundedPlayerArt()
+        public void SavedPrototypeHasFortyNineAlignedSurfacesAndGroundedPlayerArt()
         {
             const string path = "Assets/_Game/Scenes/Prototype.unity";
             var scene = SceneManager.GetSceneByPath(path);
@@ -120,7 +120,7 @@ namespace MyLittleFarm.Tests.EditMode
                 var chunks = new List<TilemapChunk>();
                 foreach (var root in scene.GetRootGameObjects())
                     if (root != _root) chunks.AddRange(root.GetComponentsInChildren<TilemapChunk>(true));
-                Assert.That(chunks.Count, Is.EqualTo(9));
+                Assert.That(chunks.Count, Is.EqualTo(49));
                 foreach (var chunk in chunks)
                 {
                     var issues = new List<string>();
@@ -149,13 +149,13 @@ namespace MyLittleFarm.Tests.EditMode
                 var controller = player.AddComponent<MyLittleFarm.Gameplay.World.PlayerController>();
                 var capsule = player.GetComponent<CharacterController>();
                 var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(
-                    "Assets/Stylized NPC - Peasant Nolant/Prefabs/Peasant Nolant Blue(Free Version).prefab");
+                    "Assets/ThirdParty/Stylized NPC - Peasant Nolant/Prefabs/Peasant Nolant Blue(Free Version).prefab");
                 Assert.That(prefab, Is.Not.Null);
                 var visual = VisualPrefab.Create(prefab, player.transform, new Vector3(0.85f, 1.8f, 0.85f));
                 visual.name = "Nolant Visual";
                 var animator = visual.GetComponentInChildren<Animator>();
                 animator.runtimeAnimatorController = AssetDatabase.LoadAssetAtPath<RuntimeAnimatorController>(
-                    "Assets/_Game/Content/Animation/PlayerLocomotion.controller");
+                    "Assets/_Game/Content/Character/Animation/PlayerLocomotion.controller");
                 animator.Rebind();
                 animator.Update(0f);
                 GameplayReviewRepair.AlignPlayerVisual(controller);

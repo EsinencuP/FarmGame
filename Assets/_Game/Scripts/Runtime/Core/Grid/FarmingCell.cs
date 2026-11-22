@@ -1,0 +1,33 @@
+using System;
+using MyLittleFarm.Gameplay.Farming;
+
+namespace MyLittleFarm.Core.Grid
+{
+    /// <summary>Хранит состояние грядки и посева отдельно от исходной поверхности.</summary>
+    [Serializable]
+    public struct FarmingCell
+    {
+        // soilType равен Tilled, Watered или Planted; Grass означает отсутствие грядки.
+        public CellType soilType;
+        // occupantId связывает посев с сохранением; cropId хранит стабильный вид культуры.
+        public string occupantId;
+        public string cropId;
+        // Время и параметры роста сохраняют прогресс между игровыми сессиями.
+        public long plantedAtUnixMs;
+        public float growDurationSeconds;
+        // Earned active-session rain bonus, restored from the crop snapshot (not offline rain).
+        public float weatherGrowthBonusSeconds;
+        public int stageCount;
+        public bool isRegrowing;
+        public bool manuallyWatered;
+        public float rainySeconds;
+        public bool sizeReady;
+        public HarvestSize harvestSize;
+        // Уровни нужны следующим механикам и не меняют существующий цикл роста.
+        public byte moisture;
+        public byte fertilizer;
+        // День последнего полива и flags зарезервированы для дискретной симуляции следующих этапов.
+        public ushort lastWateredDay;
+        public byte flags;
+    }
+}

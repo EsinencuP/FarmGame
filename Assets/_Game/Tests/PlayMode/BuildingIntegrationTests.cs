@@ -38,7 +38,8 @@ namespace MyLittleFarm.Tests.PlayMode
             var soil = System<SoilSystem>();
             var crops = System<CropSystem>();
             var save = System<SaveSystem>();
-            // Origin — исходный угол дома размером 2x2 клетки.
+            wallet.SetCoins(25);
+            // Origin — исходный угол дома.
             var origin = new Vector2Int(0, 3);
             Assert.That(build.TryPlace("house", origin, 0, out var reason), Is.True, reason);
             Assert.That(wallet.Coins, Is.EqualTo(5));
@@ -102,12 +103,13 @@ namespace MyLittleFarm.Tests.PlayMode
             var grid = System<GridSystem>();
             var player = System<PlayerController>();
             var wallet = System<WalletSystem>();
+            var before = wallet.Coins;
             player.Teleport(grid.CellToWorld(new Vector2Int(5, 5)) + Vector3.up * 1.1f);
             Assert.That(build.TryPlace("flowerbed", new Vector2Int(5, 5), 0, out _), Is.False);
             var obstacle = GameObject.CreatePrimitive(PrimitiveType.Cube);
             obstacle.transform.position = grid.CellToWorld(new Vector2Int(6, 5)) + Vector3.up * 0.5f;
             Assert.That(build.TryPlace("flowerbed", new Vector2Int(6, 5), 0, out _), Is.False);
-            Assert.That(wallet.Coins, Is.EqualTo(25));
+            Assert.That(wallet.Coins, Is.EqualTo(before));
             Assert.That(build.Count, Is.Zero);
             UnityEngine.Object.Destroy(obstacle);
             yield return null;
@@ -162,7 +164,7 @@ namespace MyLittleFarm.Tests.PlayMode
             invalid.player.x = float.NaN;
             invalid.coins = 999;
             Assert.Throws<InvalidDataException>(() => save.Restore(invalid));
-            Assert.That(wallet.Coins, Is.EqualTo(25));
+            Assert.That(wallet.Coins, Is.EqualTo(legacy.coins));
             invalid = save.Capture();
             invalid.saveVersion = 2;
             invalid.gridCells.Add(new GridCellSaveData { x = 0, z = 0, state = (GridCellState)999 });

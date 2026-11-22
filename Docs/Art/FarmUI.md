@@ -4,7 +4,7 @@
 
 **Current scene split:** title/settings now live in `Assets/_Game/Scenes/MainMenu.unity` (entry 0); the authored farm stays in `Prototype.unity` (gameplay 1). Start/Saves loads gameplay asynchronously and then opens the validated slot browser. Pause returns by saving and unloading the farm. Title artwork is no longer a gameplay dependency. `MainMenuUI` owns front-end controls; `FarmMenuUI` owns game modals. See `Verification/SceneSplit/report.md` for measurements and the later short title-only Play Mode check. The integration notes below describe the preceding pass where both screens shared Prototype.
 
-The user supplied `Assets/moreAssets/FarmGame_UI`: 107 vector icons, a shared kit and screen references. Original SVGs and generators are retained. Game windows use functional uGUI controls rather than screenshots of reference pages. The existing legacy Text wiring is retained.
+The user supplied `Assets/ThirdParty/FarmGame_UI`: 107 vector icons, a shared kit and screen references. Original SVGs and generators are retained. Game windows use functional uGUI controls rather than screenshots of reference pages. The existing legacy Text wiring is retained.
 
 `Assets/_Game/Content/UI/MainMenuBackground.png` is the supplied `515fd869-d0ad-42e9-bea0-500ea1f6f21c.png`, copied without image processing. Main menu, its settings and the save browser use this artwork. Other modal windows overlay the actual world. The image keeps its aspect ratio; different screen ratios have a dark green matte rather than distorted art or a cropped logo.
 

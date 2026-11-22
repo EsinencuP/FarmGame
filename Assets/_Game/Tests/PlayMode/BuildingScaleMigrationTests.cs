@@ -30,8 +30,8 @@ namespace MyLittleFarm.Tests.PlayMode
             Assert.That(states.Count,Is.EqualTo(1));Assert.That(states[0].id,Is.EqualTo("legacy-house"));
             Assert.That(states[0].x!=1||states[0].z!=3,Is.True,"The expanded footprint must avoid the crop.");
             Assert.That(Farm.GetComponentInChildren<CropSystem>().Contains(cropPosition),Is.True);
-            Assert.That(Farm.GetComponentInChildren<WalletSystem>().Coins,Is.EqualTo(25));
-            Assert.That(Farm.GetComponentInChildren<SaveSystem>().Capture().saveVersion,Is.EqualTo(7));
+            Assert.That(Farm.GetComponentInChildren<WalletSystem>().Coins,Is.EqualTo(snapshot.coins));
+            Assert.That(Farm.GetComponentInChildren<SaveSystem>().Capture().saveVersion,Is.EqualTo(SaveSystem.CurrentSaveVersion));
             var definition=BuildingDefinition.Catalog[0];var count=0;
             for(var z=0;z<definition.Depth;z++)for(var x=0;x<definition.Width;x++)if(grid.GetCell(new Vector2Int(states[0].x+x,states[0].z+z)).occupantId==states[0].id)count++;
             Assert.That(count,Is.EqualTo(definition.Width*definition.Depth));
@@ -50,7 +50,7 @@ namespace MyLittleFarm.Tests.PlayMode
             Assert.That(JsonUtility.ToJson(snapshot),Is.EqualTo(original));
             Assert.That(JsonUtility.ToJson(grid.Serialize()),Is.EqualTo(before));
             Assert.That(Farm.GetComponentInChildren<BuildSystem>().Count,Is.Zero);
-            Assert.That(Farm.GetComponentInChildren<WalletSystem>().Coins,Is.EqualTo(25));
+            Assert.That(Farm.GetComponentInChildren<WalletSystem>().Coins,Is.EqualTo(snapshot.coins));
             yield return null;
         }
 
@@ -78,7 +78,7 @@ namespace MyLittleFarm.Tests.PlayMode
                 Assert.That(Farm.GetComponentInChildren<SaveSystem>().LoadFromPath(path),Is.True);
                 Assert.That(Farm.GetComponentInChildren<BuildSystem>().Count,Is.EqualTo(1));
                 Assert.That(grid.GetTerrainCell(new Vector2Int(9,0)).type,Is.EqualTo(CellType.Dirt));
-                Assert.That(Farm.GetComponentInChildren<WalletSystem>().Coins,Is.EqualTo(25));
+                Assert.That(Farm.GetComponentInChildren<WalletSystem>().Coins,Is.EqualTo(snapshot.coins));
             }
             finally{if(File.Exists(path))File.Delete(path);}
             yield return null;

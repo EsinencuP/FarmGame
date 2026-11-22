@@ -14,9 +14,9 @@ Each ID in `carrot`, `potato`, `wheat`, `tomato`, `corn`, `cucumber` has three d
 
 `Assets/_Game/Content/Art/CropStages/<id>/<id>_Sprout.prefab`, `<id>_Growing.prefab`, `<id>_Mature.prefab`.
 
-- All sprouts, all growing stages, and mature carrot/potato/corn/cucumber: original project mesh geometry authored deterministically in `Assets/_Game/Editor/CropStageArtBuilder.cs`. No downloaded model, generated raster, external texture or new asset pack. Editable source is the builder; saved meshes are sibling `.asset` files. Palette is stored in vertex colors, with one shared lit material/shader. These are static plant models, not runtime primitive placeholders.
-- Mature tomato: existing `Assets/LowPolyFarmLite/Prefabs/TomatoPlant_01.prefab`; wrapper retains original meshes/materials and LODs, removes visual colliders. Existing third-party asset terms continue to apply.
-- Mature wheat: existing `Assets/Pandazole_Ultimate_Pack/Pandazole Farm Ranch Pack/Prefabs/Env_Wheat.prefab`; wrapper retains original mesh/material, removes visual collider. Existing third-party asset terms continue to apply.
+- All sprouts, all growing stages, and mature carrot/potato/corn/cucumber: original project mesh geometry authored deterministically in `Assets/_Game/Scripts/Editor/Art/CropStageArtBuilder.cs`. No downloaded model, generated raster, external texture or new asset pack. Editable source is the builder; saved meshes are sibling `.asset` files. Palette is stored in vertex colors, with one shared lit material/shader. These are static plant models, not runtime primitive placeholders.
+- Mature tomato: existing `Assets/ThirdParty/LowPolyFarmLite/Prefabs/TomatoPlant_01.prefab`; wrapper retains original meshes/materials and LODs, removes visual colliders. Existing third-party asset terms continue to apply.
+- Mature wheat: existing `Assets/ThirdParty/Pandazole_Ultimate_Pack/Pandazole Farm Ranch Pack/Prefabs/Env_Wheat.prefab`; wrapper retains original mesh/material, removes visual collider. Existing third-party asset terms continue to apply.
 - Collision role for all 18 prefabs: visual only; no physics colliders or gameplay scripts. Grid owns interaction and occupancy.
 - No new external license is introduced by the authored geometry. This work does not replace the planned release audit of existing asset-pack licenses.
 

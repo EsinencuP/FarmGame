@@ -1,0 +1,839 @@
+using System;
+using System.Collections.Generic;
+using MyLittleFarm.Core;
+using MyLittleFarm.Gameplay.Building;
+using UnityEngine;
+
+namespace MyLittleFarm.Core.Grid
+{
+    /// <summary>
+    /// Делит весь игровой мир на клетки без фиксированных границ. В памяти присутствуют только
+    /// чанки, зарегистрированные объектами TilemapChunk или явно созданные загрузчиком мира.
+    /// </summary>
+    [ExecuteAlways]
+    public sealed class GridSystem : MonoBehaviour, IWorldGridWriter, IChunkProvider
+    {
+        // Instance нужен TilemapChunk в сцене; игровые системы по-прежнему получают ссылку через bootstrap.
+        public static GridSystem Instance { get; private set; }
+
+        [Header("Cell Configuration")]
+        [SerializeField, Min(0.01f)] private float cellSize = 1f;
+        [Header("Chunk Configuration")]
+        [SerializeField, Min(1)] private int chunkSizeX = 10;
+        [SerializeField, Min(1)] private int chunkSizeZ = 10;
+        [Header("Selection")]
+        [SerializeField] private GameObject selectionView;
+        [Tooltip("Цвет маркера клетки под курсором.")]
+        [SerializeField] private Color selectionColor = new Color(1f, 0.78f, 0.20f, 0.22f);
+        [Tooltip("Доля размера клетки, которую занимает маркер.")]
+        [SerializeField, Range(0.1f, 1f)] private float selectionFill = 0.94f;
+        [Tooltip("Толщина маркера клетки.")]
+        [SerializeField, Min(0.001f)] private float selectionHeight = 0.03f;
+        [Tooltip("Высота маркера над плоскостью грида.")]
+        [SerializeField] private float selectionLift = 0.03f;
+        [Header("Debug")]
+        [SerializeField] private bool drawGizmos = true;
+        [SerializeField] private Color gizmoGrassColor = new Color(0.5f, 0.8f, 0.5f, 0.3f);
+        [SerializeField] private Color gizmoTilledColor = new Color(0.6f, 0.4f, 0.2f, 0.5f);
+        [SerializeField] private Color gizmoBuildingColor = new Color(0.3f, 0.3f, 0.8f, 0.5f);
+        [SerializeField] private Color gizmoLockedColor = new Color(0.8f, 0.2f, 0.2f, 0.3f);
+        [SerializeField] private Color gizmoWaterColor = new Color(0.2f, 0.5f, 0.9f, 0.4f);
+
+        // Ключ словаря — координата чанка, а значение содержит его плотный локальный массив.
+        private readonly Dictionary<Vector2Int, ChunkData> _chunks = new Dictionary<Vector2Int, ChunkData>();
+        private readonly Dictionary<Vector2Int, WorldMapAsset> _surfaceMaps = new Dictionary<Vector2Int, WorldMapAsset>();
+        private readonly RaycastHit[] _surfaceHits = new RaycastHit[128];
+        private static readonly Vector2Int[] CornerNeighbors = { Vector2Int.left, Vector2Int.down, new Vector2Int(-1,-1) };
+        // Зарегистрированные компоненты позволяют перед загрузкой сбросить мир к настройкам сцены.
+        private readonly List<TilemapChunk> _sceneChunks = new List<TilemapChunk>();
+        // Nullable-координата отличает отсутствие наведения от клетки (0, 0).
+        private Vector2Int? _selected;
+        private LineRenderer _selectionOutline;
+
+        public float CellSize => cellSize;
+        public int ChunkSizeX => chunkSizeX;
+        public int ChunkSizeZ => chunkSizeZ;
+        public int LoadedChunkCount => _chunks.Count;
+        public Vector2Int? SelectedCell => _selected;
+        // Ссылка позволяет UI и взаимодействию быстро узнать строительный режим и занятость layout.
+        public BuildSystem Buildings { get; internal set; }
+
+        /// <summary>Проверяет клеточную занятость через данные грида, включая культуры и постройки.</summary>
+        public bool IsOccupied(Vector2Int gridPosition) => GetCell(gridPosition).occupantId != null;
+
+        /// <summary>Сообщает подписчикам только о фактическом изменении типа клетки.</summary>
+        public event Action<Vector2Int, CellType> OnCellChanged;
+        /// <summary>Сообщает представлению, какой чанк нужно перестроить после изменения данных.</summary>
+        public event Action<Vector2Int> OnChunkChanged;
+
+        private void Awake()
+        {
+            // В сцене допустим только один источник координат и клеточных данных.
+            if (Instance != null && Instance != this)
+            {
+                Debug.LogError("Only one GridSystem can be active in a scene.", this);
+                enabled = false;
+                return;
+            }
+            Instance = this;
+        }
+
+        private void OnDestroy()
+        {
+            // Сбрасываем singleton только если уничтожается его текущий владелец.
+            if (Instance == this) Instance = null;
+        }
+
+        private void OnDisable()
+        {
+            // Неактивная ферма не должна блокировать GridSystem из другой тестовой или загруженной сцены.
+            if (Instance == this) Instance = null;
+        }
+
+        private void OnEnable()
+        {
+            // При повторном включении объект снова становится доступен сценовым TilemapChunk.
+            if (Instance == null || Instance == this) Instance = this;
+        }
+
+        /// <summary>
+        /// Назначает геометрию сетки до регистрации чанков. Создание selectionView разрешено только
+        /// редакторскому baker и тестовой фикстуре через allowSceneCreation.
+        /// </summary>
+        public void Configure(float newCellSize, int newChunkSizeX, int newChunkSizeZ, bool allowSceneCreation = false)
+        {
+            if (_chunks.Count > 0 && (cellSize != newCellSize
+                || chunkSizeX != newChunkSizeX || chunkSizeZ != newChunkSizeZ))
+                throw new InvalidOperationException("Grid geometry cannot change after chunks are loaded.");
+            if (!IsFinitePositive(newCellSize)) throw new ArgumentOutOfRangeException(nameof(newCellSize));
+            if (newChunkSizeX < 1) throw new ArgumentOutOfRangeException(nameof(newChunkSizeX));
+            if (newChunkSizeZ < 1) throw new ArgumentOutOfRangeException(nameof(newChunkSizeZ));
+
+            cellSize = newCellSize;
+            chunkSizeX = newChunkSizeX;
+            chunkSizeZ = newChunkSizeZ;
+            if (selectionView == null)
+                selectionView = transform.Find("Cell Selection")?.gameObject;
+            if (selectionView == null && allowSceneCreation)
+                selectionView = CreateSelectionView();
+            if (selectionView != null)
+            {
+                selectionView.transform.localScale = new Vector3(
+                    cellSize * selectionFill, selectionHeight, cellSize * selectionFill);
+                var fill = selectionView.GetComponent<MeshRenderer>();
+                if (fill != null) fill.enabled = false;
+                var outline = selectionView.GetComponent<LineRenderer>();
+                if (outline == null) outline = selectionView.AddComponent<LineRenderer>();
+                _selectionOutline = outline;
+                outline.useWorldSpace = false;
+                outline.widthMultiplier = 0.025f;
+                outline.positionCount = 5;
+                outline.SetPositions(new[] { new Vector3(-0.5f,0,-0.5f), new Vector3(0.5f,0,-0.5f),
+                    new Vector3(0.5f,0,0.5f), new Vector3(-0.5f,0,0.5f), new Vector3(-0.5f,0,-0.5f) });
+                outline.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+                outline.receiveShadows = false;
+                RuntimeMaterials.Paint(outline, selectionColor);
+            }
+            Select(null);
+        }
+
+        /// <summary>Инициализирует сетку значениями, сохранёнными непосредственно в Inspector компонента.</summary>
+        public void ConfigureFromInspector()
+        {
+            Configure(cellSize, chunkSizeX, chunkSizeZ);
+        }
+
+        /// <summary>Переводит мировую точку XZ в неограниченную клеточную координату.</summary>
+        public Vector2Int WorldToGrid(Vector3 worldPosition)
+        {
+            return new Vector2Int(
+                Mathf.FloorToInt(worldPosition.x / cellSize),
+                Mathf.FloorToInt(worldPosition.z / cellSize));
+        }
+
+        /// <summary>Возвращает мировой центр клетки на сохранённой поверхности рельефа.</summary>
+        public Vector3 GridToWorld(Vector2Int gridPosition)
+        {
+            return new Vector3(
+                (gridPosition.x + 0.5f) * cellSize,
+                GetSurfaceHeight((gridPosition.x + 0.5f) * cellSize, (gridPosition.y + 0.5f) * cellSize),
+                (gridPosition.y + 0.5f) * cellSize);
+        }
+
+        /// <summary>Перегрузка позволяет не создавать Vector2Int в вызывающем коде.</summary>
+        public Vector3 GridToWorld(int x, int z) => GridToWorld(new Vector2Int(x, z));
+
+        /// <summary>Совместимое имя для систем представления, созданных до GridSystem v2.</summary>
+        public Vector3 CellToWorld(Vector2Int gridPosition) => GridToWorld(gridPosition);
+
+        public void AssignSurfaceMap(Vector2Int chunk, WorldMapAsset map) => _surfaceMaps[chunk] = map;
+
+        public float GetVertexHeight(Vector2Int vertex)
+        {
+            if (_surfaceMaps.TryGetValue(GridToChunk(vertex), out var map) && map != null) return map.VertexHeight(vertex);
+            // The upper/right outside corner still belongs to the preceding chunk's mesh.
+            foreach (var offset in CornerNeighbors)
+                if (_surfaceMaps.TryGetValue(GridToChunk(vertex + offset), out map) && map != null && map.HasRelief)
+                    return map.VertexHeight(vertex);
+            return 0f;
+        }
+
+        /// <summary>Matches the two actual triangles of each saved terrain cell, rather than a flat Y=0 plane.</summary>
+        public float GetSurfaceHeight(float worldX, float worldZ)
+        {
+            var x = worldX / cellSize; var z = worldZ / cellSize;
+            var c = new Vector2Int(Mathf.FloorToInt(x), Mathf.FloorToInt(z));
+            var u=x-c.x; var v=z-c.y;
+            var a=GetVertexHeight(c); var b=GetVertexHeight(c+Vector2Int.up);
+            var d=GetVertexHeight(c+Vector2Int.right); var e=GetVertexHeight(c+Vector2Int.one);
+            return v >= u ? a+(b-a)*v+(e-b)*u : a+(e-d)*v+(d-a)*u;
+        }
+
+        public bool TryRaycastSurface(Ray ray, out RaycastHit surfaceHit)
+        {
+            surfaceHit=default;
+            var nearest=float.MaxValue;
+            var count=Physics.RaycastNonAlloc(ray, _surfaceHits, 500f, ~0, QueryTriggerInteraction.Ignore);
+            for(var i=0;i<count;i++)
+            {
+                var hit=_surfaceHits[i];
+                var chunk=hit.collider.GetComponentInParent<TilemapChunk>();
+                if(chunk==null || chunk.TerrainCollider!=hit.collider || !_sceneChunks.Contains(chunk) || hit.distance>=nearest) continue;
+                nearest=hit.distance; surfaceHit=hit;
+            }
+            return nearest<float.MaxValue;
+        }
+
+        /// <summary>Переводит клетку в координату чанка с корректным округлением отрицательных чисел вниз.</summary>
+        public Vector2Int GridToChunk(Vector2Int gridPosition)
+        {
+            return new Vector2Int(
+                GridMath.FloorDivide(gridPosition.x, chunkSizeX),
+                GridMath.FloorDivide(gridPosition.y, chunkSizeZ));
+        }
+
+        /// <summary>Возвращает положительную локальную координату клетки внутри её чанка.</summary>
+        public Vector2Int GridToLocalCell(Vector2Int gridPosition)
+        {
+            return new Vector2Int(GridMath.LocalIndex(gridPosition.x, chunkSizeX),
+                GridMath.LocalIndex(gridPosition.y, chunkSizeZ));
+        }
+
+        /// <summary>Собирает мировую клеточную координату из адреса чанка и локального адреса.</summary>
+        public Vector2Int ChunkLocalToGrid(Vector2Int chunkCoord, Vector2Int localCell)
+        {
+            return new Vector2Int(
+                checked(chunkCoord.x * chunkSizeX + localCell.x),
+                checked(chunkCoord.y * chunkSizeZ + localCell.y));
+        }
+
+        /// <summary>Возвращает существующий чанк или создаёт новый блок с Grass-клетками.</summary>
+        public ChunkData GetOrCreateChunk(Vector2Int chunkCoord)
+        {
+            if (!_chunks.TryGetValue(chunkCoord, out var chunk))
+            {
+                chunk = new ChunkData(chunkCoord, chunkSizeX, chunkSizeZ);
+                _chunks.Add(chunkCoord, chunk);
+            }
+            return chunk;
+        }
+
+        /// <summary>Возвращает загруженный чанк либо null без скрытого создания данных.</summary>
+        public ChunkData GetChunk(Vector2Int chunkCoord)
+        {
+            _chunks.TryGetValue(chunkCoord, out var chunk);
+            return chunk;
+        }
+
+        /// <summary>Инициализирует весь чанк одним типом и очищает прежних владельцев.</summary>
+        public void InitializeChunk(Vector2Int chunkCoord, CellType defaultType = CellType.Grass)
+        {
+            GetOrCreateChunk(chunkCoord).Fill(defaultType);
+            OnChunkChanged?.Invoke(chunkCoord);
+        }
+
+        /// <summary>Фиксирует сценовую поверхность как базу для последующего delta-сохранения.</summary>
+        public void CommitChunkBase(Vector2Int chunkCoord) => GetChunk(chunkCoord)?.CommitBase();
+
+        /// <summary>Инициализирует прямоугольную область мира указанным типом клеток.</summary>
+        public void InitializeArea(Vector3 worldOrigin, float worldWidth, float worldDepth, CellType defaultType = CellType.Grass)
+        {
+            if (!IsFinitePositive(worldWidth) || !IsFinitePositive(worldDepth))
+                throw new ArgumentOutOfRangeException(nameof(worldWidth));
+            var start = WorldToGrid(worldOrigin);
+            var cellsX = Mathf.RoundToInt(worldWidth / cellSize);
+            var cellsZ = Mathf.RoundToInt(worldDepth / cellSize);
+            for (var x = 0; x < cellsX; x++)
+            for (var z = 0; z < cellsZ; z++)
+                SetCellType(new Vector2Int(start.x + x, start.y + z), defaultType);
+        }
+
+        /// <summary>Проверяет, зарегистрирован ли указанный блок мира.</summary>
+        public bool IsChunkLoaded(Vector2Int chunkCoord) => _chunks.ContainsKey(chunkCoord);
+
+        /// <summary>Возвращает перечисление адресов загруженных чанков без копирования их содержимого.</summary>
+        public IEnumerable<Vector2Int> GetLoadedChunkCoords() => _chunks.Keys;
+
+        /// <summary>Считает устойчивую подпись базовой карты для проверки совместимости delta-файла.</summary>
+        public long ComputeBaseMapHash() => ComputeBaseMapHash(_chunks.Keys);
+
+        /// <summary>Checks a former scene layout without rejecting saves when new chunks are appended.</summary>
+        public long ComputeBaseMapHash(IEnumerable<Vector2Int> chunkCoordinates)
+        {
+            // Сортировка убирает зависимость подписи от порядка регистрации сценовых компонентов.
+            var coordinates = new List<Vector2Int>(chunkCoordinates);
+            coordinates.Sort((left, right) =>
+            {
+                var byX = left.x.CompareTo(right.x);
+                return byX != 0 ? byX : left.y.CompareTo(right.y);
+            });
+            const ulong offset = 14695981039346656037UL;
+            const ulong prime = 1099511628211UL;
+            var hash = offset;
+            unchecked
+            {
+                hash = (hash ^ (uint)chunkSizeX) * prime;
+                hash = (hash ^ (uint)chunkSizeZ) * prime;
+                hash = (hash ^ (uint)BitConverter.ToInt32(BitConverter.GetBytes(cellSize), 0)) * prime;
+                foreach (var coordinate in coordinates)
+                {
+                    if (!_chunks.TryGetValue(coordinate, out var chunk))
+                        throw new InvalidOperationException($"Base chunk {coordinate} is missing.");
+                    hash = (hash ^ (uint)coordinate.x) * prime;
+                    hash = (hash ^ (uint)coordinate.y) * prime;
+                    for (var z = 0; z < chunkSizeZ; z++)
+                    for (var x = 0; x < chunkSizeX; x++)
+                    {
+                        var terrain = chunk.GetBaseTerrain(x, z);
+                        hash = (hash ^ (byte)terrain.type) * prime;
+                        hash = (hash ^ terrain.biome) * prime;
+                        hash = (hash ^ terrain.moisture) * prime;
+                        // Preserve signatures of existing authored maps whose permissions are inherited.
+                        if (terrain.permissions != CellPermissions.Inherit)
+                            hash = (hash ^ (byte)terrain.permissions) * prime;
+                        if (terrain.type == CellType.Road && terrain.pathSurface != PathSurface.Dirt)
+                            hash = (hash ^ (byte)terrain.pathSurface) * prime;
+                        // Zero heights retain the signature of the original flat map.
+                        if (_surfaceMaps.TryGetValue(coordinate, out var map) && map != null)
+                        {
+                            var vertex = ChunkLocalToGrid(coordinate, new Vector2Int(x,z));
+                            var h = map.VertexHeight(vertex);
+                            if(h!=0f) hash=(hash ^ (uint)BitConverter.ToInt32(BitConverter.GetBytes(h),0))*prime;
+                        }
+                    }
+                }
+            }
+            return unchecked((long)hash);
+        }
+
+        /// <summary>Регистрирует настройки одного сценового TilemapChunk.</summary>
+        public void RegisterSceneChunk(TilemapChunk sceneChunk)
+        {
+            if (sceneChunk == null) throw new ArgumentNullException(nameof(sceneChunk));
+            // Повторный Start того же компонента не должен сбрасывать уже загруженное сохранение.
+            if (_sceneChunks.Contains(sceneChunk)) return;
+            _sceneChunks.Add(sceneChunk);
+            sceneChunk.ApplyTo(this);
+        }
+
+        /// <summary>Регистрирует все TilemapChunk под корнем фермы до загрузки сохранения.</summary>
+        public void RegisterSceneChunks(IEnumerable<TilemapChunk> sceneChunks)
+        {
+            if (sceneChunks == null) return;
+            foreach (var sceneChunk in sceneChunks)
+                if (sceneChunk != null) RegisterSceneChunk(sceneChunk);
+        }
+
+        /// <summary>Возвращает копию данных клетки; незагруженная область имеет тип OutOfBounds.</summary>
+        public CellData GetCell(Vector2Int gridPosition)
+        {
+            var coordinate = GridToChunk(gridPosition);
+            var chunk = GetChunk(coordinate);
+            if (chunk == null) return new CellData(CellType.OutOfBounds);
+            if (_lockedSectorChunk == coordinate) return new CellData(CellType.Locked);
+            var local = GridToLocalCell(gridPosition);
+            return chunk.GetCell(local.x, local.y);
+        }
+
+        private Vector2Int? _lockedSectorChunk;
+
+        internal void SetSectorLock(Vector2Int chunk, bool locked)
+        {
+            // Access is independent of the painted terrain and its save compatibility hash.
+            _lockedSectorChunk = locked ? chunk : null;
+        }
+
+        /// <summary>Читает поверхность независимо от временной грядки или постройки.</summary>
+        public TerrainCell GetTerrainCell(Vector2Int coordinate)
+        {
+            var chunk = GetChunk(GridToChunk(coordinate));
+            if (chunk == null) return new TerrainCell(CellType.OutOfBounds);
+            var local = GridToLocalCell(coordinate);
+            return chunk.GetTerrain(local.x, local.y);
+        }
+
+        /// <summary>Читает неизменённую карту сцены независимо от текущих действий игрока.</summary>
+        public TerrainCell GetBaseTerrainCell(Vector2Int coordinate)
+        {
+            var chunk = GetChunk(GridToChunk(coordinate));
+            if (chunk == null) return new TerrainCell(CellType.OutOfBounds);
+            var local = GridToLocalCell(coordinate);
+            return chunk.GetBaseTerrain(local.x, local.y);
+        }
+
+        /// <summary>Читает грядку без выделения памяти при отсутствии слоя.</summary>
+        public FarmingCell GetFarmingCell(Vector2Int coordinate)
+        {
+            var chunk = GetChunk(GridToChunk(coordinate));
+            if (chunk == null) return default;
+            var local = GridToLocalCell(coordinate);
+            return chunk.GetFarming(local.x, local.y);
+        }
+
+        /// <summary>Читает занятость постройкой без смешивания с поверхностью.</summary>
+        public BuildingCell GetBuildingCell(Vector2Int coordinate)
+        {
+            var chunk = GetChunk(GridToChunk(coordinate));
+            if (chunk == null) return default;
+            var local = GridToLocalCell(coordinate);
+            return chunk.GetBuilding(local.x, local.y);
+        }
+
+        /// <summary>Возвращает только тип клетки для правил, которым не нужен occupantId.</summary>
+        public CellType GetCellType(Vector2Int gridPosition) => GetCell(gridPosition).type;
+
+        /// <summary>Try-вариант отличает незагруженную область от реальной клетки.</summary>
+        public bool TryGetCell(Vector2Int gridPosition, out CellData cell)
+        {
+            cell = GetCell(gridPosition);
+            return cell.type != CellType.OutOfBounds;
+        }
+
+        /// <summary>Переводит мировую точку в клетку и проверяет, что соответствующий чанк загружен.</summary>
+        public bool TryWorldToCell(Vector3 worldPosition, out Vector2Int gridPosition)
+        {
+            gridPosition = WorldToGrid(worldPosition);
+            return GetCellType(gridPosition) != CellType.OutOfBounds;
+        }
+
+        /// <summary>Меняет тип клетки и создаёт событие только при реальном изменении.</summary>
+        public void SetCellType(Vector2Int gridPosition, CellType newType)
+        {
+            var chunk = GetOrCreateChunk(GridToChunk(gridPosition));
+            var local = GridToLocalCell(gridPosition);
+            var oldType = chunk.GetCell(local.x, local.y).type;
+            if (oldType == newType) return;
+            chunk.SetLegacyType(local.x, local.y, newType);
+            NotifyCellChanged(gridPosition, oldType);
+        }
+
+        /// <summary>Записывает владельца клетки без изменения её типа.</summary>
+        public void SetCellOccupant(Vector2Int gridPosition, string occupantId)
+        {
+            var chunk = GetOrCreateChunk(GridToChunk(gridPosition));
+            var local = GridToLocalCell(gridPosition);
+            chunk.SetOccupant(local.x, local.y, string.IsNullOrEmpty(occupantId) ? null : occupantId);
+            OnChunkChanged?.Invoke(GridToChunk(gridPosition));
+        }
+
+        /// <summary>Записывает постоянный слой поверхности, сохраняя грядку и постройку поверх него.</summary>
+        public void SetTerrainCell(Vector2Int coordinate, TerrainCell terrain)
+        {
+            var chunk = GetOrCreateChunk(GridToChunk(coordinate));
+            var local = GridToLocalCell(coordinate);
+            var oldType = chunk.GetCell(local.x, local.y).type;
+            chunk.SetTerrain(local.x, local.y, terrain);
+            NotifyCellChanged(coordinate, oldType);
+        }
+
+        /// <summary>Записывает грядку отдельно от поверхности.</summary>
+        public void SetFarmingCell(Vector2Int coordinate, FarmingCell farming, bool refreshSurface = true)
+        {
+            var chunk = GetOrCreateChunk(GridToChunk(coordinate));
+            var local = GridToLocalCell(coordinate);
+            var oldType = chunk.GetCell(local.x, local.y).type;
+            chunk.SetFarming(local.x, local.y, farming);
+            if (refreshSurface || oldType != chunk.GetCell(local.x, local.y).type)
+                NotifyCellChanged(coordinate, oldType);
+        }
+
+        /// <summary>Записывает часть постройки отдельно от поверхности.</summary>
+        public void SetBuildingCell(Vector2Int coordinate, BuildingCell building)
+        {
+            var chunk = GetOrCreateChunk(GridToChunk(coordinate));
+            var local = GridToLocalCell(coordinate);
+            var oldType = chunk.GetCell(local.x, local.y).type;
+            chunk.SetBuilding(local.x, local.y, building);
+            NotifyCellChanged(coordinate, oldType);
+        }
+
+        /// <summary>Удаляет грядку и оставляет под ней прежнюю поверхность.</summary>
+        public void ClearFarmingCell(Vector2Int coordinate) => SetFarmingCell(coordinate, default);
+
+        /// <summary>Освобождает место постройки, не меняя исходный тип земли.</summary>
+        public void ClearBuildingCell(Vector2Int coordinate) => SetBuildingCell(coordinate, default);
+
+        private void NotifyCellChanged(Vector2Int coordinate, CellType oldType)
+        {
+            // Визуализация может зависеть даже от слоя, не меняющего итоговый игровой тип.
+            var newType = GetCellType(coordinate);
+            if (newType != oldType) OnCellChanged?.Invoke(coordinate, newType);
+            OnChunkChanged?.Invoke(GridToChunk(coordinate));
+        }
+
+        /// <summary>Показывает единый маркер над выбранной загруженной клеткой.</summary>
+        public void Select(Vector2Int? gridPosition)
+        {
+            _selected = gridPosition.HasValue && GetCellType(gridPosition.Value) != CellType.OutOfBounds
+                ? gridPosition
+                : null;
+            if (selectionView == null) return;
+            selectionView.SetActive(_selected.HasValue);
+            if (_selected.HasValue)
+            {
+                selectionView.transform.position = GridToWorld(_selected.Value) + Vector3.up * selectionLift;
+                if(_selectionOutline==null)_selectionOutline=selectionView.GetComponent<LineRenderer>();
+                var outline=_selectionOutline;
+                if(outline!=null)
+                {
+                    var c=_selected.Value;var center=GetSurfaceHeight((c.x+.5f)*cellSize,(c.y+.5f)*cellSize);
+                    var half=cellSize*selectionFill*.5f;
+                    for(var i=0;i<5;i++)
+                    {
+                        var dx=i==0||i==3||i==4?-half:half;var dz=i<2||i==4?-half:half;
+                        var worldY=GetSurfaceHeight((c.x+.5f)*cellSize+dx,(c.y+.5f)*cellSize+dz);
+                        outline.SetPosition(i,new Vector3(dx/selectionView.transform.localScale.x,
+                            (worldY-center)/selectionView.transform.localScale.y,dz/selectionView.transform.localScale.z));
+                    }
+                }
+            }
+        }
+
+        /// <summary>Проверяет, можно ли вспахать клетку.</summary>
+        public bool CanTill(Vector2Int gridPosition)
+        {
+            var cell = GetCell(gridPosition);
+            return cell.occupantId == null && IsNaturalForActions(cell.type)
+                && GetTerrainCell(gridPosition).Allows(CellPermissions.Farm,
+                    cell.type == CellType.Grass || cell.type == CellType.Dirt);
+        }
+
+        /// <summary>Проверяет, можно ли посадить культуру на подготовленную свободную клетку.</summary>
+        public bool CanPlant(Vector2Int gridPosition)
+        {
+            var cell = GetCell(gridPosition);
+            return cell.occupantId == null && (cell.type == CellType.Tilled || cell.type == CellType.Watered)
+                && GetTerrainCell(gridPosition).Allows(CellPermissions.Farm, true);
+        }
+
+        /// <summary>Проверяет свободную природную клетку для многоклеточного объекта дерева.</summary>
+        public bool CanPlantTree(Vector2Int gridPosition)
+        {
+            var cell = GetCell(gridPosition);
+            return cell.occupantId == null && IsNaturalForActions(cell.type)
+                && GetTerrainCell(gridPosition).Allows(CellPermissions.Orchard,
+                    cell.type == CellType.Grass || cell.type == CellType.Dirt || cell.type == CellType.Sand);
+        }
+
+        /// <summary>Проверяет разрешение поверхности. Постройки и стволы блокируют ходьбу своими коллайдерами.</summary>
+        public bool IsWalkable(Vector2Int gridPosition)
+        {
+            if (_lockedSectorChunk == GridToChunk(gridPosition)) return false;
+            var terrain = GetTerrainCell(gridPosition);
+            if (terrain.type == CellType.Rock && _treeColliders.Contains(gridPosition)) return true;
+            return terrain.type != CellType.Water && terrain.type != CellType.Rock && terrain.type != CellType.Locked
+                && terrain.type != CellType.OutOfBounds && terrain.Allows(CellPermissions.Walk, true);
+        }
+
+        private readonly HashSet<Vector2Int> _treeColliders = new HashSet<Vector2Int>();
+
+        internal void RegisterPhysicalTree(Vector3 position) => _treeColliders.Add(WorldToGrid(position));
+
+        /// <summary>Проверяет, допускает ли тип свободной клетки строительство.</summary>
+        public bool CanBuild(Vector2Int gridPosition) => BuildingBlockReason(gridPosition) == null;
+
+        public string BuildingBlockReason(Vector2Int gridPosition)
+        {
+            var cell = GetCell(gridPosition);
+            switch (cell.type)
+            {
+                case CellType.OutOfBounds: return "За границей фермы";
+                case CellType.Locked: return "Участок ещё закрыт";
+                case CellType.Water: return "На воде строить нельзя";
+                case CellType.Rock: return "Мешает дерево или камень";
+                case CellType.Tree: return "Здесь растёт дерево";
+                case CellType.Planted: return "Здесь растёт культура";
+                case CellType.Tilled:
+                case CellType.Watered: return "Здесь подготовлена грядка";
+                case CellType.Building:
+                case CellType.BuildingEdge: return "Мешает другая постройка";
+            }
+            if (cell.occupantId != null) return "Клетка занята";
+            if (!IsNaturalForActions(cell.type)) return "На этом грунте строить нельзя";
+            if (!GetTerrainCell(gridPosition).Allows(CellPermissions.Build, cell.type != CellType.Sand))
+                return cell.type == CellType.Road ? "Освободите дорожку" : "Участок доступен только для прохода";
+            return IsLevelCell(gridPosition) ? null : "Нужна ровная земля";
+        }
+
+        private bool IsLevelCell(Vector2Int c)
+        {
+            var h=GetVertexHeight(c);
+            return Mathf.Abs(GetVertexHeight(c+Vector2Int.up)-h)<0.03f
+                && Mathf.Abs(GetVertexHeight(c+Vector2Int.right)-h)<0.03f
+                && Mathf.Abs(GetVertexHeight(c+Vector2Int.one)-h)<0.03f;
+        }
+
+        private static bool IsNaturalForActions(CellType type) => type == CellType.Grass || type == CellType.Dirt
+            || type == CellType.Road || type == CellType.Sand;
+
+        /// <summary>Проверяет прямоугольный footprint постройки.</summary>
+        public bool IsFreeForBuilding(Vector2Int origin, Vector2Int size)
+        {
+            if (size.x < 1 || size.y < 1) return false;
+            for (var x = 0; x < size.x; x++)
+            for (var z = 0; z < size.y; z++)
+                if (!CanBuild(new Vector2Int(origin.x + x, origin.y + z))) return false;
+            return true;
+        }
+
+        /// <summary>Помечает первую клетку как центр постройки, остальные как края и записывает общий ID.</summary>
+        public void OccupyWithBuilding(Vector2Int origin, Vector2Int size, string buildingId)
+        {
+            if (string.IsNullOrWhiteSpace(buildingId)) throw new ArgumentException("Building ID is required.", nameof(buildingId));
+            for (var x = 0; x < size.x; x++)
+            for (var z = 0; z < size.y; z++)
+            {
+                var position = new Vector2Int(origin.x + x, origin.y + z);
+                SetBuildingCell(position, new BuildingCell
+                {
+                    type = x == 0 && z == 0 ? CellType.Building : CellType.BuildingEdge,
+                    buildingId = buildingId
+                });
+            }
+        }
+
+        /// <summary>Освобождает footprint только там, где он принадлежит указанной постройке.</summary>
+        public void FreeBuilding(Vector2Int origin, Vector2Int size, string buildingId = null)
+        {
+            for (var x = 0; x < size.x; x++)
+            for (var z = 0; z < size.y; z++)
+            {
+                var position = new Vector2Int(origin.x + x, origin.y + z);
+                var cell = GetCell(position);
+                if (buildingId != null && cell.occupantId != buildingId) continue;
+                if (cell.type != CellType.Building && cell.type != CellType.BuildingEdge && cell.type != CellType.Tree) continue;
+                ClearBuildingCell(position);
+            }
+        }
+
+        /// <summary>Открывает Locked-клетки внутри прямоугольной мировой области.</summary>
+        public void UnlockArea(Vector3 worldOrigin, float worldWidth, float worldDepth)
+        {
+            var start = WorldToGrid(worldOrigin);
+            var cellsX = Mathf.RoundToInt(worldWidth / cellSize);
+            var cellsZ = Mathf.RoundToInt(worldDepth / cellSize);
+            for (var x = 0; x < cellsX; x++)
+            for (var z = 0; z < cellsZ; z++)
+            {
+                var position = new Vector2Int(start.x + x, start.y + z);
+                if (GetTerrainCell(position).type == CellType.Locked) SetCellType(position, CellType.Grass);
+            }
+        }
+
+        /// <summary>Находит клетки указанного типа во всех загруженных чанках; операция имеет стоимость O(n).</summary>
+        public List<Vector2Int> FindCellsOfType(CellType type)
+        {
+            var result = new List<Vector2Int>();
+            foreach (var pair in _chunks)
+            for (var x = 0; x < chunkSizeX; x++)
+            for (var z = 0; z < chunkSizeZ; z++)
+                if (pair.Value.GetCell(x, z).type == type)
+                    result.Add(ChunkLocalToGrid(pair.Key, new Vector2Int(x, z)));
+            return result;
+        }
+
+        /// <summary>Перечисляет посевы прямо из фермерских слоёв без сканирования GameObject.</summary>
+        public IEnumerable<Vector2Int> GetPlantedCells()
+        {
+            foreach (var pair in _chunks)
+            {
+                if (!pair.Value.HasFarmingLayer) continue;
+                for (var z = 0; z < chunkSizeZ; z++)
+                for (var x = 0; x < chunkSizeX; x++)
+                    if (pair.Value.GetFarming(x, z).soilType == CellType.Planted)
+                        yield return ChunkLocalToGrid(pair.Key, new Vector2Int(x, z));
+            }
+        }
+
+        /// <summary>Создаёт разреженный снимок отличий от базовой карты, включая игровые слои.</summary>
+        public GridSaveData Serialize()
+        {
+            var result = new GridSaveData();
+            foreach (var pair in _chunks)
+            {
+                if (pair.Value.ModifiedCellCount == 0) continue;
+                var chunkEntry = new ChunkSaveEntry { chunkX = pair.Key.x, chunkZ = pair.Key.y };
+                foreach (var index in pair.Value.ModifiedIndices)
+                {
+                    var x = index % chunkSizeX;
+                    var z = index / chunkSizeX;
+                    var cell = pair.Value.GetCell(x, z);
+                    var terrain = pair.Value.GetTerrain(x, z);
+                    var farming = pair.Value.GetFarming(x, z);
+                    chunkEntry.modifiedCells.Add(new CellSaveEntry
+                    {
+                        localX = x,
+                        localZ = z,
+                        cellType = (byte)cell.type,
+                        occupantId = cell.occupantId,
+                        hasTerrainData = true,
+                        terrainType = (byte)terrain.type,
+                        biome = terrain.biome,
+                        moisture = terrain.moisture,
+                        permissions = (byte)terrain.permissions,
+                        pathSurface = (byte)terrain.pathSurface,
+                        farmingMoisture = farming.moisture,
+                        fertilizer = farming.fertilizer,
+                        lastWateredDay = farming.lastWateredDay,
+                        farmingFlags = farming.flags
+                    });
+                }
+                if (chunkEntry.modifiedCells.Count > 0) result.chunks.Add(chunkEntry);
+            }
+            return result;
+        }
+
+        /// <summary>Сбрасывает сценовые чанки к их исходным типам и накладывает разреженный снимок.</summary>
+        public void Deserialize(GridSaveData saveData)
+        {
+            _chunks.Clear();
+            foreach (var sceneChunk in _sceneChunks)
+                if (sceneChunk != null) sceneChunk.ApplyTo(this);
+            if (saveData?.chunks != null) foreach (var chunkEntry in saveData.chunks)
+            {
+                var chunk = GetOrCreateChunk(new Vector2Int(chunkEntry.chunkX, chunkEntry.chunkZ));
+                if (chunkEntry.modifiedCells == null) continue;
+                foreach (var cellEntry in chunkEntry.modifiedCells)
+                {
+                    if (cellEntry.hasTerrainData)
+                        chunk.SetTerrain(cellEntry.localX, cellEntry.localZ, new TerrainCell((CellType)cellEntry.terrainType)
+                        { biome = cellEntry.biome, moisture = cellEntry.moisture,
+                            permissions = (CellPermissions)cellEntry.permissions, pathSurface = (PathSurface)cellEntry.pathSurface });
+                    chunk.SetLegacyType(cellEntry.localX, cellEntry.localZ, (CellType)cellEntry.cellType);
+                    if (!string.IsNullOrEmpty(cellEntry.occupantId))
+                        chunk.SetOccupant(cellEntry.localX, cellEntry.localZ, cellEntry.occupantId);
+                    if (cellEntry.hasTerrainData)
+                    {
+                        var farming = chunk.GetFarming(cellEntry.localX, cellEntry.localZ);
+                        if (farming.soilType != 0)
+                        {
+                            farming.moisture = cellEntry.farmingMoisture;
+                            farming.fertilizer = cellEntry.fertilizer;
+                            farming.lastWateredDay = cellEntry.lastWateredDay;
+                            farming.flags = cellEntry.farmingFlags;
+                            chunk.SetFarming(cellEntry.localX, cellEntry.localZ, farming);
+                        }
+                    }
+                }
+            }
+            Select(null);
+            foreach (var coordinate in _chunks.Keys) OnChunkChanged?.Invoke(coordinate);
+        }
+
+        private GameObject CreateSelectionView()
+        {
+            // Один тонкий куб заменяет отдельный Renderer на каждой клетке и не создаёт коллайдеров.
+            var view = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            view.name = "Cell Selection";
+            view.transform.SetParent(transform, false);
+            view.transform.localScale = new Vector3(cellSize * selectionFill, selectionHeight, cellSize * selectionFill);
+            RuntimeMaterials.RemoveCollider(view);
+            RuntimeMaterials.Paint(view.GetComponent<Renderer>(), selectionColor);
+            view.SetActive(false);
+            return view;
+        }
+
+        private static bool IsFinitePositive(float value) => value > 0f && !float.IsNaN(value) && !float.IsInfinity(value);
+
+        private void OnDrawGizmos()
+        {
+            // Отладочная заливка не нагружает Scene View вне Play Mode.
+            if (!drawGizmos) return;
+            foreach (var pair in _chunks)
+            {
+                for (var x = 0; x < chunkSizeX; x++)
+                for (var z = 0; z < chunkSizeZ; z++)
+                {
+                    var type = pair.Value.GetCell(x, z).type;
+                    var permissions = pair.Value.GetTerrain(x, z).permissions;
+                    Gizmos.color = permissions == CellPermissions.Inherit || pair.Value.GetCell(x,z).occupantId != null
+                        ? GizmoColor(type) : (permissions & CellPermissions.Farm) != 0
+                        ? new Color(0.2f,0.8f,0.25f,0.25f) : (permissions & CellPermissions.Build) != 0
+                        ? new Color(0.25f,0.4f,1f,0.25f) : (permissions & CellPermissions.Walk) != 0
+                        ? new Color(0.6f,0.6f,0.6f,0.25f) : new Color(1f,0.2f,0.2f,0.25f);
+                    Gizmos.DrawCube(
+                        GridToWorld(ChunkLocalToGrid(pair.Key, new Vector2Int(x, z))) + Vector3.up * 0.01f,
+                        new Vector3(cellSize * 0.95f, 0.01f, cellSize * 0.95f));
+                }
+                var origin = new Vector3(pair.Key.x * chunkSizeX * cellSize, 0.02f, pair.Key.y * chunkSizeZ * cellSize);
+                Gizmos.color = Color.yellow;
+                Gizmos.DrawWireCube(origin + new Vector3(chunkSizeX * cellSize * 0.5f, 0f, chunkSizeZ * cellSize * 0.5f),
+                    new Vector3(chunkSizeX * cellSize, 0.02f, chunkSizeZ * cellSize));
+            }
+        }
+
+        private Color GizmoColor(CellType type)
+        {
+            switch (type)
+            {
+                case CellType.Grass: return gizmoGrassColor;
+                case CellType.Tilled:
+                case CellType.Watered: return gizmoTilledColor;
+                case CellType.Building:
+                case CellType.BuildingEdge: return gizmoBuildingColor;
+                case CellType.Locked: return gizmoLockedColor;
+                case CellType.Water: return gizmoWaterColor;
+                case CellType.Road: return Color.gray;
+                default: return Color.white;
+            }
+        }
+    }
+
+    /// <summary>Корневой сериализуемый блок разреженных данных GridSystem.</summary>
+    [Serializable]
+    public sealed class GridSaveData
+    {
+        // chunks содержит только чанки, где есть хотя бы одна изменённая клетка.
+        public List<ChunkSaveEntry> chunks = new List<ChunkSaveEntry>();
+    }
+
+    /// <summary>Разреженные изменения одного чанка.</summary>
+    [Serializable]
+    public sealed class ChunkSaveEntry
+    {
+        public int chunkX;
+        public int chunkZ;
+        public List<CellSaveEntry> modifiedCells = new List<CellSaveEntry>();
+    }
+
+    /// <summary>Одна сохранённая локальная клетка чанка.</summary>
+    [Serializable]
+    public sealed class CellSaveEntry
+    {
+        public int localX;
+        public int localZ;
+        public byte cellType;
+        public string occupantId;
+        // Версия 5 добавляет исходную поверхность под грядкой или постройкой.
+        public bool hasTerrainData;
+        public byte terrainType;
+        public byte biome;
+        public byte moisture;
+        public byte permissions;
+        public byte pathSurface;
+        public byte farmingMoisture;
+        public byte fertilizer;
+        public ushort lastWateredDay;
+        public byte farmingFlags;
+    }
+}

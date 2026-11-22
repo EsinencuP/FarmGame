@@ -38,14 +38,21 @@ namespace MyLittleFarm.Tests.EditMode
                     layout.SetEditorPreview(mode);Canvas.ForceUpdateCanvases();
                     Assert.That(card.gameObject.activeSelf,Is.True);
                     Assert.That(card.GetComponent<RectTransform>().rect.height,Is.EqualTo(180f));
-                    Assert.That(card.PromptText.text,Does.Contain("E / ЛКМ — подтвердить").And.Contain("Q / R — повернуть").And.Contain("Esc / ПКМ — отмена").And.Contain("Delete — удалить"));
+                    Assert.That(card.PromptText.text,
+                        Does.Contain("Подтвердить · " + InputReader.ActionHint)
+                            .And.Contain("Повернуть · " + InputReader.BuildRotateHint)
+                            .And.Contain("Отмена · Esc / ПКМ")
+                            .And.Contain("Строительство · " + InputReader.KeyLabel(InputReader.Command.Build)));
                     Assert.That(card.PromptText.preferredHeight,Is.LessThanOrEqualTo(card.PromptText.rectTransform.rect.height));
-                    var corners=new Vector3[4];card.GetComponent<RectTransform>().GetWorldCorners(corners);
-                    var canvasCorners=new Vector3[4];canvas.GetComponent<RectTransform>().GetWorldCorners(canvasCorners);
-                    Assert.That(corners[0].x,Is.GreaterThanOrEqualTo(canvasCorners[0].x));
-                    Assert.That(corners[2].x,Is.LessThanOrEqualTo(canvasCorners[2].x));
-                    Assert.That(corners[0].y,Is.GreaterThan(canvasCorners[0].y));
-                    Assert.That(corners[2].y,Is.LessThan(canvasCorners[2].y));
+                    var canvasRect = canvas.GetComponent<RectTransform>().rect;
+                    var cardRect = card.GetComponent<RectTransform>();
+                    var origin = canvasRect.min + Vector2.Scale(canvasRect.size, cardRect.anchorMin) + cardRect.anchoredPosition;
+                    var min = origin + cardRect.rect.min;
+                    var max = origin + cardRect.rect.max;
+                    Assert.That(min.x, Is.GreaterThanOrEqualTo(canvasRect.xMin));
+                    Assert.That(max.x, Is.LessThanOrEqualTo(canvasRect.xMax));
+                    Assert.That(min.y, Is.GreaterThan(canvasRect.yMin));
+                    Assert.That(max.y, Is.LessThan(canvasRect.yMax));
                     Assert.That(canvas.transform.Find("Interaction Prompt").GetComponent<Text>().enabled,Is.False);
                 }
                 layout.SetEditorPreview(ResponsiveHudLayout.PreviewMode.Exploration);

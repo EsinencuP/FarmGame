@@ -63,7 +63,7 @@ namespace MyLittleFarm.Tests.PlayMode
             yield return null;
             var id=Place();var build=System<BuildSystem>();var inv=System<InventorySystem>();var save=System<SaveSystem>();
             inv.Add("milk",5);Assert.That(build.Warehouses.Transfer(id,"milk",5,true,"put",inv.Revision,build.Warehouses.Revision,out _),Is.True);
-            Assert.That(build.TryRemove(id,out _),Is.False);Assert.That(build.TryMove(id,new Vector2Int(4,1),1,out var reason),Is.True,reason);
+            Assert.That(build.TryRemove(id,out _),Is.False);Assert.That(build.TryMove(id,new Vector2Int(4,3),1,out var reason),Is.True,reason);
             save.Restore(JsonUtility.FromJson<SaveData>(JsonUtility.ToJson(save.Capture())));
             Assert.That(build.Warehouses.Amount(id,"milk"),Is.EqualTo(5));Assert.That(build.GetBuilding(id).quarterTurns,Is.EqualTo(1));
             Assert.That(build.Warehouses.Transfer(id,"milk",5,false,"take",inv.Revision,build.Warehouses.Revision,out _),Is.True);

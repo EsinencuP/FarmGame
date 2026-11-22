@@ -18,7 +18,7 @@ namespace MyLittleFarm.Tests.EditMode
             try
             {
                 var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(
-                    "Assets/Pandazole_Ultimate_Pack/Pandazole Farm Ranch Pack/Prefabs/" + model + ".prefab");
+                    "Assets/ThirdParty/Pandazole_Ultimate_Pack/Pandazole Farm Ranch Pack/Prefabs/" + model + ".prefab");
                 Assert.That(prefab, Is.Not.Null);
                 var visual = VisualPrefab.CreateBuilding(prefab, parent.transform, new Vector3(width,height,depth));
                 Assert.That(VisualPrefab.TryGetBounds(visual, out var bounds), Is.True);
@@ -38,7 +38,7 @@ namespace MyLittleFarm.Tests.EditMode
             try
             {
                 var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(
-                    "Assets/Nicrom/Shaders/Wind/Prefabs/LPW_Flower_A1_H70cm_01.prefab");
+                    "Assets/ThirdParty/Nicrom/Shaders/Wind/Prefabs/LPW_Flower_A1_H70cm_01.prefab");
                 Assert.That(prefab, Is.Not.Null);
                 var visual = VisualPrefab.CreateBuilding(prefab, parent.transform, new Vector3(0.88f, 0.45f, 0.88f));
                 Assert.That(VisualPrefab.TryGetBounds(visual, out var bounds), Is.True);

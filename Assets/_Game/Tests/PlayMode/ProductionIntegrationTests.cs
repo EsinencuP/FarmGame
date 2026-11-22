@@ -5,6 +5,7 @@ using System.IO;
 using MyLittleFarm.Core;
 using MyLittleFarm.Gameplay.Building;
 using MyLittleFarm.Gameplay.Economy;
+using MyLittleFarm.Gameplay.World;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -26,7 +27,8 @@ namespace MyLittleFarm.Tests.PlayMode
         {
             yield return null;
             var build=System<BuildSystem>();var items=System<InventorySystem>();var save=System<SaveSystem>();
-            var press=Place("apple_press",1,1);var mill=Place("mill",4,1);var dairy=Place("cheese_dairy",11,1);
+            System<SectorSystem>().Restore(true);
+            var press=Place("apple_press",1,1);var mill=Place("mill",4,3);var dairy=Place("cheese_dairy",11,1);
             items.Add("apple",3);items.Add("wheat",3);items.Add("milk",2);
             var now=DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
             foreach(var b in new[]{press,mill,dairy}) Assert.That(build.TryStartProduction(b.id,now,out _),Is.True);
@@ -61,6 +63,28 @@ namespace MyLittleFarm.Tests.PlayMode
             try { Assert.That(build.TryCollectProduction(mill.id,now+30000,out _),Is.True); }
             finally { GameEvents.InventoryChanged-=observer; }
             Assert.That(items.GetAmount("flour"),Is.EqualTo(1));
+        }
+        [UnityTest]
+        public IEnumerator CornMillUsesItsRecipeAcrossSaveAndLoad()
+        {
+            yield return null;
+            var build = System<BuildSystem>();
+            var items = System<InventorySystem>();
+            var save = System<SaveSystem>();
+            var mill = Place("mill", 1, 1);
+            var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            items.Add("wheat", 3);
+            items.Add("corn", 2);
+            Assert.That(build.TryStartProduction(mill.id, ProductionRecipe.Dairy.Id, now, out _), Is.False);
+            Assert.That(build.TryStartProduction(mill.id, ProductionRecipe.CornMill.Id, now, out _), Is.True);
+            Assert.That(items.GetAmount("corn"), Is.Zero);
+            Assert.That(items.GetAmount("wheat"), Is.EqualTo(3));
+            Assert.That(build.TryStartProduction(mill.id, ProductionRecipe.Mill.Id, now, out _), Is.False);
+            save.Restore(JsonUtility.FromJson<SaveData>(JsonUtility.ToJson(save.Capture())));
+            Assert.That(save.Capture().productionBatches[0].recipeId, Is.EqualTo(ProductionRecipe.CornMill.Id));
+            Assert.That(build.TryCollectProduction(mill.id, now + 30000, out _), Is.True);
+            Assert.That(build.TryCollectProduction(mill.id, now + 30000, out _), Is.False);
+            Assert.That(items.GetAmount("flour"), Is.EqualTo(1));
         }
         [UnityTest]
         public IEnumerator LegacyV12PressKeepsDeadlineAndOutputAndRejectsDuplicates()

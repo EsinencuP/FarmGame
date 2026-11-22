@@ -1,0 +1,17 @@
+Legacy empty-farm-v12.json loaded=True, capture v21.
+Legacy all-systems-v18.json loaded=True, capture v21.
+Soil=True, tomato=True, watering=True.
+Apple=True, watering=True.
+Hydration restored: tomato 'Влажность 70% · L/XL 41%', apple 'Яблоня · до урожая 30 с
+Влажность 70% · L/XL 41%'.
+Tomato harvest=True, 5 x L.
+Apple harvest=True, 3 apples.
+Mill batch 1: started=True, collected=True.
+Mill batch 2: started=True, collected=True.
+Mill stock: wheat 0, flour 2.
+Shepherd hired=True.
+Feed-first, egg 0, wheat 3.
+Observed CollectFirst, egg 1, wheat 4.
+After two manual collections: FeedFirst.
+Next selection: flour.
+Contract paid=True (Заказы выполнены · +28 монет); repeat after load=False.

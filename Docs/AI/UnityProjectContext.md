@@ -1,5 +1,17 @@
 # My Little Farm — project context
 
+## University release candidate — 22 November 2026
+
+- Seven-page comic on new slots, keyboard and on-screen navigation, credits, session summary, action feedback and audio are integrated. The current save version is v21.
+- The project passed 43 EditMode and 74 PlayMode tests, including 30 save/load round trips. Per-crop shader properties use GPU instancing. The 500-crop, 20-animal paired run dropped from approximately 1,618 draw calls to 736 on the far camera.
+- QA saved to an isolated Editor profile. The latest route, timings and outstanding presentation-PC checks are tracked in `Verification/ReleaseQA/report.md`.
+
+## U1 Editor acceptance — 22 November 2026
+
+- Adaptive market, crop and orchard sizes, shepherd priorities, and production-based personalized orders are integrated. The adaptive fields were introduced in v20 and are retained by the current v21 saves. The reproducible defense scenario and near-rollover farm are in `Verification/AdaptiveAI`.
+- Editor acceptance passed 41 EditMode and 73 project PlayMode checks. The isolated profile completed the route from onboarding to a fulfilled flour order, loaded three v12 files and a developed v18, exercised v19 migration, and reopened three disk slots in a new Editor process. The authoring and acceptance details are in `Verification/U1-8/report.md`. Windows Player acceptance remains in U4.
+- Sector access overlays the authored terrain without changing its saved base signature. The expansion again unlocks on the actual Prototype map, including where the sand trail occupies the origin cell.
+
 ## Current scope override — 12 November 2026
 
 - User clarified that the project is solely for an internal university presentation, with no further release planned. Current scoped plan: `Docs/MyLittleFarm_UniversityDemo_Plan.md`; the historical release roadmap links to it.
@@ -213,8 +225,10 @@ The automated suites and UI screenshots do not substitute for a long play sessio
 
 ## Phase 2 landscape inventory (before P2-1 implementation)
 
+The original source inventory below predates the November playtest cleanup. Unused KayKit models and the duplicate Quaternius FBX/glTF exports were removed after comparing Unity dependencies. The active pine, fern, UI sources and referenced textures remain in their original locations.
+
 - The user designated Phase 2 (World & Depth, four weeks) as the upcoming focus, specifically landscape, and requested inspection only followed by waiting. Do not start implementation or tests until further instructions.
-- The folder called “Mo Assets” in the request is `Assets/moreAssets`. Inspected local filenames, import metadata, license files and supplied preview images; no scene or asset changes were made for this inventory.
+- The folder called “Mo Assets” in the request is `Assets/ThirdParty/Imported%20Models`. Inspected local filenames, import metadata, license files and supplied preview images; no scene or asset changes were made for this inventory.
 - Quaternius Stylized Nature MegaKit FREE: 68 models in `moreAssets/FBX (Unity)`, with parallel FBX/OBJ/glTF exports. Includes common/pine/dead/twisted trees, bushes, grass, clover, ferns, flowers, mushrooms, pebbles, medium rocks and stone path pieces. Textured foliage has a more detailed silhouette than KayKit. Supplied promotional landscape images are references, not an included ready-made Unity scene; the free pack license note says configured engine projects/shaders belong to the SOURCE edition.
 - KayKit Forest Nature Pack 1.0 FREE: 105 FBX files in `moreAssets/KayKit_Forest_Nature_Pack_1.0_FREE/Assets/fbx(unity)`, including variants. Geometric low-poly trees, bare trees, bushes, grass, rounded rocks and stacked rock formations; shared `forest_texture.png` palette. Useful for woodland composition, rock borders and scenery around the farm.
 - Farm Buildings - Sept 2018: 13 FBX files, including barns, coop, two fences, silos, well, windmills and water tower. Available as scenery candidates; existing gameplay building replacements need separate instruction.

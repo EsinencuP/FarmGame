@@ -28,9 +28,9 @@
 
 | Культура | Уже имеющаяся зрелая модель |
 |---|---|
-| Пшеница | `Assets/Pandazole_Ultimate_Pack/Pandazole Farm Ranch Pack/Prefabs/Env_Wheat.prefab` |
-| Томат | `Assets/LowPolyFarmLite/Prefabs/TomatoPlant_01.prefab` |
-| Капуста | `Assets/LowPolyFarmLite/Prefabs/Cabbage_01.prefab` |
+| Пшеница | `Assets/ThirdParty/Pandazole_Ultimate_Pack/Pandazole Farm Ranch Pack/Prefabs/Env_Wheat.prefab` |
+| Томат | `Assets/ThirdParty/LowPolyFarmLite/Prefabs/TomatoPlant_01.prefab` |
+| Капуста | `Assets/ThirdParty/LowPolyFarmLite/Prefabs/Cabbage_01.prefab` |
 
 Плюсы трёх: меньше UI и настроек, три различимых силуэта, зрелые модели уже на диске, проще проверять рост/размеры/экономику. Для ранних стадий достаточно общей маленькой рассады и увеличенного растения без урожая; отдельная сложная система анимации растений не нужна.
 

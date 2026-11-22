@@ -23,19 +23,21 @@ MonoBehaviour:
   cues:
   - id: 0
     bus: 3
-    clips: []
-    gainDb: -10
+    clips:
+    - {fileID: 8300000, guid: 17f57270658554a45a8e82019ab90da2, type: 3}
+    gainDb: -16
     pitchRange: {x: 0.96, y: 1.04}
     spatialBlend: 0
     minDistance: 8
     maxDistance: 45
     priority: 48
-    maxInstances: 3
-    cooldown: 0.08
+    maxInstances: 1
+    cooldown: 0.13
     playWhilePaused: 1
   - id: 1
     bus: 3
-    clips: []
+    clips:
+    - {fileID: 8300000, guid: 4e86ffc13a9ec154b807f7fb232a6c75, type: 3}
     gainDb: -10
     pitchRange: {x: 0.96, y: 1.04}
     spatialBlend: 0
@@ -47,7 +49,8 @@ MonoBehaviour:
     playWhilePaused: 1
   - id: 2
     bus: 3
-    clips: []
+    clips:
+    - {fileID: 8300000, guid: 9cfc94120350f8c43932ed7c123bda5f, type: 3}
     gainDb: -10
     pitchRange: {x: 0.96, y: 1.04}
     spatialBlend: 0
@@ -59,7 +62,8 @@ MonoBehaviour:
     playWhilePaused: 1
   - id: 3
     bus: 3
-    clips: []
+    clips:
+    - {fileID: 8300000, guid: ad18ea15dbc6be849895d0186714e0b5, type: 3}
     gainDb: -10
     pitchRange: {x: 0.96, y: 1.04}
     spatialBlend: 0
@@ -71,7 +75,8 @@ MonoBehaviour:
     playWhilePaused: 1
   - id: 4
     bus: 3
-    clips: []
+    clips:
+    - {fileID: 8300000, guid: aa3ebf9c4129da24bb4c513f4e969d43, type: 3}
     gainDb: -10
     pitchRange: {x: 0.96, y: 1.04}
     spatialBlend: 0
@@ -83,7 +88,8 @@ MonoBehaviour:
     playWhilePaused: 1
   - id: 5
     bus: 3
-    clips: []
+    clips:
+    - {fileID: 8300000, guid: a3b400f3ab66d2e4c9ec4225957b35a3, type: 3}
     gainDb: -10
     pitchRange: {x: 0.96, y: 1.04}
     spatialBlend: 0
@@ -95,7 +101,8 @@ MonoBehaviour:
     playWhilePaused: 1
   - id: 6
     bus: 1
-    clips: []
+    clips:
+    - {fileID: 8300000, guid: e524ee045ccb14d418a9767222a8aa74, type: 3}
     gainDb: -6
     pitchRange: {x: 0.96, y: 1.04}
     spatialBlend: 0.7
@@ -107,7 +114,8 @@ MonoBehaviour:
     playWhilePaused: 0
   - id: 7
     bus: 1
-    clips: []
+    clips:
+    - {fileID: 8300000, guid: acb6661c371482d42a7f261639382eb2, type: 3}
     gainDb: -6
     pitchRange: {x: 0.96, y: 1.04}
     spatialBlend: 0.7
@@ -119,7 +127,8 @@ MonoBehaviour:
     playWhilePaused: 0
   - id: 8
     bus: 1
-    clips: []
+    clips:
+    - {fileID: 8300000, guid: 0896359990e2b4d429b9385a929ac7a2, type: 3}
     gainDb: -6
     pitchRange: {x: 0.96, y: 1.04}
     spatialBlend: 0.7
@@ -131,7 +140,8 @@ MonoBehaviour:
     playWhilePaused: 0
   - id: 9
     bus: 1
-    clips: []
+    clips:
+    - {fileID: 8300000, guid: 448d4471a6ec6fa47be4b93feadf98bb, type: 3}
     gainDb: -6
     pitchRange: {x: 0.96, y: 1.04}
     spatialBlend: 0.7
@@ -143,7 +153,8 @@ MonoBehaviour:
     playWhilePaused: 1
   - id: 10
     bus: 1
-    clips: []
+    clips:
+    - {fileID: 8300000, guid: 35c44c09052c5fe4d8c22e29705a5a2c, type: 3}
     gainDb: -6
     pitchRange: {x: 0.96, y: 1.04}
     spatialBlend: 0.7
@@ -155,7 +166,8 @@ MonoBehaviour:
     playWhilePaused: 1
   - id: 11
     bus: 1
-    clips: []
+    clips:
+    - {fileID: 8300000, guid: e876dffa94c25f04ba4435b4f86b7c7b, type: 3}
     gainDb: -6
     pitchRange: {x: 0.96, y: 1.04}
     spatialBlend: 0.7
@@ -167,7 +179,8 @@ MonoBehaviour:
     playWhilePaused: 0
   - id: 12
     bus: 1
-    clips: []
+    clips:
+    - {fileID: 8300000, guid: e87c757fd3c40294faec3762770c383d, type: 3}
     gainDb: -6
     pitchRange: {x: 0.96, y: 1.04}
     spatialBlend: 0.7
@@ -179,7 +192,8 @@ MonoBehaviour:
     playWhilePaused: 0
   - id: 13
     bus: 1
-    clips: []
+    clips:
+    - {fileID: 8300000, guid: 33e70b24c05dc10439db660e56a071fa, type: 3}
     gainDb: -6
     pitchRange: {x: 0.96, y: 1.04}
     spatialBlend: 0.7
@@ -191,7 +205,8 @@ MonoBehaviour:
     playWhilePaused: 0
   - id: 14
     bus: 1
-    clips: []
+    clips:
+    - {fileID: 8300000, guid: 323f7e692d313214bb7068b9d4e0aef7, type: 3}
     gainDb: -6
     pitchRange: {x: 0.96, y: 1.04}
     spatialBlend: 0.7
@@ -203,7 +218,8 @@ MonoBehaviour:
     playWhilePaused: 0
   - id: 15
     bus: 1
-    clips: []
+    clips:
+    - {fileID: 8300000, guid: 727b7826bbc1f7e479188a7b2e9e8f85, type: 3}
     gainDb: -6
     pitchRange: {x: 0.96, y: 1.04}
     spatialBlend: 0.7
@@ -215,7 +231,8 @@ MonoBehaviour:
     playWhilePaused: 0
   - id: 16
     bus: 1
-    clips: []
+    clips:
+    - {fileID: 8300000, guid: b9ef5a364f63f624aa4a436cf5342624, type: 3}
     gainDb: -6
     pitchRange: {x: 0.96, y: 1.04}
     spatialBlend: 0.7
@@ -227,7 +244,8 @@ MonoBehaviour:
     playWhilePaused: 0
   - id: 17
     bus: 1
-    clips: []
+    clips:
+    - {fileID: 8300000, guid: 9b410a07ab7b85a4fa50cd308c533376, type: 3}
     gainDb: -6
     pitchRange: {x: 0.96, y: 1.04}
     spatialBlend: 0.7
@@ -236,10 +254,11 @@ MonoBehaviour:
     priority: 128
     maxInstances: 3
     cooldown: 0.06
-    playWhilePaused: 0
+    playWhilePaused: 1
   - id: 18
     bus: 1
-    clips: []
+    clips:
+    - {fileID: 8300000, guid: 3018ffca8ebaec444ac73e842818cc31, type: 3}
     gainDb: -6
     pitchRange: {x: 0.96, y: 1.04}
     spatialBlend: 0.7
@@ -251,7 +270,8 @@ MonoBehaviour:
     playWhilePaused: 0
   - id: 19
     bus: 1
-    clips: []
+    clips:
+    - {fileID: 8300000, guid: 12046b43c0c4f3a47a33dfc5b36ea0f2, type: 3}
     gainDb: -6
     pitchRange: {x: 0.96, y: 1.04}
     spatialBlend: 0.7
@@ -263,7 +283,8 @@ MonoBehaviour:
     playWhilePaused: 0
   - id: 20
     bus: 1
-    clips: []
+    clips:
+    - {fileID: 8300000, guid: b8a8137915a76e046b669fad5f988f50, type: 3}
     gainDb: -6
     pitchRange: {x: 0.96, y: 1.04}
     spatialBlend: 0.7
@@ -275,7 +296,8 @@ MonoBehaviour:
     playWhilePaused: 0
   - id: 21
     bus: 1
-    clips: []
+    clips:
+    - {fileID: 8300000, guid: db10cbf189e591447882cbd2c5187a29, type: 3}
     gainDb: -6
     pitchRange: {x: 0.96, y: 1.04}
     spatialBlend: 0.7
@@ -284,10 +306,11 @@ MonoBehaviour:
     priority: 128
     maxInstances: 3
     cooldown: 0.06
-    playWhilePaused: 0
+    playWhilePaused: 1
   - id: 22
     bus: 1
-    clips: []
+    clips:
+    - {fileID: 8300000, guid: dd9eed6ab6708494ea914e0a6e56358d, type: 3}
     gainDb: -6
     pitchRange: {x: 0.96, y: 1.04}
     spatialBlend: 0.7
@@ -296,10 +319,11 @@ MonoBehaviour:
     priority: 128
     maxInstances: 3
     cooldown: 0.06
-    playWhilePaused: 0
+    playWhilePaused: 1
   - id: 23
     bus: 1
-    clips: []
+    clips:
+    - {fileID: 8300000, guid: a3fe251e4f0397e44864c3dd3735d8cf, type: 3}
     gainDb: -6
     pitchRange: {x: 0.96, y: 1.04}
     spatialBlend: 0.7
@@ -308,10 +332,11 @@ MonoBehaviour:
     priority: 128
     maxInstances: 3
     cooldown: 0.06
-    playWhilePaused: 0
+    playWhilePaused: 1
   - id: 24
     bus: 3
-    clips: []
+    clips:
+    - {fileID: 8300000, guid: 5c122fd6355315c49ab96a5c6e1d3b40, type: 3}
     gainDb: -10
     pitchRange: {x: 0.96, y: 1.04}
     spatialBlend: 0
@@ -323,7 +348,8 @@ MonoBehaviour:
     playWhilePaused: 1
   - id: 25
     bus: 3
-    clips: []
+    clips:
+    - {fileID: 8300000, guid: 75889226b46b08540bfdc83e0d2db2de, type: 3}
     gainDb: -10
     pitchRange: {x: 0.96, y: 1.04}
     spatialBlend: 0
@@ -335,7 +361,8 @@ MonoBehaviour:
     playWhilePaused: 1
   - id: 26
     bus: 3
-    clips: []
+    clips:
+    - {fileID: 8300000, guid: bf469e983c591fc4da21c692a05b38e7, type: 3}
     gainDb: -10
     pitchRange: {x: 0.96, y: 1.04}
     spatialBlend: 0
@@ -347,19 +374,23 @@ MonoBehaviour:
     playWhilePaused: 1
   - id: 27
     bus: 1
-    clips: []
-    gainDb: -6
+    clips:
+    - {fileID: 8300000, guid: 1b16f6690271f344dbd66c525c79bb5b, type: 3}
+    - {fileID: 8300000, guid: 202b215ca020ad24abca2128bc0a9908, type: 3}
+    - {fileID: 8300000, guid: 5f6b24bd431d18b469e57e66d194d2d6, type: 3}
+    gainDb: -12
     pitchRange: {x: 0.96, y: 1.04}
     spatialBlend: 0.7
     minDistance: 8
     maxDistance: 45
     priority: 190
-    maxInstances: 3
+    maxInstances: 2
     cooldown: 0.06
     playWhilePaused: 0
   - id: 28
     bus: 1
-    clips: []
+    clips:
+    - {fileID: 8300000, guid: 98aea0f7a821c4840b0eea2c6e2d289c, type: 3}
     gainDb: -6
     pitchRange: {x: 0.96, y: 1.04}
     spatialBlend: 0.7
@@ -371,7 +402,8 @@ MonoBehaviour:
     playWhilePaused: 0
   - id: 29
     bus: 1
-    clips: []
+    clips:
+    - {fileID: 8300000, guid: 68aead315142c714c9e406efe1ae00aa, type: 3}
     gainDb: -6
     pitchRange: {x: 0.96, y: 1.04}
     spatialBlend: 0.7
@@ -383,7 +415,8 @@ MonoBehaviour:
     playWhilePaused: 0
   - id: 30
     bus: 0
-    clips: []
+    clips:
+    - {fileID: 8300000, guid: 2f4665986b9077c47a9417d64296c028, type: 3}
     gainDb: -8
     pitchRange: {x: 1, y: 1}
     spatialBlend: 0
@@ -395,7 +428,8 @@ MonoBehaviour:
     playWhilePaused: 1
   - id: 31
     bus: 0
-    clips: []
+    clips:
+    - {fileID: 8300000, guid: 7ba718511179fbe4e9eaf1c4baa26e18, type: 3}
     gainDb: -8
     pitchRange: {x: 1, y: 1}
     spatialBlend: 0
@@ -407,7 +441,8 @@ MonoBehaviour:
     playWhilePaused: 1
   - id: 32
     bus: 0
-    clips: []
+    clips:
+    - {fileID: 8300000, guid: 70cf0c8b0ea1d144190d9eb02969c40e, type: 3}
     gainDb: -8
     pitchRange: {x: 1, y: 1}
     spatialBlend: 0
@@ -419,8 +454,9 @@ MonoBehaviour:
     playWhilePaused: 1
   - id: 33
     bus: 2
-    clips: []
-    gainDb: -6
+    clips:
+    - {fileID: 8300000, guid: 0fbb99202f556674d97b7f307f2d92c7, type: 3}
+    gainDb: -11
     pitchRange: {x: 1, y: 1}
     spatialBlend: 0
     minDistance: 8
@@ -431,8 +467,9 @@ MonoBehaviour:
     playWhilePaused: 0
   - id: 34
     bus: 2
-    clips: []
-    gainDb: -6
+    clips:
+    - {fileID: 8300000, guid: 5fb6616cd56da984ca8fc08f582a3fe4, type: 3}
+    gainDb: -11
     pitchRange: {x: 1, y: 1}
     spatialBlend: 0
     minDistance: 8
@@ -448,6 +485,97 @@ MonoBehaviour:
     gainDb: 0
     pitchRange: {x: 1, y: 1}
     spatialBlend: 0
+    minDistance: 8
+    maxDistance: 45
+    priority: 128
+    maxInstances: 3
+    cooldown: 0.06
+    playWhilePaused: 0
+  - id: 36
+    bus: 1
+    clips:
+    - {fileID: 8300000, guid: 2667ea592acfdcc4983e6a35c22717ef, type: 3}
+    gainDb: -6
+    pitchRange: {x: 0.96, y: 1.04}
+    spatialBlend: 0.7
+    minDistance: 8
+    maxDistance: 45
+    priority: 128
+    maxInstances: 3
+    cooldown: 0.06
+    playWhilePaused: 1
+  - id: 37
+    bus: 1
+    clips:
+    - {fileID: 8300000, guid: 7f58789a3de9f3342885f4ab11f92b42, type: 3}
+    gainDb: -6
+    pitchRange: {x: 0.96, y: 1.04}
+    spatialBlend: 0.7
+    minDistance: 8
+    maxDistance: 45
+    priority: 128
+    maxInstances: 3
+    cooldown: 0.06
+    playWhilePaused: 0
+  - id: 38
+    bus: 1
+    clips:
+    - {fileID: 8300000, guid: df1c60fcc530ad54691894037e53dd23, type: 3}
+    gainDb: -6
+    pitchRange: {x: 0.96, y: 1.04}
+    spatialBlend: 0.7
+    minDistance: 8
+    maxDistance: 45
+    priority: 128
+    maxInstances: 3
+    cooldown: 0.06
+    playWhilePaused: 0
+  - id: 39
+    bus: 1
+    clips:
+    - {fileID: 8300000, guid: 8ff64ae3d6fed404d9e8bfe4e2fac8c2, type: 3}
+    gainDb: -6
+    pitchRange: {x: 0.96, y: 1.04}
+    spatialBlend: 0.7
+    minDistance: 8
+    maxDistance: 45
+    priority: 128
+    maxInstances: 3
+    cooldown: 0.06
+    playWhilePaused: 1
+  - id: 40
+    bus: 1
+    clips:
+    - {fileID: 8300000, guid: 3b1b4b9b86229bb41b7dd7982a127d63, type: 3}
+    gainDb: -6
+    pitchRange: {x: 0.96, y: 1.04}
+    spatialBlend: 0.7
+    minDistance: 8
+    maxDistance: 45
+    priority: 128
+    maxInstances: 3
+    cooldown: 0.06
+    playWhilePaused: 1
+  - id: 41
+    bus: 1
+    clips:
+    - {fileID: 8300000, guid: 06b0438ffb84081479cf59a375699c70, type: 3}
+    gainDb: -6
+    pitchRange: {x: 0.96, y: 1.04}
+    spatialBlend: 0.7
+    minDistance: 8
+    maxDistance: 45
+    priority: 128
+    maxInstances: 3
+    cooldown: 0.06
+    playWhilePaused: 0
+  - id: 42
+    bus: 1
+    clips:
+    - {fileID: 8300000, guid: 68b77fdb9851bf143ae4d95d0328d326, type: 3}
+    gainDb: -6
+    pitchRange: {x: 0.96, y: 1.04}
+    spatialBlend: 0.7
     minDistance: 8
     maxDistance: 45
     priority: 128

@@ -130,13 +130,17 @@ namespace MyLittleFarm.Tests.PlayMode
             yield return null;
             var onboarding = UnityEngine.Object.FindFirstObjectByType<OnboardingSystem>();
             var save = UnityEngine.Object.FindFirstObjectByType<SaveSystem>();
-            foreach (var action in new[] { "house", "chest", "plant", "harvest", "sale", "purchase" })
+            foreach (var action in new[] { "house", "chest" })
                 GameEvents.RaiseProgressAction(action);
-            Assert.That(onboarding.Step, Is.EqualTo(6));
+            GameEvents.RaiseActionFeedback("plant", new Vector3(1.5f, 0f, 1.5f));
+            GameEvents.RaiseActionFeedback("harvest", new Vector3(1.5f, 0f, 1.5f));
+            GameEvents.RaiseProgressAction("purchase");
+            GameEvents.RaiseProgressAction("sale");
+            Assert.That(onboarding.Step, Is.EqualTo(OnboardingSystem.StepCount));
             var snapshot = save.Capture();
             onboarding.Restore(0);
             save.Restore(snapshot);
-            Assert.That(onboarding.Step, Is.EqualTo(6));
+            Assert.That(onboarding.Step, Is.EqualTo(OnboardingSystem.StepCount));
         }
 
         private static void DeleteIfPresent(string path)

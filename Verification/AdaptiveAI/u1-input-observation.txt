@@ -1,0 +1,1 @@
+Virtual pointer and H watered the crop through InputReader. Harvested 5 tomatoes of size S. Stored the batch, withdrew one of the same size and sold it for 3. Other sizes stayed unchanged.

@@ -38,6 +38,8 @@ namespace MyLittleFarm.Tests.PlayMode
             var input=Farm.GetComponent<InputReader>();input.enabled=false;
             var selector=Farm.GetComponentInChildren<CellSelector>();selector.enabled=false;
             var animals=Farm.GetComponentInChildren<AnimalSystem>();animals.AddChicken(new Vector2Int(1,3),1);
+            var grid = Farm.GetComponentInChildren<GridSystem>();
+            Farm.GetComponentInChildren<PlayerController>().Teleport(grid.CellToWorld(new Vector2Int(1, 2)) + Vector3.up * .8f);
             var target=animals.GetComponentInChildren<InteractionTarget>();selector.SelectTarget(target);
             var interaction=Farm.GetComponentInChildren<InteractionSystem>();
             yield return new WaitForSeconds(.25f);

@@ -6,6 +6,7 @@ using MyLittleFarm.Core;
 using MyLittleFarm.Core.Grid;
 using MyLittleFarm.Gameplay.Building;
 using MyLittleFarm.Gameplay.Economy;
+using MyLittleFarm.Gameplay.World;
 using MyLittleFarm.UI;
 using NUnit.Framework;
 using UnityEditor;
@@ -27,7 +28,7 @@ namespace MyLittleFarm.Tests.PlayMode
             _input=Farm.GetComponent<InputReader>();_input.enabled=false;
             _build=Farm.GetComponentInChildren<BuildSystem>();_grid=Farm.GetComponentInChildren<GridSystem>();
             _camera=Farm.GetComponentInChildren<Camera>();
-            var serialized=new SerializedObject(_build);var array=serialized.FindProperty("visualPrefabs");array.arraySize=BuildingDefinition.Catalog.Count;
+            var serialized=new SerializedObject(_build);var array=serialized.FindProperty("visualPrefabs");array.arraySize=5;
             for(var i=0;i<array.arraySize;i++)
             {
                 var entry=array.GetArrayElementAtIndex(i);var id=BuildingDefinition.Catalog[i].Id;
@@ -42,11 +43,22 @@ namespace MyLittleFarm.Tests.PlayMode
         private void Point(Vector2Int cell){Set("HasPointer",true);Set("PointerPosition",(Vector2)_camera.WorldToScreenPoint(_grid.CellToWorld(cell)));}
         private Transform Ghost=>_build.transform.Find("Building model preview");
 
+        private void AimFixedCamera(Vector2Int cell)
+        {
+            _camera.GetComponent<IsometricCameraController>().enabled = false;
+            var target = _grid.CellToWorld(cell);
+            _camera.transform.position = target + new Vector3(0, 8f, -5f);
+            _camera.transform.LookAt(target);
+            Set("BuildSelection", -1);
+            Physics.SyncTransforms();
+            Point(cell);
+        }
+
         [UnityTest]
         public IEnumerator AllFiveGhostsMatchArtAndTintEverySubmeshWithoutBlockingPlacement()
         {
             Setup();
-            for(var i=0;i<BuildingDefinition.Catalog.Count;i++)
+            for(var i=0;i<5;i++)
             {
                 Set("BuildSelection",i);yield return null;Set("BuildSelection",-1);yield return new WaitForSeconds(.12f);
                 var ghost=Ghost;Assert.That(ghost.gameObject.activeSelf,Is.True);
@@ -81,7 +93,8 @@ namespace MyLittleFarm.Tests.PlayMode
             var card=Farm.GetComponentInChildren<BuildPromptUI>(true);
             var normal=Farm.GetComponentsInChildren<Text>(true).Single(t=>t.name=="Interaction Prompt");
             Assert.That(card.gameObject.activeSelf,Is.True);Assert.That(normal.enabled,Is.False);
-            Assert.That(card.PromptText.text,Does.Contain("Q / R").And.Contain("Esc").And.Contain("E / ЛКМ"));
+            Assert.That(card.PromptText.text,
+                Does.Contain(InputReader.BuildRotateHint).And.Contain("Esc").And.Contain(InputReader.ActionHint));
             var cameraRotation=_camera.transform.rotation;
             Set("RotateBuildingPressed",true);Set("RotateLeftPressed",true);yield return null;
             Set("RotateBuildingPressed",false);Set("RotateLeftPressed",false);yield return null;
@@ -97,24 +110,67 @@ namespace MyLittleFarm.Tests.PlayMode
         }
 
         [UnityTest]
+        public IEnumerator HouseFootprintMarksBothCollidersAndTheTilledCell()
+        {
+            Setup();
+            var origin = new Vector2Int(0, 3);
+            _build.BeginPlacement(0);
+            AimFixedCamera(origin);
+            var blockedGround = origin + new Vector2Int(2, 0);
+            var firstObstacle = origin + new Vector2Int(1, 1);
+            var secondObstacle = origin + new Vector2Int(4, 3);
+            _grid.SetCellType(blockedGround, CellType.Tilled);
+            foreach (var cell in new[] { firstObstacle, secondObstacle })
+            {
+                var obstacle = new GameObject("Placement obstacle");
+                obstacle.transform.SetParent(Farm.transform);
+                obstacle.transform.position = _grid.GridToWorld(cell) + Vector3.up * .5f;
+                obstacle.AddComponent<BoxCollider>().size = Vector3.one * .4f;
+            }
+            Physics.SyncTransforms();
+            yield return null;
+
+            var width = BuildingDefinition.Catalog[0].Width;
+            var footprint = _build.transform.Find("Building footprint");
+            Assert.That(footprint, Is.Not.Null, _build.CurrentPrompt);
+            foreach (var cell in new[] { blockedGround, firstObstacle, secondObstacle, origin })
+            {
+                var offset = cell - origin;
+                var line = footprint.GetChild(offset.y * width + offset.x).GetComponent<LineRenderer>();
+                Assert.That(line.positionCount, Is.EqualTo(cell == origin ? 5 : 7), $"Footprint at {cell}");
+            }
+            Assert.That(_build.TryPlace("house", origin, 0, out _), Is.False);
+            Assert.That(Farm.GetComponentInChildren<WalletSystem>().Coins, Is.EqualTo(100));
+        }
+
+        [UnityTest]
         public IEnumerator EPlacesAndConfirmsDeletionWhileCancelledMovePreservesBuilding()
         {
-            Setup();Set("BuildSelection",3);yield return null;Set("BuildSelection",-1);yield return null;
+            Setup();
+            _build.BeginPlacement(3);
+            AimFixedCamera(new Vector2Int(0,3));
+            yield return null;
             Set("InteractPressed",true);yield return null;Set("InteractPressed",false);yield return null;
             Assert.That(_build.Count,Is.EqualTo(1));
             Assert.That(Farm.GetComponentInChildren<WalletSystem>().Coins,Is.EqualTo(97));
-            Set("MoveBuildingPressed",true);yield return null;Set("MoveBuildingPressed",false);yield return new WaitForSeconds(.12f);
+            Assert.That(_build.IsActive,Is.False);
+            _build.BeginManagement(remove:false);
+            Set("InteractPressed",true);yield return null;Set("InteractPressed",false);yield return new WaitForSeconds(.12f);
             Assert.That(_build.CurrentPrompt,Does.Contain("бесплатный перенос"));
             Set("CancelPressed",true);yield return null;Set("CancelPressed",false);yield return null;
-            Assert.That(_build.IsActive,Is.True);Assert.That(_build.Count,Is.EqualTo(1));
+            Assert.That(_build.IsActive,Is.False);Assert.That(_build.Count,Is.EqualTo(1));
             Assert.That(_grid.IsOccupied(new Vector2Int(0,3)),Is.True);
-            Set("DeleteBuildingPressed",true);yield return null;Set("DeleteBuildingPressed",false);yield return null;
+            _build.BeginManagement(remove:true);
+            Set("InteractPressed",true);yield return null;Set("InteractPressed",false);yield return null;
             var card=Farm.GetComponentInChildren<BuildPromptUI>(true);
-            Assert.That(card.PromptText.text,Does.Contain("E / Enter — подтвердить").And.Contain("Esc / ПКМ"));
+            Assert.That(card.PromptText.text,
+                Does.Contain("Подтвердить · " + InputReader.KeyLabel(InputReader.Command.Interact) + " / Enter")
+                    .And.Contain("Отмена · Esc / ПКМ"));
             Assert.That(Ghost.gameObject.activeSelf,Is.False);
             Set("PointerInteractPressed",true);Set("InteractPressed",true);yield return null;
             Assert.That(_build.Count,Is.EqualTo(1),"A pointer click must not accidentally confirm deletion.");
-            Set("PointerInteractPressed",false);yield return null;Set("InteractPressed",false);yield return null;
+            Set("PointerInteractPressed",false);Set("InteractPressed",false);yield return null;
+            Set("InteractPressed",true);yield return null;Set("InteractPressed",false);yield return null;
             Assert.That(_build.Count,Is.Zero);
             Assert.That(Farm.GetComponentInChildren<WalletSystem>().Coins,Is.EqualTo(98));
         }

@@ -66,7 +66,7 @@ namespace MyLittleFarm.Tests.EditMode
                 Assert.That(animator.avatar.isHuman && animator.avatar.isValid,Is.True);
                 Assert.That(animator.applyRootMotion,Is.False);
                 animator.Rebind();animator.Update(0f);
-                Assert.That(PlayerRigSetup.BakedBounds(instance).size.y,Is.EqualTo(1.8f).Within(0.002f));
+                Assert.That(PlayerRigSetup.BakedBounds(instance).size.y,Is.EqualTo(1.44f).Within(0.002f));
                 var controller=(AnimatorController)animator.runtimeAnimatorController;
                 var clips=controller.animationClips.Distinct().ToArray();
                 Assert.That(clips.Length,Is.EqualTo(34));

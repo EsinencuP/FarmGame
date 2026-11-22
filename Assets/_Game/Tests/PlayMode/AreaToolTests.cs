@@ -24,10 +24,23 @@ namespace MyLittleFarm.Tests.PlayMode
         {
             yield return null;
             var c=new Vector2Int(3,2);var grid=System<GridSystem>();var actions=System<InteractionSystem>();
-            System<PlayerController>().Teleport(grid.CellToWorld(c)+Vector3.up*1.1f);
+            var player = System<PlayerController>();
             var slots=System<QuickSlotSystem>();var tools=System<ToolUpgradeSystem>();tools.Restore(2);
             var now=DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-            Assert.That(actions.InteractWithCell(c,now),Is.False,"Seeds must not till grass");
+            slots.Select(0);
+            var status = string.Empty;
+            void CaptureStatus(string text) => status = text;
+            GameEvents.StatusChanged += CaptureStatus;
+            try
+            {
+                player.Teleport(grid.CellToWorld(c + Vector2Int.left * 8) + Vector3.up * 1.1f);
+                Assert.That(actions.InteractWithCell(c, now), Is.False);
+                Assert.That(status, Does.Contain("слишком далеко"));
+                player.Teleport(grid.CellToWorld(c) + Vector3.up * 1.1f);
+                Assert.That(actions.InteractWithCell(c, now), Is.False, "Seeds must not till grass");
+                Assert.That(status, Does.Contain("Сначала обработайте землю мотыгой"));
+            }
+            finally { GameEvents.StatusChanged -= CaptureStatus; }
             slots.SelectTool(QuickSlotSystem.SelectionMode.Hoe);
             Assert.That(actions.PlanField(c,now).Allowed,Is.EqualTo(9));Assert.That(actions.InteractWithCell(c,now),Is.True);
             yield return new WaitForSecondsRealtime(.2f);

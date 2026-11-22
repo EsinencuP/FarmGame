@@ -59,20 +59,20 @@ Write-Output "PASS: C# 9 syntax and assembly ownership for $($files.Count) scrip
 Write-Output "PASS: all $($files.Count) scripts contain explanatory summary comments."
 
 # Рабочий bootstrap не должен снова получить автоматический runtime-генератор всей сцены.
-$bootstrapSource = [IO.File]::ReadAllText((Join-Path $gameRoot 'Core/GameBootstrap.cs'))
+$bootstrapSource = [IO.File]::ReadAllText((Join-Path $gameRoot 'Scripts/Runtime/Core/GameBootstrap.cs'))
 if ($bootstrapSource -match 'RuntimeInitializeOnLoadMethod\(RuntimeInitializeLoadType\.AfterSceneLoad\)') {
     throw 'GameBootstrap must bind baked objects instead of generating the scene after load.'
 }
-$bakerPath = Join-Path $gameRoot 'Editor/PrototypeSceneBaker.cs'
+$bakerPath = Join-Path $gameRoot 'Scripts/Editor/Scenes/PrototypeSceneBaker.cs'
 if (-not (Test-Path -LiteralPath $bakerPath)) {
     throw 'Prototype scene baker is missing.'
 }
 Write-Output 'PASS: runtime scene auto-generation is disabled and the Edit Mode baker is present.'
 
 # GridSystem v2 обязан жить в Core/Grid и выбирать поверхность без аллокаций через RaycastNonAlloc.
-$gridPath = Join-Path $gameRoot 'Core/Grid/GridSystem.cs'
-$selectorPath = Join-Path $gameRoot 'Core/Grid/CellSelector.cs'
-$chunkPath = Join-Path $gameRoot 'Core/Grid/TilemapChunk.cs'
+$gridPath = Join-Path $gameRoot 'Scripts/Runtime/Core/Grid/GridSystem.cs'
+$selectorPath = Join-Path $gameRoot 'Scripts/Runtime/Core/Grid/CellSelector.cs'
+$chunkPath = Join-Path $gameRoot 'Scripts/Runtime/Core/Grid/TilemapChunk.cs'
 foreach ($requiredPath in @($gridPath, $selectorPath, $chunkPath)) {
     if (-not (Test-Path -LiteralPath $requiredPath)) { throw "GridSystem v2 script is missing: $requiredPath" }
 }
@@ -87,9 +87,9 @@ if ($selectorSource -notmatch 'RaycastNonAlloc' -or $selectorSource -match 'new 
 Write-Output 'PASS: world-scale chunk grid and non-allocating terrain selection contracts are present.'
 
 # Параметры движения и камеры должны оставаться настройками Inspector, а не скрытыми константами.
-$playerPath = Join-Path $gameRoot 'Gameplay/World/PlayerController.cs'
-$cameraPath = Join-Path $gameRoot 'Gameplay/World/IsometricCameraController.cs'
-$inputPath = Join-Path $gameRoot 'Core/InputReader.cs'
+$playerPath = Join-Path $gameRoot 'Scripts/Runtime/Gameplay/World/PlayerController.cs'
+$cameraPath = Join-Path $gameRoot 'Scripts/Runtime/Gameplay/World/IsometricCameraController.cs'
+$inputPath = Join-Path $gameRoot 'Scripts/Runtime/Core/InputReader.cs'
 $playerSource = [IO.File]::ReadAllText($playerPath)
 $cameraSource = [IO.File]::ReadAllText($cameraPath)
 $inputSource = [IO.File]::ReadAllText($inputPath)
@@ -118,8 +118,8 @@ if (($inputSource -notmatch 'SprintHeld = shift') -or
 Write-Output 'PASS: inspector-backed player/camera settings and run/jump contracts are present.'
 
 # Эти файлы не зависят от UnityEngine и компилируются как настоящая доменная реализация.
-$domain = @('Gameplay/Building/BuildingDefinition.cs', 'Gameplay/Building/BuildingRuntimeState.cs',
-    'Gameplay/Building/BuildingLayout.cs', 'Tests/EditMode/BuildingContractChecks.cs') |
+$domain = @('Scripts/Runtime/Gameplay/Building/BuildingDefinition.cs', 'Scripts/Runtime/Gameplay/Building/BuildingRuntimeState.cs',
+    'Scripts/Runtime/Gameplay/Building/BuildingLayout.cs', 'Tests/EditMode/BuildingContractChecks.cs') |
     ForEach-Object { Join-Path $gameRoot $_ }
 Add-Type -Path $domain
 # assertions подтверждает объём реально выполненных контрактных проверок.
@@ -127,7 +127,7 @@ $assertions = [MyLittleFarm.Tests.EditMode.BuildingContractChecks]::Run()
 Write-Output "PASS: actual building domain compiled; $assertions assertions, including 1000 deterministic random operations."
 
 # Экономическая модель также компилируется и выполняется автономно на настоящем C# коде проекта.
-$economyDomain = @('Gameplay/Economy/TransactionMath.cs',
+$economyDomain = @('Scripts/Runtime/Gameplay/Economy/TransactionMath.cs',
     'Tests/EditMode/TransactionMathContractChecks.cs') |
     ForEach-Object { Join-Path $gameRoot $_ }
 Add-Type -Path $economyDomain
@@ -136,10 +136,10 @@ Write-Output "PASS: actual economy calculations compiled; $economyAssertions ass
 
 # Минимальная заглушка заменяет только Unity Vector2Int; ChunkData и GridMath берутся из игры без копий.
 $gridDomain = @('Verification/UnityVector2IntStub.cs',
-    'Assets/_Game/Core/Grid/CellType.cs', 'Assets/_Game/Core/Grid/CellData.cs',
-    'Assets/_Game/Core/Grid/TerrainCell.cs', 'Assets/_Game/Core/Grid/FarmingCell.cs',
-    'Assets/_Game/Core/Grid/BuildingCell.cs', 'Assets/_Game/Core/Grid/GridMath.cs',
-    'Assets/_Game/Core/Grid/ChunkData.cs',
+    'Assets/_Game/Scripts/Runtime/Core/Grid/CellType.cs', 'Assets/_Game/Scripts/Runtime/Core/Grid/CellData.cs',
+    'Assets/_Game/Scripts/Runtime/Core/Grid/TerrainCell.cs', 'Assets/_Game/Scripts/Runtime/Core/Grid/FarmingCell.cs',
+    'Assets/_Game/Scripts/Runtime/Core/Grid/BuildingCell.cs', 'Assets/_Game/Scripts/Runtime/Core/Grid/GridMath.cs',
+    'Assets/_Game/Scripts/Runtime/Core/Grid/ChunkData.cs',
     'Assets/_Game/Tests/EditMode/GridArchitectureContractChecks.cs') |
     ForEach-Object { Join-Path $ProjectRoot $_ }
 Add-Type -Path $gridDomain
@@ -147,9 +147,9 @@ $gridAssertions = [MyLittleFarm.Tests.EditMode.GridArchitectureContractChecks]::
 Write-Output "PASS: layered chunk model compiled; $gridAssertions assertions, including all coordinates from -4096 to 4096."
 
 # Первый блок Этапа 2 обязан оставаться data-driven: новые культуры не получают отдельные системы.
-$catalogSource = [IO.File]::ReadAllText((Join-Path $gameRoot 'Gameplay/Farming/FarmCatalog.cs'))
-$inputSource = [IO.File]::ReadAllText((Join-Path $gameRoot 'Core/InputReader.cs'))
-$quickSlotSource = [IO.File]::ReadAllText((Join-Path $gameRoot 'Gameplay/Economy/QuickSlotSystem.cs'))
+$catalogSource = [IO.File]::ReadAllText((Join-Path $gameRoot 'Scripts/Runtime/Gameplay/Farming/FarmCatalog.cs'))
+$inputSource = [IO.File]::ReadAllText((Join-Path $gameRoot 'Scripts/Runtime/Core/InputReader.cs'))
+$quickSlotSource = [IO.File]::ReadAllText((Join-Path $gameRoot 'Scripts/Runtime/Gameplay/Economy/QuickSlotSystem.cs'))
 foreach ($requiredCrop in @('"carrot"', '"potato"', '"wheat"', '"tomato"', '"corn"', '"cucumber"')) {
     if ($catalogSource -notmatch $requiredCrop) { throw "Stage 2 crop is missing: $requiredCrop" }
 }
@@ -161,9 +161,9 @@ foreach ($requiredToken in @('seedSlot5Key', 'seedSlot6Key', 'SeedSelection', 'R
 Write-Output 'PASS: Stage 2 content block has six data-driven crops and six Inspector-backed seed slots.'
 
 # Вертикальный срез Этапа 2 должен содержать повторный урожай дерева и цикл курицы.
-$orchardSource = [IO.File]::ReadAllText((Join-Path $gameRoot 'Gameplay/Farming/OrchardSystem.cs'))
-$animalSource = [IO.File]::ReadAllText((Join-Path $gameRoot 'Gameplay/Animals/AnimalSystem.cs'))
-$saveSource = [IO.File]::ReadAllText((Join-Path $gameRoot 'Core/SaveSystem.cs'))
+$orchardSource = [IO.File]::ReadAllText((Join-Path $gameRoot 'Scripts/Runtime/Gameplay/Farming/OrchardSystem.cs'))
+$animalSource = [IO.File]::ReadAllText((Join-Path $gameRoot 'Scripts/Runtime/Gameplay/Animals/AnimalSystem.cs'))
+$saveSource = [IO.File]::ReadAllText((Join-Path $gameRoot 'Scripts/Runtime/Core/SaveSystem.cs'))
 foreach ($requiredToken in @('PlantApple', 'TryHarvest', 'RegrowSeconds', 'TreeOccupantId')) {
     if ($orchardSource -notmatch [regex]::Escape($requiredToken)) {
         throw "Apple tree loop contract is missing: $requiredToken"

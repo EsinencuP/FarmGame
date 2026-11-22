@@ -4,7 +4,7 @@
 
 ## Персонаж и анимации
 
-Источник движений: **Kevin Iglesias / Human Basic Motions FREE 2.4.2**, папка `Assets/Kevin Iglesias/Human Animations`. Внешний вид теперь **Stylized NPC — Peasant Nolant Green (Free Version)**, с собственным валидным Humanoid Avatar и зелёными материалами тела/шляпы. Манекен заменён целиком: простая подмена текстуры не переносит UV и геометрию другой модели. Импортированные исходники не менялись.
+Источник движений: **Kevin Iglesias / Human Basic Motions FREE 2.4.2**, папка `Assets/ThirdParty/Kevin Iglesias/Human Animations`. Внешний вид теперь **Stylized NPC — Peasant Nolant Green (Free Version)**, с собственным валидным Humanoid Avatar и зелёными материалами тела/шляпы. Манекен заменён целиком: простая подмена текстуры не переносит UV и геометрию другой модели. Импортированные исходники не менялись.
 
 Игровая оболочка: `Assets/_Game/Content/Character/HumanPlayerVisual.prefab`; Animator Controller: `KevinLocomotion.controller` в той же папке. `Editor/PlayerRigSetup.cs` создаёт контроллер и оболочку, удаляет demo-скрипты/коллайдеры из копии модели, настраивает рост и контакт подошв. В Prototype используется `Character Visual` с Green-моделью. Команда Character / Apply Green Skin And 80 Percent Size устанавливает фиксированную высоту 1.44, не уменьшает размер повторно при каждом применении. Контроллер и 34 клипа сохранены. Детализация поз пальцев ограничена набором костей исходного Nolant; новых отдельных пальцев модель не получает.
 

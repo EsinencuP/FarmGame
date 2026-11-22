@@ -11,7 +11,7 @@
       "prefab": "Assets/_Game/Content/Art/UniversityDemo/barn.prefab",
       "guid": "84d350f9f27353743b573f13f5c3866f",
       "source": [
-        "Assets/moreAssets/Farm Buildings - Sept 2018/FBX/SmallBarn.fbx"
+        "Assets/ThirdParty/Quaternius/Farm Buildings - Sept 2018/FBX/SmallBarn.fbx"
       ],
       "icon": "Assets/_Game/Resources/FarmUI/Icons/b_barn.png",
       "animations": [],
@@ -30,7 +30,7 @@
       "prefab": "Assets/_Game/Content/Art/UniversityDemo/cheese_dairy.prefab",
       "guid": "5bf503e5446674c43aee745355fe2db6",
       "source": [
-        "Assets/moreAssets/Farm Buildings - Sept 2018/FBX/SmallBarn.fbx",
+        "Assets/ThirdParty/Quaternius/Farm Buildings - Sept 2018/FBX/SmallBarn.fbx",
         "project-authored table/churn/cheese detail"
       ],
       "icon": "Assets/_Game/Resources/FarmUI/Icons/b_cheese_dairy.png",
@@ -50,7 +50,7 @@
       "prefab": "Assets/_Game/Content/Art/UniversityDemo/cheese_product.prefab",
       "guid": "a1ab4feaf30c21748a2d2ff1c024a0de",
       "source": [
-        "Assets/moreAssets/Farm Animals by @Quaternius/Models/FBX format/cheese.fbx"
+        "Assets/ThirdParty/Quaternius/Farm Animals/Models/FBX format/cheese.fbx"
       ],
       "icon": "Assets/_Game/Resources/FarmUI/Icons/cheese.png",
       "animations": [],
@@ -69,7 +69,7 @@
       "prefab": "Assets/_Game/Content/Art/UniversityDemo/cow.prefab",
       "guid": "49eb302d2c643324585180dd86381493",
       "source": [
-        "Assets/moreAssets/Farm Animals by @Quaternius/FBX/Cow.fbx"
+        "Assets/ThirdParty/Quaternius/Farm Animals/FBX/Cow.fbx"
       ],
       "icon": "Assets/_Game/Resources/FarmUI/Icons/cow.png",
       "animations": [
@@ -130,7 +130,7 @@
       "prefab": "Assets/_Game/Content/Art/UniversityDemo/mill.prefab",
       "guid": "eb9ff4d0768db39499e56eec3bef3372",
       "source": [
-        "Assets/moreAssets/Farm Buildings - Sept 2018/FBX/TowerWindmill.fbx"
+        "Assets/ThirdParty/Quaternius/Farm Buildings - Sept 2018/FBX/TowerWindmill.fbx"
       ],
       "icon": "Assets/_Game/Resources/FarmUI/Icons/b_mill.png",
       "animations": [],
@@ -149,7 +149,7 @@
       "prefab": "Assets/_Game/Content/Art/UniversityDemo/pear_fruit.prefab",
       "guid": "8b77f74a1afb0884f83154c582f9cfe6",
       "source": [
-        "Assets/LowPolyFoodLite/Prefabs/Pear.prefab"
+        "Assets/ThirdParty/LowPolyFoodLite/Prefabs/Pear.prefab"
       ],
       "icon": "Assets/_Game/Resources/FarmUI/Icons/crop_pear.png",
       "animations": [],
@@ -168,7 +168,7 @@
       "prefab": "Assets/_Game/Content/Art/UniversityDemo/pear_tree.prefab",
       "guid": "b39a64dd0a277f744961a6962d6b881c",
       "source": [
-        "Assets/LowPolyFarmLite/Prefabs/Tree_04.prefab"
+        "Assets/ThirdParty/LowPolyFarmLite/Prefabs/Tree_04.prefab"
       ],
       "icon": "Assets/_Game/Resources/FarmUI/Icons/sapling.png",
       "animations": [],
@@ -187,7 +187,7 @@
       "prefab": "Assets/_Game/Content/Art/UniversityDemo/pumpkin_fruit.prefab",
       "guid": "2847f36e7d7927f43987f917f1e010dc",
       "source": [
-        "Assets/LowPolyFoodLite/Prefabs/Pumpkin.prefab"
+        "Assets/ThirdParty/LowPolyFoodLite/Prefabs/Pumpkin.prefab"
       ],
       "icon": "Assets/_Game/Resources/FarmUI/Icons/crop_pumpkin.png",
       "animations": [],
@@ -226,7 +226,7 @@
       "guid": "cde876299c1ab36409ac1d276ee66d10",
       "source": [
         "project-authored static foliage meshes",
-        "Assets/LowPolyFoodLite/Prefabs/Pumpkin.prefab"
+        "Assets/ThirdParty/LowPolyFoodLite/Prefabs/Pumpkin.prefab"
       ],
       "icon": "Assets/_Game/Resources/FarmUI/Icons/crop_pumpkin.png",
       "animations": [],
@@ -264,7 +264,7 @@
       "prefab": "Assets/_Game/Content/Art/UniversityDemo/strawberry_fruit.prefab",
       "guid": "1ffe412a367d092418b7dee80247c11f",
       "source": [
-        "Assets/moreAssets/Farm Animals by @Quaternius/Models/FBX format/strawberry.fbx"
+        "Assets/ThirdParty/Quaternius/Farm Animals/Models/FBX format/strawberry.fbx"
       ],
       "icon": "Assets/_Game/Resources/FarmUI/Icons/crop_strawberry.png",
       "animations": [],
@@ -303,7 +303,7 @@
       "guid": "7e0b0dec5cabc0844a84f03221e1b652",
       "source": [
         "project-authored static foliage meshes",
-        "Assets/moreAssets/Farm Animals by @Quaternius/Models/FBX format/strawberry.fbx"
+        "Assets/ThirdParty/Quaternius/Farm Animals/Models/FBX format/strawberry.fbx"
       ],
       "icon": "Assets/_Game/Resources/FarmUI/Icons/crop_strawberry.png",
       "animations": [],
@@ -341,7 +341,7 @@
       "prefab": "Assets/_Game/Content/Art/UniversityDemo/tool_hoe_0.prefab",
       "guid": "4486943346a30f3468e8d3618e94d16e",
       "source": [
-        "Assets/Pandazole_Ultimate_Pack/Pandazole Farm Ranch Pack/Prefabs/Prop_BigFarmingTool_06.prefab",
+        "Assets/ThirdParty/Pandazole_Ultimate_Pack/Pandazole Farm Ranch Pack/Prefabs/Prop_BigFarmingTool_06.prefab",
         "project-authored upgrade bands"
       ],
       "icon": "Assets/_Game/Resources/FarmUI/Icons/tool_hoe.png",
@@ -361,7 +361,7 @@
       "prefab": "Assets/_Game/Content/Art/UniversityDemo/tool_hoe_1.prefab",
       "guid": "45e9c6b5378106343ac8d82f5e2dc069",
       "source": [
-        "Assets/Pandazole_Ultimate_Pack/Pandazole Farm Ranch Pack/Prefabs/Prop_BigFarmingTool_06.prefab",
+        "Assets/ThirdParty/Pandazole_Ultimate_Pack/Pandazole Farm Ranch Pack/Prefabs/Prop_BigFarmingTool_06.prefab",
         "project-authored upgrade bands"
       ],
       "icon": "Assets/_Game/Resources/FarmUI/Icons/tool_hoe.png",
@@ -381,7 +381,7 @@
       "prefab": "Assets/_Game/Content/Art/UniversityDemo/tool_hoe_2.prefab",
       "guid": "fd69a069a9fab3e459b1dcf2f55a5d75",
       "source": [
-        "Assets/Pandazole_Ultimate_Pack/Pandazole Farm Ranch Pack/Prefabs/Prop_BigFarmingTool_06.prefab",
+        "Assets/ThirdParty/Pandazole_Ultimate_Pack/Pandazole Farm Ranch Pack/Prefabs/Prop_BigFarmingTool_06.prefab",
         "project-authored upgrade bands"
       ],
       "icon": "Assets/_Game/Resources/FarmUI/Icons/tool_hoe.png",
@@ -531,7 +531,7 @@
     "completed": "2026-11-13",
     "chickenPrefab": "Assets/_Game/Resources/FarmContent/ChickenVisual.prefab",
     "cowPrefab": "Assets/_Game/Resources/FarmContent/CowVisual.prefab",
-    "authoring": "Assets/_Game/Editor/AnimalFinalSetup.cs",
+    "authoring": "Assets/_Game/Scripts/Editor/Art/AnimalFinalSetup.cs",
     "meshAnimationFolder": "Assets/_Game/Content/Art/Animals",
     "visualDirection": "Built-in, flat-shaded low-poly, ivory/red/orange chicken and existing black-white cow; metres, ground pivot, +Z forward",
     "chickenHeight": 0.57,
@@ -561,7 +561,7 @@
   "U1-6": {
     "date": "2026-11-13",
     "purpose": "Held area hoes for permanent tool levels 0/1/2",
-    "authoring": "Assets/_Game/Editor/AreaToolSetup.cs",
+    "authoring": "Assets/_Game/Scripts/Editor/Gameplay/AreaToolSetup.cs",
     "menu": "Tools/My Little Farm/University/Prepare U1-6 Tools",
     "runtimePrefabs": [
       {
@@ -595,7 +595,7 @@
   },
   "U1-7": {
     "date": "2026-11-13",
-    "authoring": "Assets/_Game/Editor/ExtraFarmContentSetup.cs",
+    "authoring": "Assets/_Game/Scripts/Editor/Gameplay/ExtraFarmContentSetup.cs",
     "menu": "Tools/My Little Farm/University/Prepare U1-7 Content",
     "definitions": [
       {

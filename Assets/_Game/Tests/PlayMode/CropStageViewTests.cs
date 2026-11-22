@@ -70,8 +70,12 @@ namespace MyLittleFarm.Tests.PlayMode
                 var position = grid.WorldToGrid(view.transform.position);
                 var stage = position.y - 1;
                 Assert.That(ActiveStage(view).name, Does.StartWith("Stage " + stage + " - "));
-                Assert.That(VisualPrefab.TryGetBounds(ActiveStage(view), out var bounds), Is.True);
-                Assert.That(bounds.min.y, Is.EqualTo(0f).Within(0.001f));
+                var ground = grid.GetSurfaceHeight(view.transform.position.x, view.transform.position.z);
+                // Renderer bounds include extra culling margin for shader-based crop sway.
+                var activeStage = ActiveStage(view);
+                foreach (var renderer in activeStage.GetComponentsInChildren<MeshRenderer>()) renderer.ResetLocalBounds();
+                Assert.That(VisualPrefab.TryGetBounds(activeStage, out var meshBounds), Is.True);
+                Assert.That(meshBounds.min.y, Is.EqualTo(ground).Within(0.001f));
             }
             for (var i = 0; i < definitions.Length; i++)
             {

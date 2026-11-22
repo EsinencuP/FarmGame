@@ -83,8 +83,9 @@ namespace MyLittleFarm.Tests.PlayMode
             player.enabled = false;
             var animals = Farm.GetComponentInChildren<AnimalSystem>();
             Assert.That(animals.AddChicken(new Vector2Int(1,3), 1), Is.True);
-            player.Teleport(grid.CellToWorld(new Vector2Int(1,3)) + Vector3.up * 1.1f);
             var soil = new Vector2Int(1,2);
+            player.Teleport(grid.CellToWorld(soil) + Vector3.up * 1.1f);
+            Farm.GetComponentInChildren<QuickSlotSystem>().SelectTool(QuickSlotSystem.SelectionMode.Hoe);
             selector.SelectWorldPoint(grid.CellToWorld(soil));
             var interaction = Farm.GetComponentInChildren<InteractionSystem>();
             Assert.That(interaction.Interact(1000), Is.True);

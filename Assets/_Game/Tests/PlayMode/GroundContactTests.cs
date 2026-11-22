@@ -18,7 +18,8 @@ namespace MyLittleFarm.Tests.PlayMode
             Farm.GetComponent<InputReader>().enabled = false;
             var player = Farm.GetComponentInChildren<PlayerController>();
             player.Teleport(new Vector3(3.5f, 1.1f, 0.5f));
-            for (var i = 0; i < 120 && !player.GetComponent<CharacterController>().isGrounded; i++)
+            var deadline = Time.time + 1.5f;
+            while (!player.GetComponent<CharacterController>().isGrounded && Time.time < deadline)
                 yield return null;
             var controller = player.GetComponent<CharacterController>();
             Assert.That(controller.isGrounded, Is.True);

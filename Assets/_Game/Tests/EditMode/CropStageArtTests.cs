@@ -44,9 +44,11 @@ namespace MyLittleFarm.Tests.EditMode
                     {
                         Assert.That(VisualPrefab.TryGetBounds(instance, out var bounds), Is.True);
                         Assert.That(bounds.min.y, Is.EqualTo(0f).Within(0.001f));
-                        Assert.That(bounds.size.x, Is.LessThanOrEqualTo(0.701f));
-                        Assert.That(bounds.size.z, Is.LessThanOrEqualTo(0.701f));
-                        Assert.That(bounds.size.y, Is.GreaterThan(previousHeight * 1.25f));
+                        var intended = definition.StageSize(stage);
+                        Assert.That(bounds.size.x, Is.LessThanOrEqualTo(intended.x + 0.001f));
+                        Assert.That(bounds.size.z, Is.LessThanOrEqualTo(intended.z + 0.001f));
+                        // Strawberry spreads out after flowering and stays close to the soil.
+                        Assert.That(bounds.size.y, Is.GreaterThan(previousHeight * (id == "strawberry" ? 1f : 1.25f)));
                         Assert.That(bounds.size.y, Is.LessThanOrEqualTo(definition.StageSize(stage).y + 0.001f));
                         previousHeight = bounds.size.y;
                         foreach (var renderer in instance.GetComponentsInChildren<MeshRenderer>(true))
@@ -98,7 +100,7 @@ namespace MyLittleFarm.Tests.EditMode
         public void MatureTomatoRetainsTheReferenceModelAndDimensions()
         {
             var definition = AssetDatabase.LoadAssetAtPath<CropDefinition>("Assets/_Game/Content/Crops/tomato.asset");
-            var reference = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/LowPolyFarmLite/Prefabs/TomatoPlant_01.prefab");
+            var reference = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/ThirdParty/LowPolyFarmLite/Prefabs/TomatoPlant_01.prefab");
             Assert.That(definition.StagePrefabs[2].GetComponentInChildren<MeshFilter>().sharedMesh,
                 Is.EqualTo(reference.GetComponentInChildren<MeshFilter>().sharedMesh));
             Assert.That(definition.StageSize(2), Is.EqualTo(new Vector3(0.7f, 0.85f, 0.7f)));
