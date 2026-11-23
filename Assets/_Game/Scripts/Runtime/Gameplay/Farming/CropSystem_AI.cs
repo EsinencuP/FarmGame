@@ -13,13 +13,15 @@ namespace MyLittleFarm.Gameplay.Farming
         // ID является частью сохранения и не меняется через Inspector.
         public const string PrototypeCropId = "carrot";
         public const float DefaultGrowDurationSeconds = 8f;
-        public const int DefaultYield = 2;
+        public const int MinHarvestYield = 1;
+        public const int MaxHarvestYield = 2;
+        public static readonly string HarvestYieldLabel = $"{MinHarvestYield}–{MaxHarvestYield}";
+        private const int SecondCropChance = 65;
+        private const int BonusSecondCropChance = 85;
 
         [Header("Legacy Crop Fallback")]
         [Tooltip("Время роста моркови только для тестовой сцены без FarmCatalog; в игре настройка находится в каталоге.")]
         [SerializeField, Min(0.1f)] private float growDurationSeconds = DefaultGrowDurationSeconds;
-        [Tooltip("Урожай моркови только для сцены без FarmCatalog.")]
-        [SerializeField, Min(1)] private int yieldAmount = DefaultYield;
         [Tooltip("Количество визуальных стадий роста культуры.")]
         [SerializeField, Min(2)] private int stageCount = 3;
         [Tooltip("Интервал обновления внешнего вида растущих культур.")]
@@ -46,8 +48,6 @@ namespace MyLittleFarm.Gameplay.Farming
         // Время следующего визуального обновления ограничивает работу четырьмя проверками в секунду.
         private float _nextRefresh;
 
-        /// <summary>Текущая урожайность одной клетки, установленная в Inspector.</summary>
-        public int YieldAmount => yieldAmount;
         /// <summary>Число визуальных стадий, используемое новыми культурами.</summary>
         public int StageCount => stageCount;
         public bool IsConfigured => _grid != null;
@@ -195,11 +195,16 @@ namespace MyLittleFarm.Gameplay.Farming
 
         // Возвращаю ID, количество и размер урожая. Повторно плодоносящие культуры запускают новый цикл.
         public bool TryHarvest(Vector2Int position, long nowUnixMs, out string itemId, out int yield, out HarvestSize size)
+            => TryHarvest(position, nowUnixMs, out itemId, out yield, out size, out _);
+
+        internal bool TryHarvest(Vector2Int position, long nowUnixMs, out string itemId, out int yield,
+            out HarvestSize size, out bool bonusHarvest)
         {
             // Незрелое растение остаётся неизменным; зрелое удаляется из данных и сцены.
             itemId = null;
             yield = 0;
             size = HarvestSize.M;
+            bonusHarvest = false;
             if (!TryGet(position, out var crop) || !crop.IsMature(nowUnixMs))
             {
                 return false;
@@ -208,7 +213,10 @@ namespace MyLittleFarm.Gameplay.Farming
             CropDefinition definition = null;
             if (_catalog != null && !_catalog.TryGetCrop(crop.cropId, out definition)) return false;
             itemId = definition == null ? crop.cropId : definition.HarvestItemId;
-            yield = HarvestYield(crop.cropId);
+            var roll = UnityEngine.Random.Range(0, 100);
+            bonusHarvest = roll >= SecondCropChance && roll < BonusSecondCropChance
+                && definition != null && definition.HasHarvestBonus(HarvestHour);
+            yield = roll < SecondCropChance || bonusHarvest ? MaxHarvestYield : MinHarvestYield;
             if (HarvestQuality.IsSized(itemId)) size = ResolveSize(crop);
             if(definition!=null && definition.RegrowSeconds>0)
             {
@@ -239,8 +247,6 @@ namespace MyLittleFarm.Gameplay.Farming
             return true;
         }
         public float HarvestHour => _dayNight==null?-1:_dayNight.Hour;
-        public int HarvestYield(string cropId) => _catalog!=null&&_catalog.TryGetCrop(cropId,out var definition)
-            ? definition.HarvestYield(HarvestHour) : yieldAmount;
 
         // Готовлю данные посевов для сохранения, включая дождь и уже выбранный размер.
         public List<CropRuntimeState> Capture()

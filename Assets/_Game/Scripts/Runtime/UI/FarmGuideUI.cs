@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using MyLittleFarm.Gameplay.Animals;
+using MyLittleFarm.Gameplay.Building;
 using MyLittleFarm.Gameplay.Farming;
 using UnityEngine;
 using UnityEngine.UI;
@@ -101,7 +102,7 @@ namespace MyLittleFarm.UI
                 text.Append(offer.Name).Append(" · ").Append(offer.Price).Append(" монет").Append(offer.Available ? "" : " · " + offer.Unavailable).Append('\n').Append(offer.Description).Append("\n\n");
             text.Append($"Покупка улучшений и найм — в окне рынка.\nПодойдите к рынку и нажмите {MyLittleFarm.Core.InputReader_AI.MarketHint}.");
             text.Append("\n\nРыбалка · подойдите к знаку на восточном берегу озера. Забросьте удочку, дождитесь поклёвки и подсеките. Рыбу можно продать на рынке.");
-            text.Append("\n\nКОРМУШКА\n18 монет, 12 пшеницы, радиус 6 м. Кормит кур и коров после сбора продукта. Пастух берёт корм сначала здесь, затем в инвентаре; молоко собирается вручную.\n");
+            text.Append($"\n\nКОРМУШКА\n{FarmText.Coins(BuildingDefinition.FeederPrice)}, 12 пшеницы, радиус 6 м. Кормит кур и коров после сбора продукта. Пастух берёт корм сначала здесь, затем в инвентаре; молоко собирается вручную.\n");
             text.Append("\n\nПРОИЗВОДСТВО\n\n");
             foreach(var recipe in MyLittleFarm.Gameplay.Building.ProductionRecipe.All)
                 text.Append(recipe.Name).Append(": ").Append(recipe.InputName).Append(" × ").Append(recipe.InputAmount)
@@ -156,7 +157,7 @@ namespace MyLittleFarm.UI
                 view.seedLabel.text = crop.RareSeeds ? "Редкие семена" : "Посадка из семян";
                 view.growth.text = "Рост · " + Duration(crop.GrowDurationSeconds);
                 view.price.text = (crop.RareSeeds ? "Семена: тайники" : "Семя: " + (seed == null ? 0 : seed.BuyPrice)) + "  ·  Урожай: " + SalePrice(crop.HarvestItemId);
-                view.yield.text = "Сбор · " + crop.YieldAmount + (crop.RegrowSeconds>0?" шт. · повтор через "+Duration(crop.RegrowSeconds):" шт. за посадку");
+                view.yield.text = "Сбор · " + CropSystem_AI.HarvestYieldLabel + (crop.RegrowSeconds>0?" шт. · повтор через "+Duration(crop.RegrowSeconds):" шт. за посадку");
             }
             for (var i = 0; i < trees.Count; i++)
             {

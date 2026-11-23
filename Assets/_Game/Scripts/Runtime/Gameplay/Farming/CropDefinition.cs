@@ -13,7 +13,7 @@ namespace MyLittleFarm.Gameplay.Farming
         [SerializeField, Min(0.1f)] private float growDurationSeconds = 8f;
         [SerializeField, Min(0)] private float regrowSeconds;
         public float RegrowSeconds=>regrowSeconds;
-        [SerializeField, Min(1)] private int yieldAmount = 2;
+        [SerializeField, HideInInspector] private int yieldAmount = 2;
         [SerializeField, Min(2)] private int stageCount = 3;
         [SerializeField] private Color matureColor = new Color(0.95f, 0.42f, 0.08f);
         [SerializeField] private GameObject[] stagePrefabs;
@@ -26,14 +26,11 @@ namespace MyLittleFarm.Gameplay.Farming
         public bool RareSeeds => rareSeeds;
         public int BonusHarvestYield => bonusHarvestYield;
         public string BonusDescription => bonusHarvestYield <= 0 ? string.Empty
-            : $"{displayName}: {HourText(bonusStartHour)}–{HourText(bonusEndHour)}, +{bonusHarvestYield} к сбору";
+            : $"{displayName}: {HourText(bonusStartHour)}–{HourText(bonusEndHour)}, выше шанс собрать 2 шт.";
         private static string HourText(float hour){var m=Mathf.FloorToInt(Mathf.Repeat(hour,24)*60);return (m/60).ToString("00")+":"+(m%60).ToString("00");}
-        public int HarvestYield(float hour)
-        {
-            var active=hour>=0 && bonusStartHour!=bonusEndHour && (bonusStartHour<bonusEndHour
+        internal bool HasHarvestBonus(float hour) =>
+            bonusHarvestYield > 0 && hour>=0 && bonusStartHour!=bonusEndHour && (bonusStartHour<bonusEndHour
                 ? hour>=bonusStartHour&&hour<bonusEndHour : hour>=bonusStartHour||hour<bonusEndHour);
-            return (int)System.Math.Min(int.MaxValue,(long)yieldAmount+(active?Mathf.Clamp(bonusHarvestYield,0,10):0));
-        }
 
         // Стабильные ID используются сохранением; числовые параметры можно менять в Inspector.
         public string CropId => cropId;

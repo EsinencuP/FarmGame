@@ -209,7 +209,7 @@ namespace MyLittleFarm.UI
             ui.body=new GameObject("Journal body",typeof(RectTransform)).GetComponent<RectTransform>();ui.body.SetParent(ui.panel,false);Stretch(ui.body);ui.body.offsetMin=new Vector2(24,110);ui.body.offsetMax=new Vector2(-24,-124);
             ui.farmTab=Section(ui.body,"Farm");ui.badgesTab=Section(ui.body,"Achievements");ui.discoveriesTab=Section(ui.body,"Discoveries");
             ui.stats=ScrollableText(ui.farmTab.transform,font,68);
-            ui.hire=SaveSlotsUI.Button(ui.farmTab.transform,"Нанять пастуха · 80 монет",font);Bottom(ui.hire,0,4,.5f);
+            ui.hire=SaveSlotsUI.Button(ui.farmTab.transform,$"Нанять пастуха · {FarmText.Coins(FarmProgression_AI.ShepherdPrice)}",font);Bottom(ui.hire,0,4,.5f);
             ui.discoveries=ScrollableText(ui.discoveriesTab.transform,font,0);
             var badgeGrid=new GameObject("Achievement list",typeof(RectTransform),typeof(GridLayoutGroup));badgeGrid.transform.SetParent(ui.badgesTab.transform,false);Stretch((RectTransform)badgeGrid.transform);((RectTransform)badgeGrid.transform).offsetMin=new Vector2(0,64);
             ui.badgesGrid=badgeGrid.GetComponent<GridLayoutGroup>();ui.badgesGrid.constraint=GridLayoutGroup.Constraint.FixedColumnCount;ui.badgesGrid.spacing=new Vector2(12,10);ui.badgeLabels=new Text[10];

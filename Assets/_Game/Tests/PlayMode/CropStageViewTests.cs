@@ -81,7 +81,7 @@ namespace MyLittleFarm.Tests.PlayMode
             {
                 Assert.That(crops.TryHarvest(new Vector2Int(i + 1, 3), now, out var item, out var amount), Is.True);
                 Assert.That(item, Is.EqualTo(definitions[i].HarvestItemId));
-                Assert.That(amount, Is.EqualTo(definitions[i].YieldAmount));
+                Assert.That(amount, Is.InRange(CropSystem_AI.MinHarvestYield, CropSystem_AI.MaxHarvestYield));
                 Assert.That(crops.TryHarvest(new Vector2Int(i + 1, 1), now, out _, out _), Is.False);
             }
         }

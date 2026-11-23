@@ -70,7 +70,7 @@ namespace MyLittleFarm.Tests.PlayMode
             finally {GameEvents.InventoryChanged-=listener;}
             Assert.That(animals.TryCollect(id,out _),Is.False);
             Assert.That(System<InventorySystem_AI>().GetAmount("milk"),Is.EqualTo(1));
-            Assert.That(System<SellingSystem>().SellAllCrops(),Is.EqualTo(28));
+            Assert.That(System<SellingSystem>().SellAllCrops(),Is.EqualTo(20));
         }
 
         [UnityTest]

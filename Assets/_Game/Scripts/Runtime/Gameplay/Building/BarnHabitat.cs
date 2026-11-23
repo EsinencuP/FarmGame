@@ -7,7 +7,7 @@ namespace MyLittleFarm.Gameplay.Building
     public static class BarnHabitat
     {
         public const string BuildingId = "barn";
-        public const int Width = 9, Depth = 6, Capacity = 2, Price = 60;
+        public const int Width = 9, Depth = 6, Capacity = 2, Price = 90;
         public const string PrefabResource = "FarmContent/Barn";
 
         public static bool TryCell(BuildingRuntimeState barn, int slot, out Vector2Int cell)

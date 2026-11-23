@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using MyLittleFarm.Gameplay.Economy;
 
 namespace MyLittleFarm.Gameplay.Building
 {
@@ -27,11 +28,11 @@ namespace MyLittleFarm.Gameplay.Building
             D("watering_can","Лейка",1,1,2,.45f),D("birdhouse","Скворечник",1,1,5,2f)
         });
         private static BuildingDefinition D(string id,string name,int w,int d,int price,float h)
-            =>new BuildingDefinition(id,name,w,d,price,h);
+            =>new BuildingDefinition(id,name,w,d,TransactionMath.IncreasedPurchasePrice(price),h,0,price);
         public static bool SupportsText(string id)=>id=="sign_post"||id=="sign_wide";
         public static string HouseLevelName(int level)=>level==0?"Старая хибара":level==1?"Обновлённый домик":"Усадьба";
-        public static int HouseUpgradePrice(int level)=>level==0?25:level==1?60:0;
-        public static int HouseUpgradeInvestment(int level)=>level==0?0:level==1?25:85;
+        public static int HouseUpgradePrice(int level)=>level==0?38:level==1?90:0;
+        internal static int PreviousHouseUpgradeInvestment(int level)=>level==0?0:level==1?25:85;
         public static string CleanText(string text)
         {
             var result=new StringBuilder();
@@ -43,10 +44,23 @@ namespace MyLittleFarm.Gameplay.Building
             }
             return result.ToString().Trim();
         }
-        public static bool ValidCustomization(BuildingRuntimeState state)=>state.appearanceLevel>=0
-            &&state.appearanceLevel<=(state.definitionId=="house"?2:0)
-            &&(SupportsText(state.definitionId)
-                ?string.IsNullOrEmpty(state.customText)||state.customText==CleanText(state.customText)
-                :string.IsNullOrEmpty(state.customText));
+        public static bool ValidCustomization(BuildingRuntimeState state)
+        {
+            var level = state.appearanceLevel;
+            if (level < 0 || level > (state.definitionId == "house" ? 2 : 0)) return false;
+
+            var paid = state.paidUpgradeCost;
+            var validInvestment = paid == 0 || (level switch
+            {
+                1 => paid == HouseUpgradePrice(0),
+                2 => paid == HouseUpgradePrice(1) + PreviousHouseUpgradeInvestment(1)
+                    || paid == HouseUpgradePrice(1) + HouseUpgradePrice(0),
+                _ => false
+            });
+            if (!validInvestment) return false;
+
+            return string.IsNullOrEmpty(state.customText)
+                || (SupportsText(state.definitionId) && state.customText == CleanText(state.customText));
+        }
     }
 }

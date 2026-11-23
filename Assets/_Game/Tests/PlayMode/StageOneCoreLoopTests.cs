@@ -40,19 +40,16 @@ namespace MyLittleFarm.Tests.PlayMode
                 new Vector2Int(4, 1),new Vector2Int(2,2),new Vector2Int(4,2) };
             Assert.That(catalog.Crops.Count, Is.EqualTo(8));
             var growthTimes = new HashSet<float>();
-            var yields = new HashSet<int>();
             var prices = new HashSet<int>();
             foreach (var crop in catalog.Crops)
             {
                 growthTimes.Add(crop.GrowDurationSeconds);
-                yields.Add(crop.YieldAmount);
                 Assert.That(catalog.TryGetItem(crop.HarvestItemId, out var item), Is.True);
                 prices.Add(item.SellPrice);
             }
             Assert.That(growthTimes.Count, Is.EqualTo(8));
-            Assert.That(yields.Count, Is.EqualTo(4));
             Assert.That(prices.Count, Is.EqualTo(6));
-            wallet.SetCoins(250);
+            wallet.SetCoins(350);
             var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
             var balanceAwayFromMarket = wallet.Coins;
             Assert.That(shop.BuySelected(), Is.False, "The seed shop requires the market");
@@ -81,7 +78,8 @@ namespace MyLittleFarm.Tests.PlayMode
                 Assert.That(interaction.InteractWithCell(cells[index], now - 120_000), Is.True);
                 yield return new WaitForSecondsRealtime(.2f);
                 Assert.That(interaction.InteractWithCell(cells[index], now), Is.True);
-                Assert.That(inventory.GetAmount(crop.HarvestItemId), Is.EqualTo(crop.YieldAmount));
+                Assert.That(inventory.GetAmount(crop.HarvestItemId),
+                    Is.InRange(CropSystem_AI.MinHarvestYield, CropSystem_AI.MaxHarvestYield));
             }
 
             Assert.That(selling.SellAllCrops(), Is.GreaterThan(0));
@@ -126,11 +124,12 @@ namespace MyLittleFarm.Tests.PlayMode
 
             try
             {
-                wallet.SetCoins(100);
+                wallet.SetCoins(150);
                 Assert.That(sector.TryPurchase(), Is.True);
                 Assert.That(upgrades.TryUpgrade(), Is.True);
                 Assert.That(upgrades.TryUpgrade(), Is.True);
                 Assert.That(slots.Select(2), Is.True);
+                var savedBalance = wallet.Coins;
                 Assert.That(save.SaveToPath(path), Is.True);
 
                 // После намеренной смены всех трёх состояний загрузка должна вернуть их из файла.
@@ -139,7 +138,7 @@ namespace MyLittleFarm.Tests.PlayMode
                 upgrades.Restore(0);
                 slots.Select(0);
                 Assert.That(save.LoadFromPath(path), Is.True);
-                Assert.That(wallet.Coins, Is.EqualTo(20));
+                Assert.That(wallet.Coins, Is.EqualTo(savedBalance));
                 Assert.That(sector.IsUnlocked, Is.True);
                 Assert.That(upgrades.Level, Is.EqualTo(2));
                 Assert.That(slots.SelectedIndex, Is.EqualTo(2));

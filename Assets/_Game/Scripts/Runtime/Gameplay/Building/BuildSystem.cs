@@ -842,8 +842,7 @@ namespace MyLittleFarm.Gameplay.Building
         }
         internal void CompleteHouseUpgrade(string id)
         {
-            var state = _layout.Get(id);
-            if(!_layout.TryCustomize(id,state.appearanceLevel+1,null,out _)) return;
+            if (!_layout.TryUpgradeHouse(id)) return;
             var updated=_layout.Get(id);var old=_views[id];
             _views[id]=BuildingView.Create(transform,_layout.Definition("house"),updated,_grid,VisualFor("house",updated.appearanceLevel));
             old.gameObject.SetActive(false);Destroy(old.gameObject);

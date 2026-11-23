@@ -130,7 +130,7 @@ namespace MyLittleFarm.UI
                 var text=Name(stackId)+"\n";
                 if(ui.catalog.TryGetItem(id,out var definition))text+="Продажа по базовой котировке: "+HarvestQuality.Price(definition.SellPrice, 100, size)+" монет за шт.\n";
                 var crop=ui.catalog.Crops.FirstOrDefault(c=>c.SeedItemId==id || c.HarvestItemId==id);
-                if(crop!=null)text+="Рост: "+FarmGuideUI.Duration(crop.GrowDurationSeconds)+" · урожай: "+crop.YieldAmount+" шт.\n";
+                if(crop!=null)text+="Рост: "+FarmGuideUI.Duration(crop.GrowDurationSeconds)+" · урожай: "+CropSystem_AI.HarvestYieldLabel+" шт.\n";
                 if(crop!=null && crop.RegrowSeconds>0)text+="Повторный урожай: "+FarmGuideUI.Duration(crop.RegrowSeconds)+" без нового семени.\n";
                 if(ui.orchard!=null && ui.orchard.TryGetSapling(id,out var tree))text+="Первый урожай: "+FarmGuideUI.Duration(tree.FirstHarvestSeconds)+". Дерево плодоносит повторно.\n";
                 foreach(var recipe in ProductionRecipe.All)if(recipe.OutputId==id)

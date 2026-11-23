@@ -36,7 +36,7 @@ namespace MyLittleFarm.Tests.PlayMode
             Assert.That(buildings.TryPlace("coop", new Vector2Int(6, 5), 0, out var reason),
                 Is.True, reason);
             Assert.That(buildings.GetAt(new Vector2Int(6, 5)).definitionId, Is.EqualTo("coop"));
-            Assert.That(wallet.Coins, Is.EqualTo(12));
+            Assert.That(wallet.Coins, Is.EqualTo(3));
         }
 
         /// <summary>Яблоня созревает, плодоносит повторно и восстанавливается из JSON.</summary>

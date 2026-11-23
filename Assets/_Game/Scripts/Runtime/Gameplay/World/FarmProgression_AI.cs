@@ -13,7 +13,7 @@ namespace MyLittleFarm.Gameplay.World
     [DefaultExecutionOrder(-30)]
     public sealed class FarmProgression_AI : MonoBehaviour
     {
-        public const int ShepherdPrice=80;
+        public const int ShepherdPrice=120;
         public const long CounterLimit=1_000_000_000_000_000;
         public static readonly string[] CacheIds={"pond","forest","hill"};
         [SerializeField] private FarmJournalUI_AI journal;

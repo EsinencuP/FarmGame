@@ -24,10 +24,10 @@ namespace MyLittleFarm.Gameplay.Building
             int amount, string output, string outputName, int seconds, int price)
         { Id=id; BuildingId=building; Name=name; InputId=input; InputName=inputName; InputAmount=amount;
             OutputId=output; OutputName=outputName; Seconds=seconds; SellPrice=price; }
-        public static readonly ProductionRecipe Press = new ProductionRecipe("apple_to_juice", "apple_press", "Яблочный пресс", "apple", "Яблоко", 3, "apple_juice", "Яблочный сок", 60, 65);
-        public static readonly ProductionRecipe Mill = new ProductionRecipe("wheat_to_flour", "mill", "Мельница", "wheat", "Пшеница", 3, "flour", "Мука", 30, 22);
+        public static readonly ProductionRecipe Press = new ProductionRecipe("apple_to_juice", ApplePresses.BuildingId, "Яблочный пресс", ApplePresses.FruitId, "Яблоко", ApplePresses.AppleCost, ApplePresses.JuiceId, "Яблочный сок", ApplePresses.BatchSeconds, ApplePresses.JuicePrice);
+        public static readonly ProductionRecipe Mill = new ProductionRecipe("wheat_to_flour", "mill", "Мельница", "wheat", "Пшеница", 3, "flour", "Мука", 30, 16);
         public static readonly ProductionRecipe CornMill = new ProductionRecipe("corn_to_flour", "mill", "Мельница", "corn", "Кукуруза", 2, "flour", "Мука", 30, Mill.SellPrice);
-        public static readonly ProductionRecipe Dairy = new ProductionRecipe("milk_to_cheese", "cheese_dairy", "Сыроварня", "milk", "Молоко", 2, "cheese", "Сыр", 90, 80);
+        public static readonly ProductionRecipe Dairy = new ProductionRecipe("milk_to_cheese", "cheese_dairy", "Сыроварня", "milk", "Молоко", 2, "cheese", "Сыр", 90, 60);
         public static IReadOnlyList<ProductionRecipe> All { get; } = Array.AsReadOnly(new[] { Press, Mill, CornMill, Dairy });
         public static ProductionRecipe ForBuilding(string definitionId)
         { foreach(var recipe in All) if(recipe.BuildingId==definitionId) return recipe; return null; }

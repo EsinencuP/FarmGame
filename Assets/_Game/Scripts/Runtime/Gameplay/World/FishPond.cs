@@ -11,7 +11,7 @@ namespace MyLittleFarm.Gameplay.World
     public sealed class FishPond : MonoBehaviour
     {
         public const string FishId = "fish";
-        public const int SellPrice = 14;
+        public const int SellPrice = 10;
         internal const long MaxCatchTime = 253402300799999L;
         private const long CatchCooldownMs = 25_000;
         private const float Reach = 1.8f;

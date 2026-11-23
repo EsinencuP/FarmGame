@@ -3,6 +3,9 @@ namespace MyLittleFarm.Gameplay.Economy
     /// <summary>Проверяет арифметику покупок и продаж без зависимостей от Unity.</summary>
     public static class TransactionMath
     {
+        public static int IncreasedPurchasePrice(int basePrice) =>
+            (int)System.Math.Min(int.MaxValue, (3L * basePrice + 1) / 2);
+
         /// <summary>Вычисляет стоимость партии до изменения денег или инвентаря.</summary>
         public static bool TryPurchase(int unitPrice, int amount, int currentStock, int balance, out int cost)
         {

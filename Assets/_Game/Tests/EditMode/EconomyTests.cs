@@ -52,8 +52,8 @@ namespace MyLittleFarm.Tests.EditMode
 
                 Assert.That(earned, Is.EqualTo(3 * selling.CarrotSellPrice));
                 Assert.That(inventory.GetAmount(InventorySystem_AI.CarrotId), Is.Zero);
-                Assert.That(wallet.Coins, Is.EqualTo(40));
-                Assert.That(observedCoins, Is.EqualTo(40));
+                Assert.That(wallet.Coins, Is.EqualTo(31));
+                Assert.That(observedCoins, Is.EqualTo(31));
                 Assert.That(observedCarrots, Is.Zero);
 
                 void ObserveSale()

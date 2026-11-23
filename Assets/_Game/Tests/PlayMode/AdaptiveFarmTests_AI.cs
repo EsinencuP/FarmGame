@@ -35,20 +35,21 @@ namespace MyLittleFarm.Tests.PlayMode
             var booth = Farm.GetComponentsInChildren<InteractionTarget>().First(target => target.Kind == InteractionTargetKind.Market);
             Component<PlayerController>().Teleport(booth.transform.position + new Vector3(1.2f, 1, 0));
             wallet.SetCoins(1000);
-            items.Add("carrot", 14);
+            items.Add("carrot", 14, HarvestSize.XL);
             items.Add("tomato", 2);
             items.Add("pumpkin", 1);
 
-            var cart = new Dictionary<string, int> { ["carrot"] = 12 };
+            var carrotStack = HarvestQuality.StackId("carrot", HarvestSize.XL);
+            var cart = new Dictionary<string, int> { [carrotStack] = 12 };
             Assert.That(market.Quote(FarmMarket_AI.Category.Sell, cart, out var original, out _), Is.True);
             Assert.That(market.Checkout(FarmMarket_AI.Category.Sell, cart, out var reason), Is.True, reason);
             Assert.That(wallet.Coins, Is.EqualTo(1000 + original));
             Assert.That(save.DailyOrders.SalePriceRule("carrot").percent, Is.EqualTo(75));
             Assert.That(save.DailyOrders.SalePriceRule("tomato").percent, Is.EqualTo(120));
 
-            cart["carrot"] = 1;
+            cart[carrotStack] = 1;
             Assert.That(market.Checkout(FarmMarket_AI.Category.Sell, cart, out _,
-                new Dictionary<string, int> { ["carrot"] = original / 12 }), Is.False);
+                new Dictionary<string, int> { [carrotStack] = original / 12 }), Is.False);
             Assert.That(items.GetAmount("carrot"), Is.EqualTo(2));
             Assert.That(market.Checkout(FarmMarket_AI.Category.Seeds,
                 new Dictionary<string, int> { ["pumpkin_seed"] = 10 }, out reason), Is.True, reason);

@@ -53,7 +53,7 @@ namespace MyLittleFarm.Tests.EditMode
             var restored = new BuildingLayout(BuildingDefinition.Catalog);
             foreach (var state in layout.Capture()) check(restored.TryPlace(state, null, out _), "Snapshot restores");
             check(restored.BuildingAt(2, 2) == "first", "Restored rotated occupancy");
-            check(layout.TryRemove("first", out var removed) && removed.paidCost / 2 == 6, "Remove carries refund basis");
+            check(layout.TryRemove("first", out var removed) && removed.Refund == storage.Price / 2, "Remove carries refund basis");
             check(layout.Count == 0 && !layout.IsOccupied(2, 2), "Remove releases cells");
             check(!layout.TryRemove("first", out _), "No second deletion/refund");
 

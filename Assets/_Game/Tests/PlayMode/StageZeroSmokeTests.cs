@@ -96,12 +96,13 @@ namespace MyLittleFarm.Tests.PlayMode
             Assert.That(interaction.InteractWithCell(position, now - 9_000), Is.True, "Plant seed");
             yield return new WaitForSecondsRealtime(.2f);
             Assert.That(interaction.InteractWithCell(position, now), Is.True, "Harvest mature crop");
-            Assert.That(inventory.GetAmount(InventorySystem_AI.CarrotId), Is.EqualTo(crops.YieldAmount));
+            var harvested = inventory.GetAmount(InventorySystem_AI.CarrotId);
+            Assert.That(harvested, Is.InRange(CropSystem_AI.MinHarvestYield, CropSystem_AI.MaxHarvestYield));
 
             var coinsBeforeSale = wallet.Coins;
             player.Teleport(new Vector3(8.5f, 1.1f, 1.5f));
             var shop = Farm.GetComponentInChildren<SeedShopSystem>();
-            Assert.That(selling.TrySellItem(InventorySystem_AI.CarrotId, crops.YieldAmount, shop), Is.True, "Sell harvested crop");
+            Assert.That(selling.TrySellItem(InventorySystem_AI.CarrotId, harvested, shop), Is.True, "Sell harvested crop");
             Assert.That(wallet.Coins, Is.GreaterThan(coinsBeforeSale));
 
             var snapshot = save.Capture();

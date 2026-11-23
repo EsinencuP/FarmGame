@@ -1,4 +1,5 @@
 using System;
+using MyLittleFarm.UI;
 
 namespace MyLittleFarm.Gameplay.World
 {
@@ -27,7 +28,7 @@ namespace MyLittleFarm.Gameplay.World
             new FarmAchievement("apples_10","Яблочный день","Соберите 10 яблок",p=>p.Data.apples>=10),
             new FarmAchievement("chickens","Первый житель загона","Купите курицу",p=>p.ChickenCount>0),
             new FarmAchievement("eggs_10","Яичная ферма","Соберите 10 яиц",p=>p.Data.eggs>=10),
-            new FarmAchievement("shepherd","Нанять пастуха","Наймите помощника у рынка за 80 монет",p=>p.Data.shepherdHired),
+            new FarmAchievement("shepherd","Нанять пастуха",$"Наймите помощника у рынка за {FarmText.Coins(FarmProgression_AI.ShepherdPrice)}",p=>p.Data.shepherdHired),
             new FarmAchievement("sun_bonus","В нужный час","Соберите урожай с бонусом времени суток",p=>p.Data.bonusHarvests>0),
             new FarmAchievement("rare_seed","Редкая находка","Найдите редкие семена кукурузы",p=>p.Data.rareSeeds>0),
             new FarmAchievement("explorer","Исследователь","Откройте все три тайника семян",p=>p.DiscoveredCaches==3),

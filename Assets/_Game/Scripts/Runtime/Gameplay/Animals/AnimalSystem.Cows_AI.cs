@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using MyLittleFarm.Core;
 using MyLittleFarm.Gameplay.Building;
+using MyLittleFarm.Gameplay.Economy;
 using UnityEngine;
 
 namespace MyLittleFarm.Gameplay.Animals
@@ -24,7 +25,7 @@ namespace MyLittleFarm.Gameplay.Animals
         public int MaxCows => maxCows;
         public AnimalDefinition CowDefinition => _cow != null ? _cow : cowAsset != null ? cowAsset
             : Resources.Load<AnimalDefinition>("FarmContent/Cow");
-        public int CowPrice => CowDefinition == null ? 40 : CowDefinition.PurchasePrice;
+        public int CowPrice => TransactionMath.IncreasedPurchasePrice(CowDefinition?.PurchasePrice ?? 40);
 
         public void BindBuildings(BuildSystem buildings)
         { _buildings = buildings; buildings.BindAnimals(this); }
@@ -142,7 +143,7 @@ namespace MyLittleFarm.Gameplay.Animals
                 if (!TryGetDefinition(line.Key, out _) || line.Value < 1
                     || line.Value > (line.Key == "cow" ? maxCows - CowCount : maxAnimals - ChickenCount))
                 { reason = "Достигнут лимит животных этого вида"; return false; }
-                total += (long)(line.Key == "cow" ? CowPrice : chickenPrice) * line.Value;
+                total += (long)(line.Key == "cow" ? CowPrice : ChickenPrice) * line.Value;
                 if (total > int.MaxValue) { reason = "Слишком большой заказ"; return false; }
                 if (line.Key != "cow")
                 {

@@ -4,6 +4,7 @@ using System.Linq;
 using MyLittleFarm.Core;
 using MyLittleFarm.Core.Grid;
 using MyLittleFarm.Gameplay.Economy;
+using MyLittleFarm.Gameplay.Farming;
 using UnityEngine;
 
 namespace MyLittleFarm.Gameplay.World
@@ -59,12 +60,11 @@ namespace MyLittleFarm.Gameplay.World
                 for(var along=-1;along<=1;along++)offsets.Add(side*across+plan.Direction*along);
             var seeds=_inventory.GetAmount(plan.SeedId);
             long room=long.MaxValue;
-            var expectedYield=0;
             if(plan.Action==FieldAction.Harvest)
             {
                 var item=plan.CropId;
                 if(_catalog!=null && _catalog.TryGetCrop(plan.CropId,out var definition))item=definition.HarvestItemId;
-                room=int.MaxValue-(long)_inventory.GetAmount(item);expectedYield=_crops.HarvestYield(plan.CropId);
+                room=int.MaxValue-(long)_inventory.GetAmount(item);
             }
             foreach(var offset in offsets)
             {
@@ -93,8 +93,8 @@ namespace MyLittleFarm.Gameplay.World
                         if(!_crops.TryGet(position,out var candidate))entry.SkipReason="нет культуры";
                         else if(candidate.cropId!=plan.CropId)entry.SkipReason="другая культура";
                         else if(!candidate.IsMature(nowUnixMs))entry.SkipReason=candidate.isRegrowing?"восстанавливается":"ещё не созрело";
-                        else if(room<expectedYield)entry.SkipReason="нет места в стеке";
-                        else room-=expectedYield;
+                        else if(room<CropSystem_AI.MaxHarvestYield)entry.SkipReason="нет места в стеке";
+                        else room-=CropSystem_AI.MaxHarvestYield;
                         break;
                 }
             }
@@ -132,12 +132,12 @@ namespace MyLittleFarm.Gameplay.World
                     {
                         // Recheck live capacity in case a synchronous event observer changed inventory.
                         var itemId=_catalog!=null && _catalog.TryGetCrop(plan.CropId,out var definition)?definition.HarvestItemId:plan.CropId;
-                        if((long)_inventory.GetAmount(itemId)+_crops.HarvestYield(plan.CropId)<=int.MaxValue && _crops.TryHarvest(cell.Position,nowUnixMs,out var harvested,out var yield,out var size))
+                        if (_inventory.GetAmount(itemId) <= int.MaxValue - CropSystem_AI.MaxHarvestYield
+                            && _crops.TryHarvest(cell.Position, nowUnixMs, out var harvested, out var yield, out var size, out var bonusHarvest))
                         {
                             // Размер идёт в сумку вместе с количеством, чтобы потом продать именно эту стопку.
                             _inventory.Add(harvested,yield,size);totalYield+=yield;success=true;
-                            var normal=_catalog!=null && _catalog.TryGetCrop(plan.CropId,out var d)?d.YieldAmount:_crops.YieldAmount;
-                            GameEvents.Record("harvest",plan.CropId,yield,yield>normal?1:0,_crops.HarvestHour);
+                            GameEvents.Record("harvest",plan.CropId,yield,bonusHarvest?1:0,_crops.HarvestHour);
                             GameEvents.RaiseActionFeedback("harvest",_grid.CellToWorld(cell.Position),harvested,yield);
                             GameEvents.RaiseProgressAction("harvest");
                         }

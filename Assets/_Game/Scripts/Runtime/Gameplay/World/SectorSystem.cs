@@ -19,7 +19,7 @@ namespace MyLittleFarm.Gameplay.World
         private WalletSystem _wallet;
         private TilemapChunk _sectorChunk;
         public bool IsUnlocked { get; private set; }
-        public int PurchasePrice => purchasePrice;
+        public int PurchasePrice => TransactionMath.IncreasedPurchasePrice(purchasePrice);
 
         /// <summary>Определяет, входит ли клетка в заранее выгруженный дополнительный блок.</summary>
         public bool ContainsCell(Vector2Int position)
@@ -56,7 +56,7 @@ namespace MyLittleFarm.Gameplay.World
         public bool TryPurchase()
         {
             if (!CanPurchase) return false;
-            if (!_wallet.TrySpend(purchasePrice))
+            if (!_wallet.TrySpend(PurchasePrice))
             {
                 GameEvents.RaiseStatusChanged("Недостаточно монет для сектора");
                 return false;

@@ -10,19 +10,15 @@ namespace MyLittleFarm.Gameplay.Economy
     /// <summary>Продаёт собранный урожай по ценам предметов из каталога.</summary>
     public sealed class SellingSystem : MonoBehaviour
     {
-        public const int DefaultCarrotSellPrice = 5;
-
-        [Header("Selling")]
-        [Tooltip("Количество монет за одну проданную морковь.")]
-        [SerializeField, Min(0)] private int carrotSellPrice = DefaultCarrotSellPrice;
+        public const int DefaultCarrotSellPrice = 2;
 
         // Ссылки позволяют провести удаление товара и начисление денег как одну операцию.
         private InventorySystem_AI _inventory;
         private WalletSystem _wallet;
         private FarmCatalog _catalog;
 
-        /// <summary>Цена одной моркови, установленная в Inspector.</summary>
-        public int CarrotSellPrice => _catalog!=null && _catalog.TryGetItem(InventorySystem_AI.CarrotId,out var item)?item.SellPrice:carrotSellPrice;
+        /// <summary>Базовая цена одной моркови.</summary>
+        public int CarrotSellPrice => _catalog!=null && _catalog.TryGetItem(InventorySystem_AI.CarrotId,out var item)?item.SellPrice:DefaultCarrotSellPrice;
 
         /// <summary>Quantity sale for the inventory UI; caller supplies the existing market reach check.</summary>
         public bool TrySellItem(string itemId, int amount, SeedShopSystem market)

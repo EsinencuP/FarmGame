@@ -54,7 +54,7 @@ namespace MyLittleFarm.Tests.PlayMode
             yield return new WaitForSecondsRealtime(.2f);
             var mature=now+60000;Assert.That(actions.PlanField(c,mature).Allowed,Is.EqualTo(4));
             Assert.That(actions.InteractWithCell(c,mature),Is.True);var collected=items.GetAmount("carrot");
-            Assert.That(collected,Is.EqualTo(4*System<CropSystem_AI>().HarvestYield("carrot")));
+            Assert.That(collected, Is.InRange(4 * CropSystem_AI.MinHarvestYield, 4 * CropSystem_AI.MaxHarvestYield));
             Assert.That(actions.InteractWithCell(c,mature),Is.False);Assert.That(items.GetAmount("carrot"),Is.EqualTo(collected));
         }
         [UnityTest]

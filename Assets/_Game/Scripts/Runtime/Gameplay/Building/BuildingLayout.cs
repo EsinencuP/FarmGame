@@ -63,13 +63,13 @@ namespace MyLittleFarm.Gameplay.Building
         public bool TryPlace(BuildingRuntimeState state, Func<int, int, bool> blocked, out string reason)
         {
             // Операция сначала полностью проверяется и только затем записывает состояние и занятость.
+            var definition = Definition(state?.definitionId);
             if (state == null || string.IsNullOrWhiteSpace(state.id) || _buildings.ContainsKey(state.id)
-                || state.paidCost < 0 || !FarmDecorationCatalog.ValidCustomization(state) || Definition(state.definitionId) == null
-                || state.paidCost != Definition(state.definitionId).Price
+                || !FarmDecorationCatalog.ValidCustomization(state) || definition == null || !definition.MatchesPaidCost(state.paidCost)
                 || state.constructionDurationSeconds < 0 || state.constructionDurationSeconds > BuildingDefinition.MaximumConstructionSeconds
                 || float.IsNaN(state.constructionSecondsRemaining) || state.constructionSecondsRemaining < 0
                 || state.constructionSecondsRemaining > state.constructionDurationSeconds
-                || (state.IsUnderConstruction && (Definition(state.definitionId).ConstructionSeconds == 0 || state.appearanceLevel != 0)))
+                || (state.IsUnderConstruction && (definition.ConstructionSeconds == 0 || state.appearanceLevel != 0)))
             { reason = "Некорректные данные постройки"; return false; }
             if (!CanPlace(state.definitionId, state.x, state.z, state.quarterTurns, blocked, null, out reason)) return false;
             var owned = state.Copy();
@@ -131,6 +131,16 @@ namespace MyLittleFarm.Gameplay.Building
             candidate.appearanceLevel=level;candidate.customText=text;
             if(!FarmDecorationCatalog.ValidCustomization(candidate)){reason="Некорректные настройки объекта";return false;}
             _buildings[id]=candidate;reason=string.Empty;return true;
+        }
+
+        internal bool TryUpgradeHouse(string id)
+        {
+            if (id == null || !_buildings.TryGetValue(id, out var state) || state.definitionId != "house"
+                || state.appearanceLevel >= 2 || state.IsUnderConstruction) return false;
+
+            state.paidUpgradeCost = state.UpgradeInvestment + FarmDecorationCatalog.HouseUpgradePrice(state.appearanceLevel);
+            state.appearanceLevel++;
+            return true;
         }
 
         private void SetOccupancy(BuildingRuntimeState state, bool occupied)

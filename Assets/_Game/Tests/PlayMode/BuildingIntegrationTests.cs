@@ -38,7 +38,8 @@ namespace MyLittleFarm.Tests.PlayMode
             var soil = System<SoilSystem>();
             var crops = System<CropSystem_AI>();
             var save = System<SaveSystem_AI>();
-            wallet.SetCoins(25);
+            var housePrice = BuildingDefinition.Catalog[0].Price;
+            wallet.SetCoins(housePrice + 5);
             // Origin — исходный угол дома.
             var origin = new Vector2Int(0, 3);
             Assert.That(build.TryPlace("house", origin, 0, out var reason), Is.True, reason);
@@ -73,7 +74,7 @@ namespace MyLittleFarm.Tests.PlayMode
             {
                 Assert.That(save.SaveToPath(path), Is.True);
                 Assert.That(build.TryRemove(id, out _), Is.True);
-                Assert.That(wallet.Coins, Is.EqualTo(15), "Half original cost refunded");
+                Assert.That(wallet.Coins, Is.EqualTo(5 + housePrice / 2), "Half original cost refunded");
                 Assert.That(build.TryRemove(id, out _), Is.False);
                 Assert.That(save.LoadFromPath(path), Is.True);
                 Assert.That(wallet.Coins, Is.EqualTo(5));

@@ -129,7 +129,7 @@ namespace MyLittleFarm.Gameplay.Economy
                 Maximum = sale ? stock : Mathf.Min(999, int.MaxValue - stock),
                 Description = (sapling ? "Выберите саженец в инвентаре. Посадка · " + InputReader_AI.KeyLabel(InputReader_AI.Command.Apple)
                     + "\nДерево остаётся после сбора и плодоносит повторно."
-                    : crop == null ? "Продукция фермы" : "Рост · " + MyLittleFarm.UI.FarmGuideUI.Duration(crop.GrowDurationSeconds) + "\nУрожай: " + crop.YieldAmount + " шт." + (crop.RegrowSeconds>0?"\nПовтор через "+FarmGuideUI.Duration(crop.RegrowSeconds)+" без семени.":""))
+                    : crop == null ? "Продукция фермы" : "Рост · " + MyLittleFarm.UI.FarmGuideUI.Duration(crop.GrowDurationSeconds) + "\nУрожай: " + CropSystem_AI.HarvestYieldLabel + " шт." + (crop.RegrowSeconds>0?"\nПовтор через "+FarmGuideUI.Duration(crop.RegrowSeconds)+" без семени.":""))
                     + (rare ? "\nРедкие семена можно найти в тайниках." : "") + "\nВ инвентаре: " + stock
                     + (string.IsNullOrEmpty(priceReason) ? "" : $"\n{priceReason} · {percent}% базовой цены"),
                 Unavailable = sale ? (item.SellPrice <= 0 ? FarmText.Get("market.notForSale") : stock == 0 ? FarmText.Get("market.noStock") : null)

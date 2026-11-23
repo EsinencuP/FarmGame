@@ -152,7 +152,7 @@ namespace MyLittleFarm.Tests.PlayMode
             yield return null;
             Set("InteractPressed",true);yield return null;Set("InteractPressed",false);yield return null;
             Assert.That(_build.Count,Is.EqualTo(1));
-            Assert.That(Farm.GetComponentInChildren<WalletSystem>().Coins,Is.EqualTo(97));
+            Assert.That(Farm.GetComponentInChildren<WalletSystem>().Coins,Is.EqualTo(95));
             Assert.That(_build.IsActive,Is.False);
             _build.BeginManagement(remove:false);
             Set("InteractPressed",true);yield return null;Set("InteractPressed",false);yield return new WaitForSeconds(.12f);
@@ -172,7 +172,7 @@ namespace MyLittleFarm.Tests.PlayMode
             Set("PointerInteractPressed",false);Set("InteractPressed",false);yield return null;
             Set("InteractPressed",true);yield return null;Set("InteractPressed",false);yield return null;
             Assert.That(_build.Count,Is.Zero);
-            Assert.That(Farm.GetComponentInChildren<WalletSystem>().Coins,Is.EqualTo(98));
+            Assert.That(Farm.GetComponentInChildren<WalletSystem>().Coins,Is.EqualTo(97));
         }
     }
 }

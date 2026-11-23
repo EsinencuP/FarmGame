@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using MyLittleFarm.Gameplay.Building;
 using MyLittleFarm.Gameplay.Economy;
 using MyLittleFarm.Gameplay.World;
-using MyLittleFarm.UI;
 using UnityEngine;
 
 namespace MyLittleFarm.Gameplay.Farming
@@ -77,17 +76,8 @@ namespace MyLittleFarm.Gameplay.Farming
             AddPlaceholder("cucumber", cucumber);
             AddPlaceholder("strawberry",new PlaceholderCropSettings("Клубника",30,3,8,7,new Color(.8f,.1f,.15f)));
             AddPlaceholder("pumpkin",new PlaceholderCropSettings("Тыква",35,2,10,16,new Color(1f,.5f,.1f)));
-            AddItemPlaceholder("apple", "Яблоко", 0, 18, false);
-            AddItemPlaceholder("egg", "Яйцо", 0, 14, false);
-            AddItemPlaceholder("milk", "Молоко", 0, 28, false);
-            AddItemPlaceholder("flour", "Мука", 0, ProductionRecipe.Mill.SellPrice, false);
-            AddItemPlaceholder("cheese", "Сыр", 0, ProductionRecipe.Dairy.SellPrice, false);
-            AddItemPlaceholder("pear", "Груша", 0, 24, false);
-            AddItemPlaceholder(FishPond.FishId, "Озёрная рыба", 0, FishPond.SellPrice, false);
-            AddItemPlaceholder("pear_sapling", "Саженец груши", 30, 0, true);
             // A virtual selector keeps the original unlimited free apple planting available in inventory.
             AddItemPlaceholder("apple_sapling", "Саженец яблони", 0, 0, false);
-            AddItemPlaceholder(ApplePresses.JuiceId, FarmText.Get("press.juice"), 0, ApplePresses.JuicePrice, false);
             if (cropAssets != null)
                 foreach (var crop in cropAssets)
                     if (crop != null && !string.IsNullOrWhiteSpace(crop.CropId)) _crops[crop.CropId] = crop;
@@ -105,13 +95,13 @@ namespace MyLittleFarm.Gameplay.Farming
                 var definition=Resources.Load<CropDefinition>("FarmContent/"+id);
                 if(definition!=null && (cropAssets==null || !Array.Exists(cropAssets,c=>c!=null && c.CropId==id)))_crops[id]=definition;
             }
-            ApplyDemoPrices();
+            ApplyBalancePrices();
             var usedItemIds = new HashSet<string>(StringComparer.Ordinal);
             foreach (var id in CropIds)
             {
                 var crop = _crops[id];
                 if (crop.GrowDurationSeconds <= 0f || float.IsNaN(crop.GrowDurationSeconds)
-                    || float.IsInfinity(crop.GrowDurationSeconds) || crop.YieldAmount < 1
+                    || float.IsInfinity(crop.GrowDurationSeconds)
                     || crop.StageCount < 2 || string.IsNullOrWhiteSpace(crop.DisplayName)
                     || string.IsNullOrWhiteSpace(crop.SeedItemId)
                     || string.IsNullOrWhiteSpace(crop.HarvestItemId)
@@ -165,18 +155,40 @@ namespace MyLittleFarm.Gameplay.Farming
         }
 
         // Runtime copies keep scene-assigned assets intact while all economy consumers use one tuning.
-        private void ApplyDemoPrices()
+        private void ApplyBalancePrices()
         {
-            var seedPrices=new[]{2,3,4,5,6,7,8,10};var salePrices=new[]{3,4,3,5,6,5,7,16};
-            for(var i=0;i<CropIds.Length;i++)
+            var seedPrices = new[] { 3, 4, 5, 6, 6, 8, 9, 11 };
+            var salePrices = new[] { SellingSystem.DefaultCarrotSellPrice, 3, 2, 4, 5, 4, 6, 12 };
+            for (var i = 0; i < CropIds.Length; i++)
             {
-                var crop=_crops[CropIds[i]];
-                foreach(var pair in new[]{(crop.SeedItemId,seedPrices[i],0),(crop.HarvestItemId,0,salePrices[i])})
-                {
-                    var copy=Instantiate(_items[pair.Item1]);copy.SetPrices(pair.Item2,pair.Item3);
-                    _items[pair.Item1]=copy;_placeholders.Add(copy);
-                }
+                var crop = _crops[CropIds[i]];
+                SetItemPrices(crop.SeedItemId, seedPrices[i], 0);
+                SetItemPrices(crop.HarvestItemId, 0, salePrices[i]);
             }
+
+            SetProductPrices("pear_sapling", "Саженец груши", 45, 0, true);
+            SetProductPrices(ApplePresses.FruitId, "Яблоко", 0, 12);
+            SetProductPrices("pear", "Груша", 0, 16);
+            SetProductPrices("egg", "Яйцо", 0, 10);
+            SetProductPrices("milk", "Молоко", 0, 20);
+            SetProductPrices(FishPond.FishId, "Озёрная рыба", 0, FishPond.SellPrice);
+            foreach (var recipe in ProductionRecipe.All)
+                if (recipe != ProductionRecipe.CornMill)
+                    SetProductPrices(recipe.OutputId, recipe.OutputName, 0, recipe.SellPrice);
+        }
+
+        private void SetProductPrices(string id, string name, int purchase, int sale, bool canBuy = false)
+        {
+            if (_items.ContainsKey(id)) SetItemPrices(id, purchase, sale);
+            else AddItemPlaceholder(id, name, purchase, sale, canBuy);
+        }
+
+        private void SetItemPrices(string id, int purchase, int sale)
+        {
+            var copy = Instantiate(_items[id]);
+            copy.SetPrices(purchase, sale);
+            _items[id] = copy;
+            _placeholders.Add(copy);
         }
         private void OnDestroy() => ClearPlaceholders();
 

@@ -18,7 +18,7 @@ namespace MyLittleFarm.Gameplay.World
         public bool HasBaseHoe {get;private set;}
         public string AreaLabel=>Level==0?"1 клетка":Level==1?"1×3":"3×3";
         public float Reach => baseReach;
-        public int NextPrice => Level == 0 ? firstUpgradePrice : Level == 1 ? secondUpgradePrice : 0;
+        public int NextPrice => TransactionMath.IncreasedPurchasePrice(Level == 0 ? firstUpgradePrice : Level == 1 ? secondUpgradePrice : 0);
 
         /// <summary>Новая ферма получает постоянную мотыгу; рынок продаёт следующие уровни.</summary>
         public void Configure(InputReader_AI input, WalletSystem wallet)

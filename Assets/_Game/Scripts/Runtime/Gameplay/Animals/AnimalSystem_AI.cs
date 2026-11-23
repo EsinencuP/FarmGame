@@ -66,8 +66,7 @@ namespace MyLittleFarm.Gameplay.Animals
         public int MaxAnimals => maxAnimals;
         /// <summary>Стабильный ID вида, назначенного в Inspector.</summary>
         public string AnimalDefinitionId => _chicken == null ? string.Empty : _chicken.AnimalId;
-        /// <summary>Цена курицы, доступная для настройки в Inspector.</summary>
-        public int ChickenPrice => chickenPrice;
+        public int ChickenPrice => TransactionMath.IncreasedPurchasePrice(chickenPrice);
         public AnimalDefinition Definition => _chicken != null ? _chicken : chickenAsset;
         private CharacterController _playerBody;
         public void BindPlayer(CharacterController playerBody) => _playerBody = playerBody;
@@ -82,14 +81,15 @@ namespace MyLittleFarm.Gameplay.Animals
         /// <summary>Покупает курицу на выбранной клетке загона после проверки денег и места.</summary>
         public bool TryBuyChicken(Vector2Int position, long nowUnixMs)
         {
-            if (_mutating || nowUnixMs < 0 || _wallet == null || _wallet.Coins < chickenPrice || !CanAddChicken(position)) return false;
+            var price = ChickenPrice;
+            if (_mutating || nowUnixMs < 0 || _wallet == null || _wallet.Coins < price || !CanAddChicken(position)) return false;
             _mutating = true;
             try
             {
-                if (!_wallet.TrySpend(chickenPrice)) return false;
+                if (!_wallet.TrySpend(price)) return false;
                 if (AddChickenCore(position, nowUnixMs)){GameEvents.Record("chicken");return true;}
-                _wallet.AddCoins(chickenPrice);
-                GameEvents.Record("refund",value:chickenPrice);
+                _wallet.AddCoins(price);
+                GameEvents.Record("refund",value:price);
                 return false;
             }
             finally { _mutating = false; }

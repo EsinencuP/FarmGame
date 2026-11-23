@@ -8,7 +8,7 @@ namespace MyLittleFarm.Gameplay.Building
     internal sealed class ApplePresses
     {
         public const string BuildingId="apple_press", FruitId="apple", JuiceId="apple_juice";
-        public const int BuildingPrice=80, AppleCost=3, BatchSeconds=60, JuicePrice=65;
+        public const int BuildingPrice=120, AppleCost=3, BatchSeconds=60, JuicePrice=48;
         private readonly ProductionBatches _production;
         public ApplePresses(InventorySystem_AI inventory) : this(new ProductionBatches(inventory)) { }
         public ApplePresses(ProductionBatches production) => _production=production;
