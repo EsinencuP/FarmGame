@@ -70,13 +70,13 @@ namespace MyLittleFarm.Gameplay.World
             {
                 var position=center+offset;var entry=new FieldCell{Position=position};plan.Cells.Add(entry);
                 if(!_grid.TryGetCell(position,out var cell)){entry.SkipReason="нет доступной клетки";continue;}
+                if(cell.type==CellType.Locked || _grid.IsLocationLocked(position)){entry.SkipReason="участок ещё закрыт";continue;}
                 if(!IsWithinReach(position)){entry.SkipReason="слишком далеко";continue;}
                 if(_orchard?.Contains(position)==true || cell.type==CellType.Tree){entry.SkipReason="дерево";continue;}
                 if(_animals?.OccupiesHomeCell(position)==true){entry.SkipReason="животное";continue;}
                 if(cell.type==CellType.Building || cell.type==CellType.BuildingEdge){entry.SkipReason="постройка";continue;}
                 if(cell.type==CellType.Water){entry.SkipReason="вода";continue;}
                 if(cell.type==CellType.Rock){entry.SkipReason="камень или дерево";continue;}
-                if(cell.type==CellType.Locked){entry.SkipReason="участок ещё закрыт";continue;}
                 if(_workedUntil.TryGetValue(position,out var until) && Time.unscaledTime<until){entry.SkipReason="пауза после действия";continue;}
                 switch(plan.Action)
                 {

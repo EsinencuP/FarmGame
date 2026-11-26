@@ -126,7 +126,7 @@ namespace MyLittleFarm.UI
             private string Describe(string stackId)
             {
                 var (id, size) = HarvestQuality.ParseStack(stackId);
-                if(id=="apple_sapling")return "Яблоня доступна бесплатно. Назначьте саженец на слот или выберите дерево для посадки клавишей "+InputReader_AI.KeyLabel(InputReader_AI.Command.Apple)+".";
+                if(id=="apple_sapling")return "Первая яблоня бесплатна. Саженцы для следующих деревьев продаются на рынке. Назначьте саженец на слот или выберите дерево для посадки клавишей "+InputReader_AI.KeyLabel(InputReader_AI.Command.Apple)+".";
                 var text=Name(stackId)+"\n";
                 if(ui.catalog.TryGetItem(id,out var definition))text+="Продажа по базовой котировке: "+HarvestQuality.Price(definition.SellPrice, 100, size)+" монет за шт.\n";
                 var crop=ui.catalog.Crops.FirstOrDefault(c=>c.SeedItemId==id || c.HarvestItemId==id);
@@ -141,11 +141,13 @@ namespace MyLittleFarm.UI
             {
                 var items=(stored?Storage?.Items(warehouse):ui.inventory.Capture())??new List<InventoryEntryData>();
                 var ids=items.Where(e=>e.amount>0).Select(e=>e.StackId).ToList();
-                if(!stored&&!ids.Contains("apple_sapling"))ids.Add("apple_sapling");
+                if(!stored && warehouse==null && !ids.Contains("apple_sapling")
+                    && ui.orchard?.SaplingsAvailable("apple_sapling")>0)ids.Add("apple_sapling");
                 return ids.Where(id=>filter==0||Category(id)==filter).OrderBy(Category).ThenBy(Name,StringComparer.CurrentCulture).ThenBy(id=>id,StringComparer.Ordinal).ToList();
             }
             private int Count(string id,bool stored)=>stored?Storage?.StackAmount(warehouse,id)??0:ui.inventory.GetStackAmount(id);
-            private string CountLabel(string id,bool stored)=>!stored&&id=="apple_sapling"?"∞":"×"+Count(id,stored);
+            private string CountLabel(string id,bool stored)=>"×"+(!stored && warehouse==null && id=="apple_sapling" && ui.orchard!=null
+                ?ui.orchard.SaplingsAvailable(id):Count(id,stored));
             public void Refresh()
             {
                 leftIds=Items(false);rightIds=warehouse==null?new List<string>():Items(true);
@@ -161,7 +163,8 @@ namespace MyLittleFarm.UI
                 for(var i=0;i<6;i++)
                 {
                     var id=ui.quickSlots.ItemAt(i);refIcons[i].gameObject.SetActive(id!=null);if(id!=null)refIcons[i].sprite=Icon(id);
-                    refAmounts[i].text=id==null?"Пусто":id=="apple_sapling"?"∞":"×"+ui.inventory.GetAmount(id);
+                    refAmounts[i].text=id==null?"Пусто":"×"+(id=="apple_sapling" && ui.orchard!=null
+                        ?ui.orchard.SaplingsAvailable(id):ui.inventory.GetAmount(id));
                     refs[i].GetComponent<Image>().color=ui.quickSlots.Mode==QuickSlotSystem.SelectionMode.Item&&ui.quickSlots.SelectedIndex==i?new Color(1,.87f,.43f):Color.white;
                 }
                 hand.GetComponent<Image>().color=ui.quickSlots.Mode==QuickSlotSystem.SelectionMode.Hand?new Color(1,.87f,.43f):Color.white;

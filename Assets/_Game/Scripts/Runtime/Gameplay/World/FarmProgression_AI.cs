@@ -208,7 +208,11 @@ namespace MyLittleFarm.Gameplay.World
             _inventory.Add("corn_seed",2);_data.rareSeeds=Add(_data.rareSeeds,2);
             cache.Refresh();Evaluate(true);Changed?.Invoke();
             MyLittleFarm.Audio.FarmAudio.Play(MyLittleFarm.Audio.SoundId.RareSeedCollect, cache.transform.position);
-            GameEvents.RaiseStatusChanged("Найдено: 2 редких семени кукурузы · слот семян 5");return true;
+            var slot = _slots?.SlotFor("corn_seed") ?? -1;
+            var hint = slot >= 0 ? InputReader_AI.KeyLabel(InputReader_AI.Command.Seed1 + slot)
+                : "Назначить из инвентаря · " + InputReader_AI.KeyLabel(InputReader_AI.Command.Inventory);
+            GameEvents.RaiseStatusChanged("Найдено 2 редких семени кукурузы · " + hint);
+            return true;
         }
         public bool NearMarket
         {

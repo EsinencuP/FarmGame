@@ -19,8 +19,6 @@ namespace MyLittleFarm.Gameplay.World
         [SerializeField, Range(5f, 85f)] private float pitch = 38f;
         [Tooltip("Высота точки, на которую смотрит камера относительно игрока.")]
         [SerializeField] private float lookHeight = 0.8f;
-        [Tooltip("Поворот камеры клавишами Q и Shift+E в градусах.")]
-        [SerializeField, Min(1f)] private float keyboardRotationStep = 90f;
         [Tooltip("Чувствительность вращения средней кнопкой мыши.")]
         [SerializeField, Min(0.001f)] private float orbitSensitivity = 0.15f;
         [Tooltip("Чувствительность масштабирования колёсиком мыши.")]
@@ -94,9 +92,6 @@ namespace MyLittleFarm.Gameplay.World
 
             if (!_input.ModalInputActive && !_fishing)
             {
-                if (!_input.BuildModeActive && _input.RotateLeftPressed) _targetYaw -= keyboardRotationStep;
-                if (!_input.BuildModeActive && _input.RotateRightPressed) _targetYaw += keyboardRotationStep;
-
                 _targetYaw += _input.OrbitDelta * orbitSensitivity;
                 if (_input.ZoomDelta != 0f)
                 {

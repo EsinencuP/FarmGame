@@ -234,17 +234,27 @@ namespace MyLittleFarm.Gameplay.Farming
                     retained.SetStage(CropRuntimeState.StageFor(0f, crop.stageCount, true), crop.stageCount);
                 return true;
             }
-            if (_views.TryGetValue(position, out var view))
+            RemovePlantView(position);
+            _grid.SetFarmingCell(position, new FarmingCell { soilType = CellType.Tilled });
+            return true;
+        }
+
+        internal void ClearPlot(Vector2Int position)
+        {
+            RemovePlantView(position);
+            _grid.ClearFarmingCell(position);
+        }
+
+        private void RemovePlantView(Vector2Int position)
+        {
+            if (_views.Remove(position, out var view))
             {
-                _views.Remove(position);
                 view.gameObject.SetActive(false);
                 Destroy(view.gameObject);
             }
 
-            _grid.SetFarmingCell(position, new FarmingCell { soilType = CellType.Tilled });
             _rainBaselines.Remove(position);
             _qualityRain.Remove(position);
-            return true;
         }
         public float HarvestHour => _dayNight==null?-1:_dayNight.Hour;
 

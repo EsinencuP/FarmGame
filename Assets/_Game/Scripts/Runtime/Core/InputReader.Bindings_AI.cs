@@ -11,9 +11,9 @@ namespace MyLittleFarm.Core
         public enum Command
         {
             Forward, Back, Left, Right, Run, RunAlternate, Sprint, Jump, Strafe, Gesture,
-            Interact, OrbitLeft, OrbitRight, Save, Load, Market, Apple, Build,
+            Interact, RetiredOrbitLeft, RetiredOrbitRight, Save, Load, Market, Apple, Build,
             Rotate, RotateAlternate, MoveBuilding, DeleteBuilding, Catalogue, Customize, Guide, Inventory,
-            Seed1, Seed2, Seed3, Seed4, Seed5, Seed6, Water
+            Seed1, Seed2, Seed3, Seed4, Seed5, Seed6, Water, ToggleTool
         }
 
         [Flags]
@@ -36,8 +36,9 @@ namespace MyLittleFarm.Core
             new("Бег", Key.LeftShift, Mode.Both), new("Бег · дополнительная", Key.RightShift, Mode.Both),
             new("Спринт · вместе с бегом", Key.LeftCtrl, Mode.Farm), new("Прыжок", Key.Space, Mode.Farm),
             new("Шаги боком", Key.LeftAlt, Mode.Farm), new("Жест", Key.G, Mode.Farm),
-            new("Действие / установка", Key.E, Mode.Both), new("Камера влево", Key.Q, Mode.Farm),
-            new("Камера вправо · вместе с бегом", Key.E, Mode.Farm),
+            // Keep the retired command IDs so saved overrides retain their original targets.
+            new("Действие / установка", Key.E, Mode.Both),
+            new("", Key.None, Mode.Inactive), new("", Key.None, Mode.Inactive),
             new("Сохранить", Key.F5, Mode.Both), new("Слоты сохранений", Key.F9, Mode.Both),
             new("Рынок", Key.P, Mode.Farm), new("Посадить выбранное дерево", Key.T, Mode.Farm),
             new("Открыть меню строительства", Key.B, Mode.Both), new("Повернуть постройку / полосу", Key.R, Mode.Build),
@@ -48,7 +49,8 @@ namespace MyLittleFarm.Core
             new("Предмет · слот 2", Key.Digit2, Mode.Farm), new("Предмет · слот 3", Key.Digit3, Mode.Farm),
             new("Предмет · слот 4", Key.Digit4, Mode.Farm), new("Предмет · слот 5", Key.Digit5, Mode.Farm),
             new("Предмет · слот 6", Key.Digit6, Mode.Farm),
-            new("Полить растение", Key.H, Mode.Farm)
+            new("Полить растение", Key.H, Mode.Farm),
+            new("Переключить руки / мотыгу", Key.Q, Mode.Farm)
         };
 
         [Serializable] private struct Override { public Command command; public Key key; }
@@ -74,6 +76,7 @@ namespace MyLittleFarm.Core
             var key = Application.isPlaying ? Keys[(int)command] : Bindings[(int)command].Default;
             return key switch
             {
+                Key.None => "—",
                 Key.LeftShift => "L Shift", Key.RightShift => "R Shift",
                 Key.LeftCtrl => "L Ctrl", Key.RightCtrl => "R Ctrl",
                 Key.LeftAlt => "L Alt", Key.RightAlt => "R Alt",
@@ -117,6 +120,9 @@ namespace MyLittleFarm.Core
                         if ((int)item.command >= 0 && (int)item.command < candidate.Length
                             && Bindings[(int)item.command].Context != Mode.Inactive && AllowedKey(item.key))
                             candidate[(int)item.command] = item.key;
+                    // A customized profile may already use Q for another farm action.
+                    if (Conflict(Command.ToggleTool, candidate[(int)Command.ToggleTool], candidate) >= 0)
+                        candidate[(int)Command.ToggleTool] = Key.None;
                     for (var i = 0; i < candidate.Length; i++)
                         if (Conflict((Command)i, candidate[i], candidate) >= 0) return _keys = keys;
                     keys = candidate;
@@ -183,12 +189,10 @@ namespace MyLittleFarm.Core
 
         private static int Conflict(Command command, Key key, Key[] keys)
         {
+            if (key == Key.None) return -1;
             for (var i = 0; i < keys.Length; i++)
             {
                 if (i == (int)command || keys[i] != key || (Bindings[i].Context & Bindings[(int)command].Context) == 0) continue;
-                // These commands distinguish the same button by the run modifier.
-                if ((command == Command.Interact && i == (int)Command.OrbitRight)
-                    || (command == Command.OrbitRight && i == (int)Command.Interact)) continue;
                 return i;
             }
             return -1;
@@ -205,7 +209,8 @@ namespace MyLittleFarm.Core
         {
             var profile = new Profile();
             for (var i = 0; i < Bindings.Length; i++)
-                if (Keys[i] != Bindings[i].Default) profile.bindings.Add(new Override { command = (Command)i, key = Keys[i] });
+                if (Keys[i] != Key.None && Keys[i] != Bindings[i].Default)
+                    profile.bindings.Add(new Override { command = (Command)i, key = Keys[i] });
             PlayerPrefs.SetString(PrefsKey, JsonUtility.ToJson(profile));
             PlayerPrefs.Save();
             _revision++;
@@ -218,11 +223,12 @@ namespace MyLittleFarm.Core
                 _map = new InputActionMap("Farm keyboard");
                 _actions = new InputAction[Bindings.Length];
                 for (var i = 0; i < _actions.Length; i++)
-                    _actions[i] = _map.AddAction(((Command)i).ToString(), InputActionType.Button, BindingPath(Bindings[i].Default));
+                    if (Bindings[i].Context != Mode.Inactive)
+                        _actions[i] = _map.AddAction(((Command)i).ToString(), InputActionType.Button, BindingPath(Bindings[i].Default));
             }
             _map.Disable();
             for (var i = 0; i < _actions.Length; i++)
-                _actions[i].ApplyBindingOverride(0, BindingPath(Keys[i]));
+                _actions[i]?.ApplyBindingOverride(0, Keys[i] == Key.None ? string.Empty : BindingPath(Keys[i]));
             _map.Enable();
             _appliedRevision = _revision;
         }

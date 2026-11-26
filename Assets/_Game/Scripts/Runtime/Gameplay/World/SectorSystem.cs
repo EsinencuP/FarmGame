@@ -135,6 +135,16 @@ namespace MyLittleFarm.Gameplay.World
             return index >= 0 && (ownership & (1 << index)) == 0;
         }
 
+        internal string LockedParcelHint(Vector2Int chunk)
+        {
+            var index = LocationIndex(chunk);
+            if (UsesLegacySector || index < 0 || OwnsParcel(index)) return null;
+            var parcel = _parcels[index];
+            if (index > 0 && !OwnsParcel(0))
+                return parcel.Name + " закрыт. Сначала откройте Озёрную долину через «Улучшения» на рынке.";
+            return parcel.Name + " · откройте вход через «Улучшения» на рынке за " + UI.FarmText.Coins(parcel.Cost) + ".";
+        }
+
         internal string LocationUnavailable(int index) =>
             OwnsParcel(index) ? "Уже открыто" : index > 0 && !OwnsParcel(index - 1) ? "Сначала откройте Озёрную долину" : null;
 

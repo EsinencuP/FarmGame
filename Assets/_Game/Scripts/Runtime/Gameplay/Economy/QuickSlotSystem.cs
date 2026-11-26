@@ -26,12 +26,19 @@ namespace MyLittleFarm.Gameplay.Economy
         public CropDefinition SelectedCrop
         { get {if(_catalog!=null && Mode==SelectionMode.Item)foreach(var crop in _catalog.Crops)if(crop.SeedItemId==SelectedItemId)return crop;return null;} }
         public string ItemAt(int index)=>index>=0 && index<ItemSlotCount?_items[index]:null;
+        internal int SlotFor(string itemId) => Array.IndexOf(_items, itemId);
         public static List<string> DefaultAssignments()
         {var result=new List<string>();foreach(var id in FarmCatalog.CropIds){if(result.Count==ItemSlotCount)break;result.Add(id+"_seed");}return result;}
         public void Configure(InputReader_AI input,FarmCatalog catalog,InventorySystem_AI inventory=null)
         {_input=input;_catalog=catalog;_inventory=inventory;_items=DefaultAssignments().ToArray();SelectedIndex=startingSlot;Mode=SelectionMode.Item;Revision++;}
         private void Update()
-        {if(_input!=null && !_input.BuildModeActive && !_input.ModalInputActive && !_input.SuppressGameplayThisFrame && _input.SeedSelection>=0)Select(_input.SeedSelection);}
+        {
+            if (_input == null || _input.BuildModeActive || _input.ModalInputActive || _input.SuppressGameplayThisFrame) return;
+            if (_input.ToggleToolPressed)
+                SelectTool(Mode == SelectionMode.Hoe ? SelectionMode.Hand : SelectionMode.Hoe);
+            else if (_input.SeedSelection >= 0)
+                Select(_input.SeedSelection);
+        }
         public bool Select(int index)
         {
             if(_changing || index<0 || index>=ItemSlotCount)return false;

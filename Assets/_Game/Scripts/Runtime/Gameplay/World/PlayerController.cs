@@ -164,7 +164,7 @@ namespace MyLittleFarm.Gameplay.World
                 if (_grid.IsLocationLocked(targetCell) && Time.unscaledTime >= _nextLocationHint)
                 {
                     _nextLocationHint = Time.unscaledTime + 2.5f;
-                    GameEvents.RaiseStatusChanged("Локация закрыта. Вход можно открыть на рынке.");
+                    GameEvents.RaiseStatusChanged(_grid.LockedParcelHint(targetCell));
                 }
                 // A diagonal into a terrain boundary can still slide along its free side.
                 var x = new Vector3(horizontal.x, 0f, 0f);

@@ -76,8 +76,7 @@ namespace MyLittleFarm.Gameplay.Farming
             AddPlaceholder("cucumber", cucumber);
             AddPlaceholder("strawberry",new PlaceholderCropSettings("Клубника",30,3,8,7,new Color(.8f,.1f,.15f)));
             AddPlaceholder("pumpkin",new PlaceholderCropSettings("Тыква",35,2,10,16,new Color(1f,.5f,.1f)));
-            // A virtual selector keeps the original unlimited free apple planting available in inventory.
-            AddItemPlaceholder("apple_sapling", "Саженец яблони", 0, 0, false);
+            AddItemPlaceholder("apple_sapling", "Саженец яблони", 35, 0, true);
             if (cropAssets != null)
                 foreach (var crop in cropAssets)
                     if (crop != null && !string.IsNullOrWhiteSpace(crop.CropId)) _crops[crop.CropId] = crop;
@@ -157,7 +156,7 @@ namespace MyLittleFarm.Gameplay.Farming
         // Runtime copies keep scene-assigned assets intact while all economy consumers use one tuning.
         private void ApplyBalancePrices()
         {
-            var seedPrices = new[] { 3, 4, 5, 6, 6, 8, 9, 11 };
+            var seedPrices = new[] { 2, 4, 5, 6, 6, 8, 9, 11 };
             var salePrices = new[] { SellingSystem.DefaultCarrotSellPrice, 3, 2, 4, 5, 4, 6, 12 };
             for (var i = 0; i < CropIds.Length; i++)
             {

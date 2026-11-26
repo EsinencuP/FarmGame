@@ -70,7 +70,19 @@ namespace MyLittleFarm.Gameplay.Farming
             definition = null; return false;
         }
 
-        public bool IsFree(TreeDefinition definition) => definition != null && definition == Definition;
+        public bool IsFree(TreeDefinition definition)
+        {
+            if (definition == null || definition != Definition) return false;
+            foreach (var tree in _trees.Values)
+                if (tree.treeId == definition.TreeId || tree.treeId is "apple" or "apple_tree") return false;
+            return true;
+        }
+
+        internal int SaplingsAvailable(string itemId)
+        {
+            var stock = _inventory?.GetAmount(itemId) ?? 0;
+            return stock < int.MaxValue && IsFree(Definition) && itemId == Definition.SaplingItemId ? stock + 1 : stock;
+        }
 
         public bool SelectTree(string id)
         {
@@ -83,7 +95,7 @@ namespace MyLittleFarm.Gameplay.Farming
         {
             var tree = SelectedDefinition;
             if (tree == null) return string.Empty;
-            var supply = IsFree(tree) ? "бесплатно" : "саженцев: " + (_inventory?.GetAmount(tree.SaplingItemId) ?? 0);
+            var supply = IsFree(tree) ? "первая яблоня бесплатно" : "саженцев: " + SaplingsAvailable(tree.SaplingItemId);
             return key + " — посадить: " + tree.DisplayName + " (" + supply + ") · выбор в инвентаре";
         }
 
@@ -122,6 +134,20 @@ namespace MyLittleFarm.Gameplay.Farming
         /// <summary>Проверяет, есть ли дерево в указанной клетке.</summary>
         public bool Contains(Vector2Int position) => _trees.ContainsKey(position);
 
+        internal bool TryRemove(Vector2Int position)
+        {
+            if (_changing || _grid.GetBuildingCell(position).buildingId != TreeOccupantId(position)
+                || !_trees.Remove(position)) return false;
+            if (_views.Remove(position, out var view))
+            {
+                view.gameObject.SetActive(false);
+                Destroy(view.gameObject);
+            }
+            _grid.ClearBuildingCell(position);
+            GameEvents.RaiseInventoryChanged();
+            return true;
+        }
+
         /// <summary>Сажает яблоню на свободную клетку и фиксирует время посадки.</summary>
         public bool PlantApple(Vector2Int position, long plantedAtUnixMs)
             => Plant(position, _appleTree == null ? null : _appleTree.TreeId, plantedAtUnixMs);
@@ -133,7 +159,8 @@ namespace MyLittleFarm.Gameplay.Farming
             if (_changing || _grid == null || !TryGetDefinition(treeId, out var definition)
                 || plantedAtUnixMs < 0 || plantedAtUnixMs > MaxTimestamp || Contains(position)
                 || !_grid.CanPlantTree(position)) return false;
-            if (!IsFree(definition) && (_inventory == null || _inventory.GetAmount(definition.SaplingItemId) < 1)) return false;
+            var free = IsFree(definition);
+            if (!free && (_inventory == null || _inventory.GetAmount(definition.SaplingItemId) < 1)) return false;
             var state = new TreeRuntimeState
             {
                 x = position.x,
@@ -149,7 +176,8 @@ namespace MyLittleFarm.Gameplay.Farming
                 _trees.Add(position, state);
                 _grid.SetBuildingCell(position, new BuildingCell { type = CellType.Tree, buildingId = TreeOccupantId(position) });
                 AddView(state);
-                if (!IsFree(definition)) _inventory.TryRemove(definition.SaplingItemId, 1);
+                if (!free) _inventory.TryRemove(definition.SaplingItemId, 1);
+                else GameEvents.RaiseInventoryChanged();
                 GameEvents.Record("tree");
                 return true;
             }
@@ -243,6 +271,7 @@ namespace MyLittleFarm.Gameplay.Farming
                 }
             _views.Clear();
             _trees.Clear();
+            SelectedTreeId = Definition?.TreeId;
         }
 
         /// <summary>Проверяет созревание видимых деревьев через ограниченный интервал.</summary>

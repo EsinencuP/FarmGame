@@ -106,7 +106,7 @@ namespace MyLittleFarm.UI
                     if (inventory.GetAmount(id) > 0) _items.Add(id);
             if (!_market && (_filter == 0 || _filter == 1))
                 foreach (var id in FarmCatalog.SaplingIds)
-                    if (id == "apple_sapling" || inventory.GetAmount(id) > 0) _items.Add(id);
+                    if ((orchard?.SaplingsAvailable(id) ?? inventory.GetAmount(id)) > 0) _items.Add(id);
             tabs[1].GetComponentInChildren<Text>().text = FarmText.Get("inventory.tabSeeds");
             heading.text = _market ? FarmText.Get("inventory.legacyMarket") : FarmText.Get("inventory.title");
             for (var i = 0; i < tabs.Length; i++) { tabs[i].gameObject.SetActive(!_market); FarmUITheme.Style(tabs[i], i == _filter ? "secondary" : "ghost"); }
@@ -115,7 +115,8 @@ namespace MyLittleFarm.UI
                 var filled = i < _items.Count; cells[i].interactable = filled; icons[i].gameObject.SetActive(filled);
                 if (!filled) { amounts[i].text = ""; continue; }
                 var id = _items[i]; icons[i].sprite = FarmUITheme.Sprite("Icons/" + FarmUITheme.ItemIcon(id));
-                amounts[i].text = id == "apple_sapling" ? "∞" : _market && catalog.TryGetItem(id, out var item) ? (catalog.IsRareSeed(id) ? "Тайники" : item.BuyPrice + " м.") : "×" + inventory.GetAmount(id);
+                amounts[i].text = _market && catalog.TryGetItem(id, out var item) ? (catalog.IsRareSeed(id) ? "Тайники" : item.BuyPrice + " м.")
+                    : "×" + (id == "apple_sapling" && orchard != null ? orchard.SaplingsAvailable(id) : inventory.GetAmount(id));
             }
             if (!_items.Contains(_selected)) _selected = _items.Count > 0 ? _items[0] : null;
             balance.text = wallet.Coins.ToString("N0");
@@ -154,7 +155,7 @@ namespace MyLittleFarm.UI
                 + "\n\n" + (catalog.IsRareSeed(_selected) ? FarmText.Get(gameObject.scene.path == FarmSceneFlow.GameScene
                     ? "inventory.forestSeed" : "inventory.rareSeed") : FarmText.Get(_market ? "inventory.buyPrice" : "inventory.salePrice", FarmText.Coins(_market ? item.BuyPrice : item.SellPrice)));
             if (sapling && orchard.TryGetSapling(_selected, out var tree))
-                description.text = (orchard.IsFree(tree) ? "Яблоня доступна бесплатно без ограничения." : "В наличии: " + inventory.GetAmount(_selected) + ". На посадку расходуется один саженец.")
+                description.text = (orchard.IsFree(tree) ? "Первая яблоня бесплатна. Следующие саженцы продаются на рынке." : "В наличии: " + inventory.GetAmount(_selected) + ". На посадку расходуется один саженец.")
                     + "\n\nВыберите дерево. Посадка · " + InputReader_AI.KeyLabel(InputReader_AI.Command.Apple) + ".\nПосле сбора дерево остаётся и плодоносит повторно.";
             foreach(var recipe in MyLittleFarm.Gameplay.Building.ProductionRecipe.All)
                 if(recipe.OutputId==_selected) description.text += "\n\n"+recipe.Name+": "+recipe.InputName+" × "+recipe.InputAmount+" → "+recipe.OutputName+" × 1 · "+FarmText.Duration(recipe.Seconds)+". Ручной сбор.";
@@ -168,7 +169,7 @@ namespace MyLittleFarm.UI
             {
                 FarmUITheme.Style(assign);
                 assign.gameObject.SetActive(true);
-                assign.interactable = _selected == "apple_sapling" || inventory.GetAmount(_selected) > 0;
+                assign.interactable = (sapling ? orchard.SaplingsAvailable(_selected) : inventory.GetAmount(_selected)) > 0;
             }
         }
         private void Assign()

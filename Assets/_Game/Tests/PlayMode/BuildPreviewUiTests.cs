@@ -96,8 +96,8 @@ namespace MyLittleFarm.Tests.PlayMode
             Assert.That(card.PromptText.text,
                 Does.Contain(InputReader_AI.BuildRotateHint).And.Contain("Esc").And.Contain(InputReader_AI.ActionHint));
             var cameraRotation=_camera.transform.rotation;
-            Set("RotateBuildingPressed",true);Set("RotateLeftPressed",true);yield return null;
-            Set("RotateBuildingPressed",false);Set("RotateLeftPressed",false);yield return null;
+            Set("RotateBuildingPressed",true);yield return null;
+            Set("RotateBuildingPressed",false);yield return null;
             Assert.That(Mathf.DeltaAngle(0,Ghost.eulerAngles.y),Is.EqualTo(90f).Within(.1f));
             Assert.That(Quaternion.Angle(cameraRotation,_camera.transform.rotation),Is.LessThan(.1f));
             _grid.SetCellType(new Vector2Int(0,3),CellType.Tilled);yield return new WaitForSeconds(.15f);

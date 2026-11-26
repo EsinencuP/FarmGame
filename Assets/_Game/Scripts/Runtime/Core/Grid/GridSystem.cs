@@ -368,6 +368,8 @@ namespace MyLittleFarm.Core.Grid
         internal bool IsLocationLocked(Vector2Int cell) =>
             _locations?.IsUnownedParcel(GridToChunk(cell), _locationAccess) == true;
 
+        internal string LockedParcelHint(Vector2Int cell) => _locations?.LockedParcelHint(GridToChunk(cell));
+
         internal void SetSectorLock(Vector2Int chunk, bool locked)
         {
             // Access is independent of the painted terrain and its save compatibility hash.

@@ -109,11 +109,12 @@ namespace MyLittleFarm.Tests.PlayMode
             input.enabled = false;
             var camera = Farm.GetComponentInChildren<IsometricCameraController>();
             var startYaw = camera.transform.eulerAngles.y;
-            typeof(InputReader_AI).GetProperty("RotateLeftPressed", BindingFlags.Instance | BindingFlags.Public)
-                .SetValue(input, true);
+            var orbit = typeof(InputReader_AI).GetProperty(nameof(InputReader_AI.OrbitDelta), BindingFlags.Instance | BindingFlags.Public);
+            var sensitivity = (float)typeof(IsometricCameraController)
+                .GetField("orbitSensitivity", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(camera);
+            orbit.SetValue(input, 90f / sensitivity);
             yield return null;
-            typeof(InputReader_AI).GetProperty("RotateLeftPressed", BindingFlags.Instance | BindingFlags.Public)
-                .SetValue(input, false);
+            orbit.SetValue(input, 0f);
             var firstAngle = Mathf.Abs(Mathf.DeltaAngle(startYaw, camera.transform.eulerAngles.y));
             Assert.That(firstAngle, Is.GreaterThan(0f).And.LessThan(90f));
             var animals = Farm.GetComponentInChildren<AnimalSystem_AI>();

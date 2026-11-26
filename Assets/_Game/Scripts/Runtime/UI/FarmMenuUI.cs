@@ -148,7 +148,11 @@ namespace MyLittleFarm.UI
                 if (input.ModalInputActive || input.BuildModeActive || input.SuppressGameplayThisFrame) return;
                 if (input.PausePressed) OpenPause();
                 else if (input.InventoryPressed) OpenInventory();
-                else if (input.MarketPressed) OpenMarket();
+                else if (input.MarketPressed)
+                {
+                    if (shop?.CanTrade == true) OpenMarket();
+                    else GameEvents.RaiseStatusChanged(FarmText.Get("market.approach"));
+                }
                 else if (input.JournalPressed) OpenJournal();
             }
             else if ((_page == Page.Inventory || _page == Page.Warehouse || _page == Page.Shop) && input.InventoryPressed
@@ -171,7 +175,8 @@ namespace MyLittleFarm.UI
         private void OpenGuideFromJournal()
         { if (_page == Page.Journal && guide != null) Show(Page.Guide); }
         private bool CanOpenFromGame() => _page == Page.Game && !input.ModalInputActive && !input.BuildModeActive && saves.HasActiveFarm;
-        private bool CanOpenDemo() => !_waitingForSlots && !FarmSceneFlow.IsLoading && !input.FishingActive && CanOpenFromGame();
+        private bool CanOpenDemo() => FarmDemoPanel.IsAvailable && !_waitingForSlots && !FarmSceneFlow.IsLoading
+            && !input.FishingActive && CanOpenFromGame();
 
         private void ToggleDemo()
         {
@@ -273,7 +278,8 @@ namespace MyLittleFarm.UI
         {
             if (_shortcutRevision == InputReader_AI.BindingRevision) return;
             _shortcutRevision = InputReader_AI.BindingRevision;
-            if (marketPrompt != null) marketPrompt.GetComponentInChildren<Text>(true).text = FarmText.Get("market.openHint", InputReader_AI.MarketHint);
+            if (marketPrompt != null)
+                marketPrompt.GetComponentInChildren<Text>(true).text = FarmText.Get("market.openHint", InputReader_AI.KeyLabel(InputReader_AI.Command.Market));
             var guideLabel = journalShortcut.GetComponentInChildren<Text>(true);
             if (guideLabel != null) guideLabel.text = FarmText.Get("journal.shortcut", InputReader_AI.KeyLabel(InputReader_AI.Command.Guide));
         }

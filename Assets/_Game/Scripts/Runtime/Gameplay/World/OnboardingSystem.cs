@@ -13,12 +13,12 @@ namespace MyLittleFarm.Gameplay.World
     public sealed class OnboardingSystem : MonoBehaviour
     {
         public const int StepCount = 5;
-        private const string ReturningPlayerKey = "MyLittleFarm.Onboarding.Seen";
         [SerializeField] private bool enabledInNewGame = true;
         [SerializeField] private OnboardingMarker marker;
         [SerializeField] private OnboardingOverlay overlay;
         private GridSystem _grid;
         private InputReader_AI _input;
+        private QuickSlotSystem _slots;
         private BuildSystem _buildings;
         private CropSystem_AI _crops;
         private InventorySystem_AI _inventory;
@@ -27,7 +27,6 @@ namespace MyLittleFarm.Gameplay.World
         private int _step;
         private bool _ready, _suppliesGranted, _gardenPlanted;
         private bool _saleCompleted;
-        private bool _restored;
         private Vector2Int _gardenCell;
         private Vector3 _target;
         private bool _hasTarget;
@@ -35,36 +34,42 @@ namespace MyLittleFarm.Gameplay.World
         private float _nextTargetAt;
         public int Step => _step;
         public bool IsActive => enabledInNewGame && _step < StepCount;
-        public bool CanSkip { get; private set; }
+        public bool CanSkip => _ready;
         public bool UsesOverlay => overlay != null;
         public bool SuppliesGranted => _suppliesGranted;
         public bool GardenPlanted => _gardenPlanted;
         public bool SaleCompleted => _saleCompleted;
         public Vector2Int GardenCell => _gardenCell;
         public string CurrentHint => IsActive
-            ? HintFor(_step, _gardenPlanted, _step > 0 && _buildings?.GetBuilding(BuildingRuntimeState.StarterHouseId) != null ? 1 : 0)
+            ? HintFor(_step, _gardenPlanted, gameObject.scene.path == FarmSceneFlow.GameScene ? 2 : 0,
+                _slots?.SlotFor(InventorySystem_AI.CarrotSeedId) ?? 0)
             : string.Empty;
 
-        public static string HintFor(int step, bool planted = false, int firstStep = 0)
+        public static string HintFor(int step, bool planted = false, int firstStep = 0, int carrotSlot = 0)
         {
+            var toolKey = InputReader_AI.KeyLabel(InputReader_AI.Command.ToggleTool);
             var hint = step switch
             {
                 0 => FarmText.Get("onboarding.house", InputReader_AI.KeyLabel(InputReader_AI.Command.Build), InputReader_AI.ActionHint),
                 1 => FarmText.Get("onboarding.storage", InputReader_AI.KeyLabel(InputReader_AI.Command.Build)),
                 2 => planted ? FarmText.Get("onboarding.harvest", InputReader_AI.ActionHint)
-                    : FarmText.Get("onboarding.plant", InputReader_AI.KeyLabel(InputReader_AI.Command.Seed1), InputReader_AI.ActionHint),
+                    : FarmText.Get("onboarding.plant",
+                        carrotSlot >= 0 ? "Выберите семена моркови · " + InputReader_AI.KeyLabel(InputReader_AI.Command.Seed1 + carrotSlot)
+                            : "Назначьте семена на быстрый слот через инвентарь · " + InputReader_AI.KeyLabel(InputReader_AI.Command.Inventory),
+                        InputReader_AI.ActionHint, toolKey == "—" ? "Выберите «Мотыга» на панели" : "Достаньте мотыгу · " + toolKey),
                 3 => FarmText.Get("onboarding.buy", InputReader_AI.MarketHint),
                 4 => FarmText.Get("onboarding.sell", InputReader_AI.MarketHint),
                 _ => string.Empty
             };
-            return hint.Length == 0 ? hint : $"{step - firstStep + 1} / {StepCount - firstStep} · {hint}";
+            return hint.Length == 0 ? hint : $"{step - Mathf.Min(step, firstStep) + 1} / {StepCount - firstStep} · {hint}";
         }
 
         public void Configure(GridSystem grid, BuildSystem buildings, CropSystem_AI crops,
-            InventorySystem_AI inventory, WalletSystem wallet, Transform player, Transform market)
+            InventorySystem_AI inventory, WalletSystem wallet, Transform player, Transform market, QuickSlotSystem slots = null)
         {
             _grid = grid; _buildings = buildings; _crops = crops;
             _inventory = inventory; _wallet = wallet; _player = player; _market = market;
+            _slots = slots;
             _input = GetComponentInParent<GameBootstrap>()?.GetComponent<InputReader_AI>();
             if (overlay != null) overlay.Configure(this);
         }
@@ -76,9 +81,6 @@ namespace MyLittleFarm.Gameplay.World
         private void Start()
         {
             if (!Application.isPlaying || _grid == null) return;
-            CanSkip = _restored || PlayerPrefs.GetInt(ReturningPlayerKey, 0) != 0;
-            PlayerPrefs.SetInt(ReturningPlayerKey, 1);
-            PlayerPrefs.Save();
             _ready = true;
             GrantStarterSupplies();
             ReconcileBuildings();
@@ -98,8 +100,6 @@ namespace MyLittleFarm.Gameplay.World
             Vector2Int gardenCell = default, bool saleCompleted = false)
         {
             _step = Mathf.Clamp(step, 0, StepCount);
-            _restored = true;
-            if (_ready) CanSkip = true;
             _suppliesGranted = suppliesGranted;
             _gardenPlanted = gardenPlanted;
             _gardenCell = gardenCell;
@@ -118,6 +118,11 @@ namespace MyLittleFarm.Gameplay.World
         private void ReconcileBuildings()
         {
             if (_buildings == null || !enabledInNewGame) return;
+            if (gameObject.scene.path == FarmSceneFlow.GameScene)
+            {
+                _step = Mathf.Max(_step, 2);
+                return;
+            }
             if (_step == 0 && _buildings.FindFirstView("house") != null) _step = 1;
             if (_step == 1 && _buildings.FindFirstView("storage") != null) _step = 2;
         }
@@ -141,7 +146,7 @@ namespace MyLittleFarm.Gameplay.World
         {
             if (!IsActive) return;
             // Selling early is valid free play. Remember it so the shop goal cannot strand the player.
-            if (_step == 3 && action == "sale") { _saleCompleted = true; return; }
+            if (_step is 2 or 3 && action == "sale") { _saleCompleted = true; return; }
             var expected = _step == 0 ? "house" : _step == 1 ? "chest"
                 : _step == 2 ? "harvest" : _step == 3 ? "purchase" : "sale";
             // Crop feedback advances the bed goal; orchard's generic harvest must not advance it.

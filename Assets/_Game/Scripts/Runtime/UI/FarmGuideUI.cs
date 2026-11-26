@@ -173,7 +173,8 @@ namespace MyLittleFarm.UI
                 tree.seedLabel.text = "Сад · повторный урожай";
                 tree.growth.text = "Первый сбор · " + Duration(definition.FirstHarvestSeconds);
                 catalog.TryGetItem(definition.SaplingItemId, out var sapling);
-                tree.price.text = "Саженец: " + (orchard.IsFree(definition) ? "бесплатно" : (sapling?.BuyPrice ?? 0).ToString()) + " · Плод: " + SalePrice(definition.FruitItemId);
+                tree.price.text = (orchard.IsFree(definition) ? "Первый саженец бесплатный" : "Саженец: " + (sapling?.BuyPrice ?? 0))
+                    + " · Плод: " + SalePrice(definition.FruitItemId);
                 tree.yield.text = definition.YieldAmount + " шт. · Повтор: " + Duration(definition.RegrowSeconds);
             }
             var animal = _cowReference ? animals.CowDefinition : animals.Definition;

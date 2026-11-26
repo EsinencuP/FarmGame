@@ -25,8 +25,20 @@ namespace MyLittleFarm.UI
             if (skip != null) { skip.onClick.RemoveListener(Skip); skip.onClick.AddListener(Skip); }
             Refresh(0);
         }
-        private void OnEnable() => GameEvents.OnboardingChanged += Refresh;
-        private void OnDisable() => GameEvents.OnboardingChanged -= Refresh;
+        private void OnEnable()
+        {
+            GameEvents.OnboardingChanged += Refresh;
+            GameEvents.InventoryChanged += RefreshEquipment;
+        }
+        private void OnDisable()
+        {
+            GameEvents.OnboardingChanged -= Refresh;
+            GameEvents.InventoryChanged -= RefreshEquipment;
+        }
+        private void RefreshEquipment()
+        {
+            if (_onboarding?.Step == 2 && ShouldShow) Refresh(0);
+        }
         private void Skip() => _onboarding?.Skip();
         private void Update()
         {

@@ -27,8 +27,7 @@ namespace MyLittleFarm.Core
         // Однокадровые команды: true только в кадре, когда соответствующая кнопка была нажата.
         public bool InteractPressed { get; private set; }
         public bool PointerInteractPressed { get; private set; }
-        public bool RotateLeftPressed { get; private set; }
-        public bool RotateRightPressed { get; private set; }
+        public bool ToggleToolPressed { get; private set; }
         public bool SavePressed { get; private set; }
         public bool LoadPressed { get; private set; }
         public bool PlantTreePressed { get; private set; }
@@ -83,7 +82,8 @@ namespace MyLittleFarm.Core
             var escape = !capturing && keyboard?.escapeKey.wasPressedThisFrame == true;
             var enter = !capturing && keyboard?.enterKey.wasPressedThisFrame == true;
 
-            DemoPanelPressed = !capturing && keyboard?.f1Key.wasPressedThisFrame == true;
+            DemoPanelPressed = MyLittleFarm.UI.FarmDemoPanel.IsAvailable && !capturing
+                && keyboard?.f1Key.wasPressedThisFrame == true;
             SuppressGameplayThisFrame = modal;
             HasPointer = mouse != null;
             PointerPosition = mouse?.position.ReadValue() ?? Vector2.zero;
@@ -112,6 +112,7 @@ namespace MyLittleFarm.Core
             ModalCancelPressed = modal && escape;
             BuildSelection = -1;
             SeedSelection = farm ? SlotPressed(Command.Seed1, 6) : -1;
+            ToggleToolPressed = farm && !FishingActive && !PausePressed && Pressed(Command.ToggleTool);
 
             Movement = farm ? new Vector2(ReadAxis(Held(Command.Left), Held(Command.Right)),
                 ReadAxis(Held(Command.Back), Held(Command.Forward))) : Vector2.zero;
@@ -127,8 +128,6 @@ namespace MyLittleFarm.Core
             JumpPressed = farm && Pressed(Command.Jump);
             PointerInteractPressed = !modal && !WorldPointerBlocked && allowMouseInteraction && mouse?.leftButton.wasPressedThisFrame == true;
             InteractPressed = (!modal && !run && Pressed(Command.Interact)) || PointerInteractPressed;
-            RotateLeftPressed = farm && Pressed(Command.OrbitLeft);
-            RotateRightPressed = farm && run && Pressed(Command.OrbitRight);
             SavePressed = !modal && Pressed(Command.Save);
             LoadPressed = !modal && Pressed(Command.Load);
             PlantTreePressed = farm && Pressed(Command.Apple);

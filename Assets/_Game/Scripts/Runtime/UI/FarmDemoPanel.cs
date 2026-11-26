@@ -13,6 +13,8 @@ namespace MyLittleFarm.UI
 {
     internal sealed class FarmDemoPanel
     {
+        internal static bool IsAvailable { get; } = Application.isEditor || Debug.isDebugBuild
+            || Array.Exists(Environment.GetCommandLineArgs(), arg => arg == "-farm-demo");
         private static readonly Vector2 PanelSize = new Vector2(880, 704);
         private static readonly Vector2 RightCenter = new Vector2(1f, .5f);
         private readonly Font _font;
@@ -51,7 +53,7 @@ namespace MyLittleFarm.UI
             _buildings = farm.GetComponentInChildren<BuildSystem>();
             _tools = farm.GetComponentInChildren<ToolUpgradeSystem>();
             _sector = farm.GetComponentInChildren<SectorSystem>();
-            var pond = farm.GetComponentInChildren<FishPond>();
+            var pond = farm.GetComponentInChildren<FishPond>(true);
 
             Panel = FarmUITheme.Panel(parent, "ПАНЕЛЬ АДМИНА", font, PanelSize);
             var closeButton = FarmUITheme.Button(Panel, "Закрыть · F1", font, kind: "ghost");

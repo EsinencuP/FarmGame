@@ -60,6 +60,7 @@ namespace MyLittleFarm.Gameplay.Building
         // Зависимости дают доступ к сетке, посевам, деньгам, вводу и лучу камеры.
         private GridSystem _grid;
         private CropSystem_AI _crops;
+        private OrchardSystem_AI _orchard;
         private WalletSystem _wallet;
         private InputReader_AI _input;
         private Camera _camera;
@@ -86,6 +87,7 @@ namespace MyLittleFarm.Gameplay.Building
         private Management _management;
         private string _movingId;
         private string _deleteId;
+        private Vector2Int? _clearCell;
         private Vector2Int _target;
         private bool _hasTarget;
         // Ограничивает обновление текста подсказки десятью разами в секунду.
@@ -112,9 +114,11 @@ namespace MyLittleFarm.Gameplay.Building
             WalletSystem wallet,
             Camera camera,
             bool allowSceneCreation = false,
-            InventorySystem_AI inventory = null)
+            InventorySystem_AI inventory = null,
+            OrchardSystem_AI orchard = null)
         {
             _input = input; _grid = grid; _crops = crops; _wallet = wallet; _camera = camera;
+            _orchard = orchard;
             Feeders=inventory==null?null:new FeederStore(this,inventory);
             Warehouses = inventory == null ? null : new WarehouseStore(inventory,this);
             Production = inventory == null ? null : new ProductionBatches(inventory);
@@ -274,7 +278,7 @@ namespace MyLittleFarm.Gameplay.Building
         public void SelectDefinition(int index)
         {
             if(index<0||index>=BuildingDefinition.Catalog.Count)return;
-            _selected=index;_movingId=null;_deleteId=null;_turns=0;_nextPromptAt=0;
+            _selected=index;_movingId=null;_deleteId=null;_clearCell=null;_turns=0;_nextPromptAt=0;
         }
 
         public void BeginPlacement(int index)
@@ -292,8 +296,9 @@ namespace MyLittleFarm.Gameplay.Building
 
         private string ManagementPrompt()
         {
-            var action = _management == Management.Move ? "переноса" : "сноса";
-            return $"Выберите готовую постройку для {action} · {InputReader_AI.ActionHint}\n"
+            var target = _management == Management.Move ? "готовую постройку для переноса"
+                : "постройку, грядку или посаженное дерево для удаления";
+            return $"Выберите {target} · {InputReader_AI.ActionHint}\n"
                 + $"Настроить · {InputReader_AI.KeyLabel(InputReader_AI.Command.Customize)}   |   Отмена · Esc";
         }
 
@@ -302,7 +307,7 @@ namespace MyLittleFarm.Gameplay.Building
         {
             IsActive = active;
             _management = Management.Place;
-            _movingId = null; _deleteId = null;
+            _movingId = null; _deleteId = null; _clearCell = null;
             _input.BuildModeActive = active;
             _input.SuppressGameplayThisFrame = true;
             _preview.SetActive(false);
@@ -327,8 +332,8 @@ namespace MyLittleFarm.Gameplay.Building
             _input.SuppressGameplayThisFrame = true;
             if (_input.CancelPressed)
             {
-                if (_management != Management.Place || (_movingId == null && _deleteId == null)) SetActive(false);
-                else { _movingId = null; _deleteId = null; }
+                if (_management != Management.Place || (_movingId == null && _deleteId == null && !_clearCell.HasValue)) SetActive(false);
+                else { _movingId = null; _deleteId = null; _clearCell = null; }
                 return;
             }
             if (_input.BuildSelection >= 0) SelectDefinition(_input.BuildSelection);
@@ -341,21 +346,39 @@ namespace MyLittleFarm.Gameplay.Building
                 if (_grid.TryRaycastSurface(ray, out var surfaceHit))
                     _hasTarget = _grid.TryWorldToCell(surfaceHit.point, out _target);
             }
-            if (_deleteId != null)
+            if (_deleteId != null || _clearCell.HasValue)
             {
                 // В состоянии подтверждения остальные строительные действия временно недоступны.
                 _preview.SetActive(false);
                 if (_footprint != null) _footprint.SetActive(false);
                 if (_previewModel != null) _previewModel.SetActive(false);
-                var state = _layout.Get(_deleteId);
-                if (state == null) { _deleteId = null; return; }
-                CurrentPrompt = FarmText.Get("construction.deletePrompt", _layout.Definition(state.definitionId).Name,
-                    FarmText.Coins(state.Refund), InputReader_AI.KeyLabel(InputReader_AI.Command.Interact));
+                var key = InputReader_AI.KeyLabel(InputReader_AI.Command.Interact);
+                if (_clearCell is Vector2Int clearCell)
+                {
+                    var target = ClearableTarget(clearCell);
+                    if (target == null) { _clearCell = null; return; }
+                    CurrentPrompt = FarmText.Get("construction.clearPlot", target, key);
+                }
+                else
+                {
+                    var state = _layout.Get(_deleteId);
+                    if (state == null) { _deleteId = null; return; }
+                    CurrentPrompt = FarmText.Get(state.IsUnderConstruction ? "construction.cancelSite" : "construction.deletePrompt",
+                        _layout.Definition(state.definitionId).Name, FarmText.Coins(state.Refund), key);
+                }
                 if (_input.ConfirmPressed || (_input.InteractPressed && !_input.PointerInteractPressed))
                 {
-                    TryRemove(_deleteId, out var reason);
+                    string reason;
+                    if (_clearCell.HasValue)
+                    {
+                        var cell = _clearCell.Value;
+                        if (_orchard?.Contains(cell) == true)
+                            reason = _orchard.TryRemove(cell) ? "Дерево удалено" : "Дерево больше недоступно";
+                        else { _crops.ClearPlot(cell); reason = "Грядка расчищена"; }
+                    }
+                    else TryRemove(_deleteId, out reason);
                     GameEvents.RaiseStatusChanged(reason);
-                    _deleteId = null;
+                    _deleteId = null; _clearCell = null;
                     if (_management == Management.Remove) SetActive(false);
                 }
                 return;
@@ -367,14 +390,17 @@ namespace MyLittleFarm.Gameplay.Building
                 if (move || remove || _input.CustomizeBuildingPressed)
                 {
                     var hovered = GetAt(_target);
-                    if (hovered?.IsUnderConstruction == true)
+                    if (hovered?.IsUnderConstruction == true && (!remove || move || _input.CustomizeBuildingPressed))
                     {
                         GameEvents.RaiseStatusChanged("Постройка ещё строится.");
                         return;
                     }
                     if (hovered == null)
                     {
-                        GameEvents.RaiseStatusChanged("Наведите курсор на готовую постройку.");
+                        if (remove && !move && !_input.CustomizeBuildingPressed && ClearableTarget(_target) != null)
+                            _clearCell = _target;
+                        else GameEvents.RaiseStatusChanged(remove ? "Наведите курсор на постройку, грядку или посаженное дерево."
+                            : "Наведите курсор на готовую постройку.");
                         return;
                     }
                     if (_input.CustomizeBuildingPressed) customizationUI?.ShowDetails(hovered);
@@ -442,6 +468,14 @@ namespace MyLittleFarm.Gameplay.Building
                 }
                 GameEvents.RaiseStatusChanged(reasonText);
             }
+        }
+
+        private string ClearableTarget(Vector2Int cell)
+        {
+            if (_grid.IsLocationLocked(cell)) return null;
+            if (_orchard?.Contains(cell) == true) return "посаженное дерево";
+            return _crops != null && (_grid.GetCellType(cell) is CellType.Tilled or CellType.Watered or CellType.Planted)
+                ? "грядку" : null;
         }
 
         /// <summary>Shared text for runtime and data-only Editor preview; does not touch game state.</summary>
@@ -757,12 +791,11 @@ namespace MyLittleFarm.Gameplay.Building
             return true;
         }
 
-        /// <summary>Удаляет подтверждённую постройку и возвращает половину уплаченной цены.</summary>
+        /// <summary>Снимает подтверждённую постройку или стройплощадку и возвращает половину уплаченной цены.</summary>
         public bool TryRemove(string id, out string reason)
         {
             var state = _layout.Get(id);
             if (state == null) { reason = "Постройка не найдена"; return false; }
-            if (state.IsUnderConstruction) { reason = "Снос доступен после завершения строительства"; return false; }
             if (state.definitionId == BarnHabitat.BuildingId && (_animals?.IsChanging == true || _animals?.HasResidents(id) == true))
             { reason = "В коровнике живут коровы — удаление запрещено. Перенесите коровник вместе с животными"; return false; }
             if(state.definitionId=="feeder" && (Feeders?.IsChanging==true || Feeders?.Amount(id)>0)){reason="Сначала заберите пшеницу из кормушки.";return false;}
@@ -780,7 +813,7 @@ namespace MyLittleFarm.Gameplay.Building
             RemoveBuildingView(id);
             _wallet.AddCoins(refund);
             GameEvents.Record("refund", state.definitionId, value: refund);
-            reason = $"Постройка удалена. Возврат: {refund} монет";
+            reason = (state.IsUnderConstruction ? "Строительство отменено." : "Постройка удалена.") + " Возврат · " + FarmText.Coins(refund);
             MyLittleFarm.Audio.FarmAudio.Play(MyLittleFarm.Audio.SoundId.BuildRemove, _grid.CellToWorld(new Vector2Int(state.x, state.z)));
             return true;
         }
@@ -854,16 +887,15 @@ namespace MyLittleFarm.Gameplay.Building
 
         public bool IsNearMarket(Vector3 position, float distance)
         {
-            // Позволяет торговой стойке работать как дополнительная точка продажи.
             foreach (var view in _views.Values)
             {
-                if (view.DefinitionId != "market") continue;
-                var offset = position - view.transform.position;
-                offset.y = 0;
-                if (offset.sqrMagnitude <= distance * distance) return true;
+                if (view.DefinitionId == "market" && BuildingInReach(view.BuildingId, position, distance)) return true;
             }
             return false;
         }
+
+        internal bool MarketInReach(string id, Vector3 position, float reach) =>
+            GetBuilding(id)?.definitionId == "market" && BuildingInReach(id, position, reach);
 
         private void OnDisable()
         {

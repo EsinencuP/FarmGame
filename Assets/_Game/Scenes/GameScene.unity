@@ -134925,7 +134925,6 @@ MonoBehaviour:
   initialDistance: 13
   pitch: 38
   lookHeight: 0.8
-  keyboardRotationStep: 90
   orbitSensitivity: 0.15
   zoomSensitivity: 1.35
   minDistance: 5.4

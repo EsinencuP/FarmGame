@@ -151,7 +151,7 @@ namespace MyLittleFarm.Core
             player.SetCamera(cameraController.transform);
 
             var buildings = CreateSystem<BuildSystem>("Building System");
-            buildings.Configure(input, grid, crops, wallet, cameraController.GetComponent<Camera>(), true, inventory);
+            buildings.Configure(input, grid, crops, wallet, cameraController.GetComponent<Camera>(), true, inventory, orchard);
             animals.BindBuildings(buildings);
 
             var selector = CreateSystem<CellSelector>("Cell Selector");
@@ -159,7 +159,7 @@ namespace MyLittleFarm.Core
             var saleCrate = CreateSaleCrate(saleCratePosition);
             saleCrate.SetParent(transform, true);
             shop.Configure(input, catalog, slots, inventory, wallet, player.transform, saleCrate, grid);
-            onboarding.Configure(grid, buildings, crops, inventory, wallet, player.transform, saleCrate);
+            onboarding.Configure(grid, buildings, crops, inventory, wallet, player.transform, saleCrate, slots);
             progression.Configure(input,wallet,inventory,catalog,buildings,orchard,animals,sector,player.transform,saleCrate);
 
             var interaction = CreateSystem<InteractionSystem_AI>("Interaction System");
@@ -432,7 +432,7 @@ namespace MyLittleFarm.Core
                 new Vector2(25f, -510f), new Vector2(450f, 28f));
 
             var help = CreateText(canvasObject.transform, "Help", 21, TextAnchor.UpperRight, Color.white);
-            help.text = "WASD — движение   Shift — бег   Space — прыжок   Q / Shift+E — камера\n1–6 — семена   T — яблоня   C — курица в загоне   P — магазин\nE / ЛКМ — действие   B — меню строительства   L — сектор   U — инструмент   F5 / F9 — save / load";
+            help.text = "WASD — движение   Shift — бег   Space — прыжок   Средняя кнопка мыши — камера\nQ — руки / мотыга   1–6 — предметы   T — яблоня   C — курица в загоне   P — магазин\nE / ЛКМ — действие   B — меню строительства   L — сектор   U — инструмент   F5 / F9 — save / load";
             SetRect(help.rectTransform, new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-32f, -28f), new Vector2(900f, 110f));
 
             var prompt = CreateText(canvasObject.transform, "Interaction Prompt", 24, TextAnchor.MiddleCenter, Color.white);
@@ -576,7 +576,7 @@ namespace MyLittleFarm.Core
             player.SetCamera(cameraController.transform);
 
             var buildings = RequireChild<BuildSystem>();
-            buildings.Configure(input, grid, crops, wallet, cameraController.GetComponent<Camera>(), inventory: inventory);
+            buildings.Configure(input, grid, crops, wallet, cameraController.GetComponent<Camera>(), inventory: inventory, orchard: orchard);
             animals.BindBuildings(buildings);
             if (Application.isPlaying && gameObject.scene.path == FarmSceneFlow.GameScene)
             {
@@ -596,7 +596,7 @@ namespace MyLittleFarm.Core
             if (prototypeCrateRenderer != null && prototypeCrateRenderer.enabled)
                 RuntimeMaterials.Paint(prototypeCrateRenderer, saleCrateColor);
             shop.Configure(input, catalog, slots, inventory, wallet, player.transform, saleCrate, grid);
-            onboarding.Configure(grid, buildings, crops, inventory, wallet, player.transform, saleCrate);
+            onboarding.Configure(grid, buildings, crops, inventory, wallet, player.transform, saleCrate, slots);
             progression.Configure(input,wallet,inventory,catalog,buildings,orchard,animals,sector,player.transform,saleCrate);
 
             var interaction = RequireChild<InteractionSystem_AI>();
@@ -631,7 +631,7 @@ namespace MyLittleFarm.Core
 
             if (Application.isPlaying && FarmSceneFlow.IsFarmScene(SceneManager.GetActiveScene()))
             {
-                GetComponentInChildren<FarmMenuUI>(true)?.InstallDemoShortcut();
+                if (FarmDemoPanel.IsAvailable) GetComponentInChildren<FarmMenuUI>(true)?.InstallDemoShortcut();
                 saveSystem.StartPersistence();
             }
         }

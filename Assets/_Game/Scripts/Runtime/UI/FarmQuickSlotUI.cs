@@ -19,6 +19,7 @@ namespace MyLittleFarm.UI
         private Text[] _keyLabels;
         private int _bindingRevision = -1;
         private Button _hand,_hoe;
+        private OrchardSystem_AI _orchard;
         private MyLittleFarm.Gameplay.World.ToolUpgradeSystem _tools;
         public bool HasTools=>_hand!=null;
         private void OnEnable()
@@ -55,6 +56,7 @@ namespace MyLittleFarm.UI
             _bindingRevision = InputReader_AI.BindingRevision;
             for (var i = 0; i < _keyLabels.Length && i < 6; i++)
                 if (_keyLabels[i] != null) _keyLabels[i].text = InputReader_AI.KeyLabel(InputReader_AI.Command.Seed1 + i);
+            RefreshHoeLabel();
         }
         private void OnDisable()
         {
@@ -72,7 +74,8 @@ namespace MyLittleFarm.UI
             for (var i = 0; i < amounts.Length; i++)
             {
                 var id=slots.ItemAt(i);
-                amounts[i].text = id==null?"—":id=="apple_sapling"?"∞":inventory.GetAmount(id).ToString();
+                amounts[i].text = id == null ? "—" : (id == "apple_sapling" && _orchard != null
+                    ? _orchard.SaplingsAvailable(id) : inventory.GetAmount(id)).ToString();
                 buttons[i].GetComponent<Image>().color = slots.Mode==QuickSlotSystem.SelectionMode.Item && slots.SelectedIndex == i ? new Color(1, .87f, .43f) : Color.white;
                 if (seedImages != null && i < seedImages.Length && seedImages[i] != null)
                 {
@@ -82,14 +85,23 @@ namespace MyLittleFarm.UI
                 }
             }
             if(_hand!=null)_hand.GetComponent<Image>().color=slots.Mode==QuickSlotSystem.SelectionMode.Hand?new Color(1,.87f,.43f):Color.white;
-            if(_hoe!=null && _tools!=null)_hoe.GetComponentInChildren<Text>().text="Мотыга\n"+(_tools.Level==0?"1×1":_tools.AreaLabel);
+            RefreshHoeLabel();
             if(_hoe!=null)_hoe.GetComponent<Image>().color=slots.Mode==QuickSlotSystem.SelectionMode.Hoe?new Color(1,.87f,.43f):Color.white;
+        }
+        private void RefreshHoeLabel()
+        {
+            if (_hoe == null) return;
+            var key = InputReader_AI.KeyLabel(InputReader_AI.Command.ToggleTool);
+            var area = _tools == null || _tools.Level == 0 ? "1×1" : _tools.AreaLabel;
+            _hoe.GetComponentInChildren<Text>().text = key == "—" ? $"Мотыга\n{area}" : $"Мотыга\n{key} · {area}";
         }
         private Sprite Icon(string id)=>catalog.TryGetItem(id,out var item)&&item.Icon!=null?item.Icon:FarmUITheme.Sprite("Icons/"+FarmUITheme.ItemIcon(id))??FarmUITheme.Sprite("Icons/inventory");
         private void EnsureTools()
         {
             if(_hand!=null)return;
-            _tools=slots.GetComponentInParent<GameBootstrap>()?.GetComponentInChildren<MyLittleFarm.Gameplay.World.ToolUpgradeSystem>(true);
+            var farm = slots.GetComponentInParent<GameBootstrap>();
+            _tools = farm?.GetComponentInChildren<MyLittleFarm.Gameplay.World.ToolUpgradeSystem>(true);
+            _orchard = farm?.GetComponentInChildren<OrchardSystem_AI>(true);
             var font=amounts[0].font;
             _hand=FarmUITheme.Button(transform,"Руки",font,null,"secondary");
             _hoe=FarmUITheme.Button(transform,"Мотыга",font,null,"secondary");

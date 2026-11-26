@@ -204,9 +204,13 @@ namespace MyLittleFarm.Gameplay.World
             }
             if (target != null && (target.Kind == InteractionTargetKind.Obstacle || target.Kind == InteractionTargetKind.Building))
                 return false;
-            if (target != null && target.Kind == InteractionTargetKind.Market && !IsNearTarget(target)) return false;
-            if ((target != null && target.Kind == InteractionTargetKind.Market && IsNearTarget(target))
-                || (target == null && (_input?.PointerInteractPressed != true || !_selector.HasSelection) && IsNearSaleCrate()))
+            var marketTarget = target != null && target.Kind == InteractionTargetKind.Market;
+            if (marketTarget && !IsNearMarketTarget(target))
+            {
+                GameEvents.RaiseStatusChanged(FarmText.Get("world.approachMarket"));
+                return false;
+            }
+            if (marketTarget || (target == null && !_selector.HasSelection && IsNearSaleCrate()))
             {
                 var menus = GetComponentInParent<GameBootstrap>()?.GetComponentInChildren<MyLittleFarm.UI.FarmMenuUI>(true);
                 if (menus == null) return false;
@@ -253,6 +257,7 @@ namespace MyLittleFarm.Gameplay.World
         {
             if (tree == null) return "Выберите саженец";
             if (!IsWithinReach(position)) return "Подойдите ближе к месту посадки";
+            if (_grid.IsLocationLocked(position)) return _grid.LockedParcelHint(position);
             if (_animals?.OccupiesHomeCell(position) == true) return "В этой клетке находится животное";
             if (!_grid.CanPlantTree(position))
             {
@@ -312,10 +317,10 @@ namespace MyLittleFarm.Gameplay.World
                         : "Подойдите ближе к постройке";
                 return FarmText.Get("world.buildingHint", InputReader_AI.KeyLabel(InputReader_AI.Command.Build), InputReader_AI.KeyLabel(InputReader_AI.Command.Customize));
             }
-            if (target != null && target.Kind == InteractionTargetKind.Market && !IsNearTarget(target))
-                return FarmText.Get("world.approachMarket");
-            if ((target != null && target.Kind == InteractionTargetKind.Market && IsNearTarget(target))
-                || (target == null && IsNearSaleCrate()))
+            if (target != null && target.Kind == InteractionTargetKind.Market)
+                return IsNearMarketTarget(target) ? FarmText.Get("market.openHint", InputReader_AI.ActionHint)
+                    : FarmText.Get("world.approachMarket");
+            if (target == null && !_selector.HasSelection && IsNearSaleCrate())
             {
                 return FarmText.Get("market.openHint", InputReader_AI.MarketHint);
             }
@@ -327,6 +332,9 @@ namespace MyLittleFarm.Gameplay.World
             {
                 return _input.WorldPointerBlocked ? string.Empty : "Колесо мыши — приблизить или отдалить";
             }
+            if (_grid.IsLocationLocked(_selector.SelectedPosition))
+                return _grid.LockedParcelHint(_selector.SelectedPosition);
+            if (cell.type == CellType.Locked) return "Участок ещё закрыт";
             if(cell.type==CellType.Tree)return _orchard?.HarvestPrompt(_selector.SelectedPosition,DateTimeOffset.UtcNow.ToUnixTimeMilliseconds())??string.Empty;
             if(_slots?.Mode==QuickSlotSystem.SelectionMode.Item && _orchard!=null && _orchard.TryGetSapling(_slots.SelectedItemId,out var tree))
                 return TreePlantBlock(_selector.SelectedPosition, tree) ?? InputReader_AI.ActionHint + " — посадить «" + tree.DisplayName + "»";
@@ -357,6 +365,10 @@ namespace MyLittleFarm.Gameplay.World
             offset.y = 0f;
             return offset.sqrMagnitude <= sellingDistance * sellingDistance;
         }
+
+        private bool IsNearMarketTarget(InteractionTarget target) =>
+            string.IsNullOrEmpty(target.TargetId) ? IsNearTarget(target)
+                : _grid.Buildings?.MarketInReach(target.TargetId, _player.position, sellingDistance) == true;
 
         /// <summary>Возвращает отображаемое имя культуры с запасным вариантом для старого сохранения.</summary>
         private string CropName(string id)
