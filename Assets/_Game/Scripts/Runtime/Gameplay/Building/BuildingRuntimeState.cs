@@ -6,6 +6,7 @@ namespace MyLittleFarm.Gameplay.Building
     [Serializable]
     public sealed class BuildingRuntimeState
     {
+        internal const string StarterHouseId = "starter-house";
         // Уникальный id отличает два объекта одного типа; definitionId связывает объект с каталогом.
         public string id;
         public string definitionId;
@@ -24,6 +25,8 @@ namespace MyLittleFarm.Gameplay.Building
         public int constructionDurationSeconds;
         public float constructionSecondsRemaining;
         public bool IsUnderConstruction => constructionDurationSeconds > 0;
+        internal bool IsStarterHouse => id == StarterHouseId && definitionId == "house"
+            && paidCost == 0 && !IsUnderConstruction;
         internal int UpgradeInvestment => paidUpgradeCost != 0
             ? paidUpgradeCost : FarmDecorationCatalog.PreviousHouseUpgradeInvestment(appearanceLevel);
         public int Refund => (int)(((long)paidCost + UpgradeInvestment) / 2);

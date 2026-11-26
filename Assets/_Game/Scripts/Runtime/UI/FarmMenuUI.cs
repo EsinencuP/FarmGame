@@ -36,6 +36,7 @@ namespace MyLittleFarm.UI
         private string feederBuildingId;
         private string productionBuildingId,warehouseBuildingId;
         [SerializeField] private RectTransform marketPrompt;
+        private Button _constructionShortcut;
         [SerializeField] private Button resume, pauseSettings, pauseSlots, home, pauseExit, quitConfirm, quitCancel;
         [SerializeField] private Button journalShortcut, pauseShortcut;
         [SerializeField] private Text pauseMessage;
@@ -49,6 +50,7 @@ namespace MyLittleFarm.UI
         private CanvasGroup _pageFade;
         private Coroutine _fade;
         private Text _quitSummary;
+        private GameObject _loadingArtwork;
         private double _sessionStartPlayTime;
         private long _sessionHarvest, _sessionSales;
         public bool IsOpen => _page != Page.Game || _waitingForSlots;
@@ -62,6 +64,13 @@ namespace MyLittleFarm.UI
             _pageFade = safeArea.gameObject.AddComponent<CanvasGroup>();
             foreach (var label in quitPanel.GetComponentsInChildren<Text>(true))
                 if (label.text == "Текущая ферма будет сохранена.") _quitSummary = label;
+            home.gameObject.SetActive(false);
+            var exitRect = (RectTransform)pauseExit.transform;
+            exitRect.anchoredPosition = ((RectTransform)home.transform).anchoredPosition;
+            pauseExit.GetComponentInChildren<Text>().text = "Выйти в главное меню";
+            quitConfirm.GetComponentInChildren<Text>().text = "Выйти в меню";
+            var quitTitle = quitPanel.Find("Title ribbon")?.GetComponentInChildren<Text>();
+            if (quitTitle != null) quitTitle.text = "ВЫЙТИ С ФЕРМЫ?";
             EnsureProductionUI();
             EnsureFeederUI();
             // Prevent one frame of world interaction before SaveSystem_AI opens the startup screen.
@@ -99,7 +108,7 @@ namespace MyLittleFarm.UI
         {
             if (!Application.isPlaying || _bound) return;
             resume.onClick.AddListener(Resume); pauseSettings.onClick.AddListener(OpenSettings); pauseSlots.onClick.AddListener(OpenSlots); home.onClick.AddListener(ReturnHome); pauseExit.onClick.AddListener(AskQuit);
-            quitConfirm.onClick.AddListener(Quit); quitCancel.onClick.AddListener(Back);
+            quitConfirm.onClick.AddListener(ReturnHome); quitCancel.onClick.AddListener(Back);
             settings.BackButton.onClick.AddListener(Back); inventory.CloseButton.onClick.AddListener(Back);
             journalShortcut.onClick.AddListener(OpenJournal);
             if (journal != null) { journal.Closed += Back; journal.GuideRequested += OpenGuideFromJournal; } pauseShortcut.onClick.AddListener(OpenPause);
@@ -131,7 +140,8 @@ namespace MyLittleFarm.UI
                 ToggleDemo();
                 return;
             }
-            if (marketPrompt != null) marketPrompt.gameObject.SetActive(CanOpenFromGame() && shop != null && shop.CanTrade);
+            if (marketPrompt != null)
+                marketPrompt.gameObject.SetActive(CanOpenFromGame() && buildings?.IsActive != true && shop != null && shop.CanTrade);
             if (_page == Page.Game)
             {
                 if (navigation.gameObject.activeSelf == input.ModalInputActive) navigation.gameObject.SetActive(!input.ModalInputActive);
@@ -299,8 +309,7 @@ namespace MyLittleFarm.UI
             _waitingForSlots = false;
             if (selectedFarm)
             {
-                _sessionStartPlayTime = saves.PlayTimeSeconds;
-                _sessionHarvest = _sessionSales = 0;
+                StartFarmSession();
                 Resume();
             }
             else
@@ -310,20 +319,27 @@ namespace MyLittleFarm.UI
             }
             _slotFocus = null;
         }
+        internal void StartFarmSession()
+        {
+            _sessionStartPlayTime = saves.PlayTimeSeconds;
+            _sessionHarvest = _sessionSales = 0;
+        }
         private void ReturnHome()
         {
-            if (saves.HasActiveFarm && !saves.SaveActivePoint(true)) { pauseMessage.text = FarmText.Get("pause.homeSaveFailed"); return; }
-            if (!FarmSceneFlow.LoadMenu()) { pauseMessage.text = FarmText.Get("pause.menuFailed"); return; }
+            if (FarmSceneFlow.IsLoading) return;
+            if (saves.HasActiveFarm && !saves.SaveActivePoint(true))
+            {
+                if (_page == Page.Quit) Back();
+                pauseMessage.text = FarmText.Get("pause.homeSaveFailed");
+                return;
+            }
+            if (!FarmSceneFlow.LoadMenu())
+            {
+                if (_page == Page.Quit) Back();
+                pauseMessage.text = FarmText.Get("pause.menuFailed");
+                return;
+            }
             input.ModalInputActive = true;
-        }
-        private void Quit()
-        {
-            if (!saves.TrySaveForQuit())
-            { Back(); pauseMessage.text = FarmText.Get("pause.quitSaveFailed"); return; }
-            Application.Quit();
-#if UNITY_EDITOR
-            UnityEditor.EditorApplication.isPlaying = false;
-#endif
         }
         private void OpenJournalFromGuide()
         {
@@ -331,7 +347,14 @@ namespace MyLittleFarm.UI
             if (_history.Count > 0 && _history.Peek().Page == Page.Journal) Back();
             else if (journal != null) Show(Page.Journal);
         }
-        public void SetLoading(bool visible) { loading.SetActive(visible); if (visible) loading.transform.SetAsLastSibling(); }
+        public void SetLoading(bool visible)
+        {
+            if (visible && _loadingArtwork == null)
+                _loadingArtwork = FarmScreenArtwork.CreateLoading(transform.parent, "Загрузка фермы…", pauseMessage.font);
+            if (_loadingArtwork == null) return;
+            _loadingArtwork.SetActive(visible);
+            if (visible) _loadingArtwork.transform.SetAsLastSibling();
+        }
         public void ApplyTheme()
         {
             FarmUITheme.Style(resume);
@@ -357,9 +380,16 @@ namespace MyLittleFarm.UI
             if (production != null) production.Panel.localScale = Vector3.one * Mathf.Max(.3f, Mathf.Min(1, (area.x - 48) / production.Panel.sizeDelta.x, (area.y - 80) / production.Panel.sizeDelta.y));
             if(feeder!=null)feeder.Panel.localScale=Vector3.one*Mathf.Max(.3f,Mathf.Min(1,(area.x-48)/feeder.Panel.sizeDelta.x,(area.y-80)/feeder.Panel.sizeDelta.y));
             if (_demo != null) _demo.Resize(area);
-            FarmUITheme.Place(navigation, Vector2.one, Vector2.one, new Vector2(-20, -18),
-                new Vector2(_demoShortcut == null ? 138 : 256, 64));
-            if (marketPrompt != null) FarmUITheme.Place(marketPrompt, new Vector2(1, 0), new Vector2(1, 0), new Vector2(-20, area.x < 1500 ? 248 : 122), new Vector2(286, 60));
+            var right = (1f - safeArea.anchorMax.x) * size.x;
+            var top = (1f - safeArea.anchorMax.y) * size.y;
+            var bottom = safeArea.anchorMin.y * size.y;
+            var navigationWidth = 138f + (_demoShortcut != null ? 132f : 0f)
+                + (_constructionShortcut != null ? 230f : 0f);
+            FarmUITheme.Place(navigation, Vector2.one, Vector2.one, new Vector2(-right - 20, -top - 18),
+                new Vector2(navigationWidth, 64));
+            if (marketPrompt != null)
+                FarmUITheme.Place(marketPrompt, Vector2.right, Vector2.right,
+                    new Vector2(-right - 20, bottom + (area.x < 1730 ? 266 : 122)), new Vector2(286, 60));
         }
         public void Preview(Page page)
         {
@@ -408,12 +438,22 @@ namespace MyLittleFarm.UI
         internal void InstallDemoShortcut()
         {
             if (_demoShortcut != null) return;
-            _demoShortcut = FarmUITheme.Button(navigation, "Админ · F1", pauseMessage.font, kind: "ghost");
-            FarmUITheme.FitCompactButton(_demoShortcut, 22);
-            _demoShortcut.gameObject.AddComponent<LayoutElement>().minWidth = 108;
+            _demoShortcut = FarmUITheme.Button(navigation, "Админ F1", pauseMessage.font, kind: "ghost");
+            FarmUITheme.FitCompactButton(_demoShortcut, 20);
+            _demoShortcut.gameObject.AddComponent<LayoutElement>().minWidth = 122;
             _demoShortcut.name = "Панель админа · F1";
             _demoShortcut.transform.SetAsFirstSibling();
             _demoShortcut.onClick.AddListener(ToggleDemo);
+            Resize(true);
+        }
+
+        internal void AttachConstructionShortcut(Button shortcut)
+        {
+            _constructionShortcut = shortcut;
+            shortcut.transform.SetParent(navigation, false);
+            shortcut.transform.SetAsFirstSibling();
+            var size = shortcut.GetComponent<LayoutElement>() ?? shortcut.gameObject.AddComponent<LayoutElement>();
+            size.minWidth = 220f;
             Resize(true);
         }
         public void ConfigureGameplayReference(Font font, FarmCatalog catalog, MyLittleFarm.Gameplay.Animals.AnimalSystem_AI animals,

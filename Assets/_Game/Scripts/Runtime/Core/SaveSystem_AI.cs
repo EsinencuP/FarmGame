@@ -19,7 +19,11 @@ namespace MyLittleFarm.Core
     public sealed partial class SaveSystem_AI : MonoBehaviour
     {
         // Версия 5 сохраняет только отличия от базовой карты и поверхность под игровыми слоями.
-        public const int CurrentSaveVersion = 21;
+        public const int CurrentSaveVersion = 23;
+        private const long PrototypeMapHash = 3966892030404822408L;
+        private const long FirstGameSceneMapHash = -5772976311351308784L;
+        private const long PhaseZeroMapHash = -3620921580160843802L;
+        private const long OriginalFarmMapHash = 931090307862814988L;
         private const int MaxCollectionEntries = 100_000;
         private const int MaxSaveFileBytes = 16 * 1024 * 1024;
 
@@ -92,7 +96,6 @@ namespace MyLittleFarm.Core
             _lastPreview = null;
             _newFarm = null; _showStartupMenu = false; _legacyUnavailable = false;
             _recoveredPaths.Clear(); LastLoadUsedBackup = false; ActiveSlot = 0;
-            _savedForQuit = false;
             if (slotMenu != null) slotMenu.Configure(this, input);
             _nextAutosaveAt = Time.unscaledTime + autosaveIntervalSeconds;
         }
@@ -158,6 +161,7 @@ namespace MyLittleFarm.Core
                 feeders=_buildings?.Feeders?.Capture()??new List<FeederData>(),
                 warehouses = _buildings?.Warehouses?.Capture() ?? new List<WarehouseData>(),
                 sectorUnlocked = _sector != null && _sector.IsUnlocked,
+                ownedParcels = _sector?.OwnedParcels ?? 0,
                 baseHoeGranted = _upgrades==null || _upgrades.HasBaseHoe,
                 toolUpgradeLevel = _upgrades == null ? 0 : _upgrades.Level,
                 onboardingStep = _onboarding == null ? 0 : _onboarding.Capture(),
@@ -208,6 +212,7 @@ namespace MyLittleFarm.Core
             _inventory.Restore(data.inventory);
             _wallet.SetCoins(data.coins);
             _sector?.Restore(data.sectorUnlocked);
+            _sector?.RestoreParcels(data.ownedParcels);
             _crops.Restore(data.crops);
             _buildings?.Restore(data.buildings);
             _buildings?.Production?.Restore(data.productionBatches);
@@ -336,9 +341,7 @@ namespace MyLittleFarm.Core
             if (!File.Exists(path)) return false;
             try
             {
-                if (new FileInfo(path).Length > MaxSaveFileBytes)
-                    throw new InvalidDataException("Save file is too large.");
-                var candidate = JsonUtility.FromJson<SaveData>(File.ReadAllText(path));
+                var candidate = ReadSnapshotFile(path);
                 ValidateAndMigrate(candidate);
                 data = candidate;
                 return true;
@@ -349,6 +352,13 @@ namespace MyLittleFarm.Core
                 if (!quiet) Debug.LogWarning($"My Little Farm: cannot read save '{Path.GetFileName(path)}': {exception.Message}");
                 return false;
             }
+        }
+
+        private static SaveData ReadSnapshotFile(string path)
+        {
+            if (new FileInfo(path).Length > MaxSaveFileBytes)
+                throw new InvalidDataException("Save file is too large.");
+            return JsonUtility.FromJson<SaveData>(File.ReadAllText(path));
         }
 
         private static void WriteAtomically(string path, string contents, bool preserveBackup)
@@ -419,13 +429,14 @@ namespace MyLittleFarm.Core
                 throw new InvalidDataException("Weather state is invalid.");
             if (data.saveVersion >= 5 && data.worldBaseHash != _grid.ComputeBaseMapHash())
             {
+                var matchesEarlierWorld = gameObject.scene.path == FarmSceneFlow.GameScene
+                    && (data.worldBaseHash == PrototypeMapHash
+                        || data.worldBaseHash == PhaseZeroMapHash
+                        || (data.saveVersion == 5 && data.worldBaseHash == OriginalFarmMapHash)
+                        || (data.saveVersion <= 22 && data.worldBaseHash == FirstGameSceneMapHash));
                 // The MVP expands the original two-chunk scene without changing their authored cells.
                 var originalChunks = new[] { Vector2Int.zero, new Vector2Int(1, 0) };
-                var phaseZeroChunks = new List<Vector2Int>();
-                for(var x=-1;x<=1;x++) for(var z=-1;z<=1;z++) phaseZeroChunks.Add(new Vector2Int(x,z));
-                var matchesPhaseZero = phaseZeroChunks.TrueForAll(_grid.IsChunkLoaded)
-                    && data.worldBaseHash == _grid.ComputeBaseMapHash(phaseZeroChunks);
-                if (!matchesPhaseZero && (data.saveVersion != 5
+                if (!matchesEarlierWorld && !MatchesBaseRectangle(data.worldBaseHash, 1) && (data.saveVersion != 5
                     || data.worldBaseHash != _grid.ComputeBaseMapHash(originalChunks)))
                     throw new InvalidDataException("Save was created for a different base world map.");
             }
@@ -522,14 +533,33 @@ namespace MyLittleFarm.Core
             var playerCell = _grid.WorldToGrid(new Vector3(data.player.x, 0f, data.player.z));
             if (!_grid.IsChunkLoaded(_grid.GridToChunk(playerCell)))
                 throw new InvalidDataException("Player is outside loaded scene chunks.");
-            if (_sector != null && !data.sectorUnlocked && _sector.ContainsCell(playerCell))
+            if (_sector?.UsesLegacySector == true && !data.sectorUnlocked && _sector.ContainsCell(playerCell))
                 throw new InvalidDataException("Player is inside a locked sector.");
+            if (data.saveVersion >= 23 && _sector?.IsUnownedParcel(_grid.GridToChunk(playerCell), data.ownedParcels) == true)
+                throw new InvalidDataException("Player is inside a locked location.");
             return grid;
         }
 
         /// <summary>Не допускает открытые клетки в закрытом секторе и обратную ошибку.</summary>
         private void ValidateSector(SaveData data, Dictionary<Vector2Int, CellData> cells)
         {
+            if (data.saveVersion < 23)
+            {
+                // Preserve owned land and work placed outside the new starting area.
+                var oldParcels = data.saveVersion == 22 ? data.ownedParcels : 0;
+                data.ownedParcels = 0;
+                if (_sector?.UsesLegacySector == false)
+                {
+                    data.ownedParcels = (oldParcels & 6) != 0 ? 3 : (oldParcels & 1);
+                    foreach (var cell in cells.Keys)
+                    {
+                        var index = SectorSystem.LocationIndex(_grid.GridToChunk(cell));
+                        if (index >= 0) data.ownedParcels |= index == 0 ? 1 : 3;
+                    }
+                }
+            }
+            if (!(_sector?.HasValidParcels(data.ownedParcels) ?? data.ownedParcels == 0))
+                throw new InvalidDataException("Invalid ownership for farm parcels.");
             if (_sector == null)
             {
                 if (data.sectorUnlocked) throw new InvalidDataException("Sector system is missing.");
@@ -537,7 +567,9 @@ namespace MyLittleFarm.Core
             }
             foreach (var pair in cells)
             {
-                if (!_sector.ContainsCell(pair.Key)) continue;
+                if (_sector.IsUnownedParcel(_grid.GridToChunk(pair.Key), data.ownedParcels))
+                    throw new InvalidDataException("Unowned farm parcel contains modified cells.");
+                if (!_sector.UsesLegacySector || !_sector.ContainsCell(pair.Key)) continue;
                 if (data.sectorUnlocked && pair.Value.type == CellType.Locked)
                     throw new InvalidDataException("Unlocked sector contains locked cells.");
                 if (!data.sectorUnlocked && pair.Value.type != CellType.Locked)
@@ -547,6 +579,19 @@ namespace MyLittleFarm.Core
 
         private static void ValidateInventory(List<InventoryEntryData> inventory)
             => InventorySystem_AI.ValidateEntries(inventory);
+
+        private bool MatchesBaseRectangle(long hash, int radius)
+        {
+            var chunks = new List<Vector2Int>();
+            for (var x = -radius; x <= radius; x++)
+            for (var z = -radius; z <= radius; z++)
+            {
+                var coordinate = new Vector2Int(x, z);
+                if (!_grid.IsChunkLoaded(coordinate)) return false;
+                chunks.Add(coordinate);
+            }
+            return hash == _grid.ComputeBaseMapHash(chunks);
+        }
 
         private Dictionary<Vector2Int, CellData> ValidateGrid(GridSaveData grid, int saveVersion)
         {
@@ -847,7 +892,7 @@ namespace MyLittleFarm.Core
         private void OnApplicationQuit()
         {
             // Выход сохраняет игру только после успешной инициализации подсистемы хранения.
-            if (!_savedForQuit && _persistenceEnabled && _player != null && _grid != null && _crops != null
+            if (_persistenceEnabled && _player != null && _grid != null && _crops != null
                 && _crops.IsConfigured && _inventory != null && _wallet != null) SaveActivePoint(true);
         }
     }

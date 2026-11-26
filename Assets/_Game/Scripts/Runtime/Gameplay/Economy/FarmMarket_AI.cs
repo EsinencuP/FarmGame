@@ -62,10 +62,22 @@ namespace MyLittleFarm.Gameplay.Economy
             {
                 if (tool != null) result.Add(new Offer { Id = "tool:" + tool.Level, Name = "Улучшение инструмента", Icon = "tool_hoe", Price = tool.NextPrice, Maximum = 1,
                     Description = "Мотыга · уровень " + (tool.Level + 1) + " / 3\nСейчас: " + tool.AreaLabel + (tool.Level>=2?"":" → "+(tool.Level==0?"1×3":"3×3")) + "\nПлощадь для обработки, посадки и сбора одной культуры.\nРадиус доступа: " + tool.Reach.ToString("0.#") + " м.", Unavailable = tool.Level >= 2 ? FarmText.Get("market.maxLevel") : null });
-                if (sector != null) result.Add(new Offer { Id = "sector", Name = "Новый сектор фермы", Icon = "b_sector", Price = sector.PurchasePrice, Maximum = 1,
+                if (sector != null && sector.UsesLegacySector) result.Add(new Offer { Id = "sector", Name = "Новый сектор фермы", Icon = "b_sector", Price = sector.PurchasePrice, Maximum = 1,
                     Description = "Открывает дополнительную территорию фермы.", Unavailable = sector.IsUnlocked ? "Уже приобретён" : Application.isPlaying && !sector.CanPurchase ? "Сектор недоступен" : null });
+                if (sector != null)
+                {
+                    for (var index = 0; index < sector.Locations.Count; index++)
+                    {
+                        var parcel = sector.Locations[index];
+                        result.Add(new Offer { Id = parcel.Id, Name = parcel.Name, Icon = "b_sector", Price = parcel.Cost,
+                            Maximum = 1, Description = parcel.Description,
+                            Unavailable = sector.LocationUnavailable(index) });
+                    }
+                }
                 if (progress != null) result.Add(new Offer { Id = "shepherd", Name = "Нанять пастуха", Icon = "quest", Price = FarmProgression_AI.ShepherdPrice, Maximum = 1,
-                    Description = "Собирает яйца и кормит кур: сначала запас кормушки, затем инвентарь. Коровам нужен ручной сбор молока.", Unavailable = progress.Data.shepherdHired ? FarmText.Get("market.alreadyHired") : null });
+                    Description = progress.Data.shepherdHired && !progress.HasWorkerHousing
+                        ? progress.ShepherdStatus : FarmText.Get("market.shepherdDescription"),
+                    Unavailable = Application.isPlaying ? progress.ShepherdHireUnavailable : null });
                 if (buildings != null && Application.isPlaying)
                     foreach (var house in buildings.CaptureReady())
                         if (house.definitionId == "house") result.Add(new Offer { Id = "house:" + house.id + ":" + house.appearanceLevel, ItemId = house.id,
@@ -151,6 +163,8 @@ namespace MyLittleFarm.Gameplay.Economy
             foreach (var line in cart)
             {
                 var offer = offers.Find(o => o.Id == line.Key);
+                if (offer?.Id == "shepherd" && !offer.Available)
+                { reason = offer.Unavailable; return false; }
                 if (offer == null || !offer.Available || line.Value <= 0 || line.Value > offer.Maximum)
                 { reason = FarmText.Get("market.staleOrder"); return false; }
                 if (displayedPrices != null && (!displayedPrices.TryGetValue(line.Key, out var shown) || shown != offer.Price))
@@ -224,7 +238,11 @@ namespace MyLittleFarm.Gameplay.Economy
                 }
                 else
                 {
-                    if (!wallet.TrySpend(total)) { reason = FarmText.MissingCoins(total - Balance); return false; }
+                    if (cart.ContainsKey("shepherd"))
+                    {
+                        if (!progress.TryHireShepherd(total, out reason)) return false;
+                    }
+                    else if (!wallet.TrySpend(total)) { reason = FarmText.MissingCoins(total - Balance); return false; }
                     foreach (var line in order)
                     {
                         var offer = offers.Find(o => o.Id == line.Key);
@@ -235,7 +253,7 @@ namespace MyLittleFarm.Gameplay.Economy
                             GameEvents.RaiseActionFeedback("upgrade", proximity.TradePosition);
                         }
                         else if (line.Key == "sector") sector.CompletePurchase();
-                        else if (line.Key == "shepherd") progress.GrantShepherd();
+                        else if (line.Key.StartsWith("parcel:", StringComparison.Ordinal)) sector.CompleteParcelPurchase(line.Key);
                         else if (line.Key.StartsWith("house:")) buildings.CompleteHouseUpgrade(offer.ItemId);
                     }
                     MyLittleFarm.Audio.FarmAudio.PlayAtPlayer(MyLittleFarm.Audio.SoundId.Purchase);

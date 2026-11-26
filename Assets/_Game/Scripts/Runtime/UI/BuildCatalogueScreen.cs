@@ -76,7 +76,7 @@ namespace MyLittleFarm.UI
                 _cards[i] = card;
                 card.GetComponentInChildren<Text>().enabled = false;
                 (_thumbnails[i], _icons[i]) = Preview(card.transform, 25, 3, 158, 98);
-                _cardTitles[i] = Label(card.transform, font, 20, 7, 100, 194, 35, TextAnchor.MiddleCenter);
+                _cardTitles[i] = Label(card.transform, font, 20, 7, 100, 194, 33, TextAnchor.MiddleCenter);
                 _cardPrices[i] = Label(card.transform, font, 17, 7, 134, 194, 23, TextAnchor.MiddleCenter);
             }
 
@@ -186,7 +186,7 @@ namespace MyLittleFarm.UI
 
         private static string Description(string id) => id switch
         {
-            "house" => "Жилой дом. Его внешний вид можно улучшить через рынок.",
+            "house" => "Готовый дом даёт спальное место для пастуха. Внешний вид можно улучшить через рынок.",
             "storage" => "Хранит семена, урожай и продукты отдельно от инвентаря.",
             "market" => "Дополнительная торговая точка на ферме. Здесь можно покупать и продавать товары.",
             "coop" => "Курятник для фермы. Куры дают яйца после кормления.",

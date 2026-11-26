@@ -34,7 +34,8 @@ namespace MyLittleFarm.UI
             _slots = buildings.GetComponentInParent<GameBootstrap>()?.GetComponentInChildren<QuickSlotSystem>(true);
             _shortcutLabel = openCatalogue.GetComponentInChildren<Text>(true);
             var shortcut = (RectTransform)openCatalogue.transform;
-            shortcut.anchoredPosition = new Vector2(-174f, -20f);
+            var menu = GetComponentInParent<Canvas>()?.GetComponentInChildren<FarmMenuUI>(true);
+            if (menu != null) menu.AttachConstructionShortcut(openCatalogue);
             input.ConstructionPointerBlock = shortcut;
             FarmUITheme.Style(openCatalogue, "secondary");
             FarmUITheme.FitCompactButton(openCatalogue, 20);
@@ -60,6 +61,7 @@ namespace MyLittleFarm.UI
             closeHouse.onClick.RemoveListener(Close);
             saveText.onClick.RemoveListener(SaveText);
             upgradeHouse.onClick.RemoveListener(Upgrade);
+            openCatalogue.gameObject.SetActive(false);
             Close();
             _bound = false;
         }

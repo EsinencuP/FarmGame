@@ -356,6 +356,17 @@ namespace MyLittleFarm.Core.Grid
         }
 
         private Vector2Int? _lockedSectorChunk;
+        private MyLittleFarm.Gameplay.World.SectorSystem _locations;
+        private int _locationAccess;
+
+        internal void SetLocationAccess(MyLittleFarm.Gameplay.World.SectorSystem locations, int access)
+        {
+            _locations = locations;
+            _locationAccess = access;
+        }
+
+        internal bool IsLocationLocked(Vector2Int cell) =>
+            _locations?.IsUnownedParcel(GridToChunk(cell), _locationAccess) == true;
 
         internal void SetSectorLock(Vector2Int chunk, bool locked)
         {
@@ -512,6 +523,7 @@ namespace MyLittleFarm.Core.Grid
         /// <summary>Проверяет, можно ли вспахать клетку.</summary>
         public bool CanTill(Vector2Int gridPosition)
         {
+            if (IsLocationLocked(gridPosition)) return false;
             var cell = GetCell(gridPosition);
             return cell.occupantId == null && IsNaturalForActions(cell.type)
                 && GetTerrainCell(gridPosition).Allows(CellPermissions.Farm,
@@ -521,6 +533,7 @@ namespace MyLittleFarm.Core.Grid
         /// <summary>Проверяет, можно ли посадить культуру на подготовленную свободную клетку.</summary>
         public bool CanPlant(Vector2Int gridPosition)
         {
+            if (IsLocationLocked(gridPosition)) return false;
             var cell = GetCell(gridPosition);
             return cell.occupantId == null && (cell.type == CellType.Tilled || cell.type == CellType.Watered)
                 && GetTerrainCell(gridPosition).Allows(CellPermissions.Farm, true);
@@ -529,6 +542,7 @@ namespace MyLittleFarm.Core.Grid
         /// <summary>Проверяет свободную природную клетку для многоклеточного объекта дерева.</summary>
         public bool CanPlantTree(Vector2Int gridPosition)
         {
+            if (IsLocationLocked(gridPosition)) return false;
             var cell = GetCell(gridPosition);
             return cell.occupantId == null && IsNaturalForActions(cell.type)
                 && GetTerrainCell(gridPosition).Allows(CellPermissions.Orchard,
@@ -538,7 +552,7 @@ namespace MyLittleFarm.Core.Grid
         /// <summary>Проверяет разрешение поверхности. Постройки и стволы блокируют ходьбу своими коллайдерами.</summary>
         public bool IsWalkable(Vector2Int gridPosition)
         {
-            if (_lockedSectorChunk == GridToChunk(gridPosition)) return false;
+            if (_lockedSectorChunk == GridToChunk(gridPosition) || IsLocationLocked(gridPosition)) return false;
             var terrain = GetTerrainCell(gridPosition);
             if (terrain.type == CellType.Rock && _treeColliders.Contains(gridPosition)) return true;
             return terrain.type != CellType.Water && terrain.type != CellType.Rock && terrain.type != CellType.Locked
@@ -554,6 +568,7 @@ namespace MyLittleFarm.Core.Grid
 
         public string BuildingBlockReason(Vector2Int gridPosition)
         {
+            if (IsLocationLocked(gridPosition)) return "Откройте локацию на рынке";
             var cell = GetCell(gridPosition);
             switch (cell.type)
             {

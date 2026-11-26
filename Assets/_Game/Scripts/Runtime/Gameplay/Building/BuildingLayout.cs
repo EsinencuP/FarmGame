@@ -17,6 +17,14 @@ namespace MyLittleFarm.Gameplay.Building
         /// <summary>Количество размещённых экземпляров.</summary>
         public int Count => _buildings.Count;
 
+        internal bool HasWorkerHousing()
+        {
+            foreach (var state in _buildings.Values)
+                if (state.definitionId == "house" && !state.IsUnderConstruction && !state.IsStarterHouse)
+                    return true;
+            return false;
+        }
+
         /// <summary>Создаёт пустую неограниченную раскладку и копирует ссылки на определения построек.</summary>
         public BuildingLayout(IEnumerable<BuildingDefinition> definitions)
         {
@@ -65,7 +73,8 @@ namespace MyLittleFarm.Gameplay.Building
             // Операция сначала полностью проверяется и только затем записывает состояние и занятость.
             var definition = Definition(state?.definitionId);
             if (state == null || string.IsNullOrWhiteSpace(state.id) || _buildings.ContainsKey(state.id)
-                || !FarmDecorationCatalog.ValidCustomization(state) || definition == null || !definition.MatchesPaidCost(state.paidCost)
+                || !FarmDecorationCatalog.ValidCustomization(state) || definition == null
+                || (!state.IsStarterHouse && !definition.MatchesPaidCost(state.paidCost))
                 || state.constructionDurationSeconds < 0 || state.constructionDurationSeconds > BuildingDefinition.MaximumConstructionSeconds
                 || float.IsNaN(state.constructionSecondsRemaining) || state.constructionSecondsRemaining < 0
                 || state.constructionSecondsRemaining > state.constructionDurationSeconds

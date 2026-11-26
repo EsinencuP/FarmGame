@@ -111,7 +111,7 @@ namespace MyLittleFarm.Audio
             if (_progress != null) _progress.AchievementUnlocked -= Achievement;
             foreach (var voice in _voices) if (voice.active && voice.cue.bus != AudioBus.UI) Release(voice);
             _lastPlayed.Clear(); _rainIntensity = 0; _rain.Stop(); _rain.clip = null;
-            _farm = scene.path == FarmSceneFlow.GameScene;
+            _farm = FarmSceneFlow.IsFarmScene(scene);
             _clock = _farm ? FindAnyObjectByType<DayNightCycle>() : null;
             _progress = _farm ? FindAnyObjectByType<FarmProgression_AI>() : null;
             var player = _farm ? FindAnyObjectByType<PlayerController>() : null; _player = player == null ? null : player.transform;

@@ -34,6 +34,12 @@ namespace MyLittleFarm.UI
             (FarmText.Get("journal.forest"), FarmText.Get("journal.forestRoute")),
             (FarmText.Get("journal.hill"), FarmText.Get("journal.hillRoute"))
         };
+        private static readonly (string Name, string Route)[] ForestCacheRoutes =
+        {
+            ("Кромка дальнего леса", "Осмотрите деревья к востоку от северного озера."),
+            ("Северная чаща", "Ищите у развилки на северной лесной тропе."),
+            ("Восточная возвышенность", "Поищите рядом с подъёмом к востоку от фермы.")
+        };
         private int _tab,_page,_pageSize=10;
         private float _nextRefresh,_toastUntil;
         private float _nextClock;
@@ -121,16 +127,26 @@ namespace MyLittleFarm.UI
                 data.harvestedUnits, progress.FavouriteCrop, data.achievements.Count)
                 + "\n\n" + FarmText.Get("journal.bonuses", BonusHints())
                 + "\n\n" + FarmText.Get("journal.shepherd", data.shepherdHired
-                    ? FarmText.Get("journal.shepherdHired") + "\n" + progress.ShepherdStatus
+                    ? (progress.HasWorkerHousing ? FarmText.Get("journal.shepherdHired") + "\n" : string.Empty) + progress.ShepherdStatus
                     : FarmText.Get("journal.shepherdMarket", FarmText.Coins(FarmProgression_AI.ShepherdPrice)));
             hire.gameObject.SetActive(false);
             var text=new StringBuilder(FarmText.Get("journal.rareInfo", InputReader_AI.KeyLabel(InputReader_AI.Command.Seed5)));
+            var routes = progress.UsesLocationProgression ? ForestCacheRoutes : CacheRoutes;
             var now=DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-            for(var i=0;i<CacheRoutes.Length;i++)
+            if (progress.UsesLocationProgression && !progress.AllSectorsOpen)
+                text.AppendLine("Тайники появятся после открытия Дальнего леса на рынке.");
+            else
             {
-                var cache=progress.Cache(FarmProgression_AI.CacheIds[i]);var remaining=cache.nextAvailableUnixMs-now;
-                text.Append(CacheRoutes[i].Name).Append("  ·  ").Append(!cache.discovered?FarmText.Get("journal.unknownCache"):remaining>0?FarmText.Get("journal.refill", Mathf.CeilToInt(remaining / 60000f)):FarmText.Get("journal.cacheReady")).Append('\n');
-                text.AppendLine(CacheRoutes[i].Route);
+                for (var i = 0; i < routes.Length; i++)
+                {
+                    var cache = progress.Cache(FarmProgression_AI.CacheIds[i]);
+                    var remaining = cache.nextAvailableUnixMs - now;
+                    var status = !cache.discovered ? FarmText.Get("journal.unknownCache")
+                        : remaining > 0 ? FarmText.Get("journal.refill", Mathf.CeilToInt(remaining / 60000f))
+                        : FarmText.Get("journal.cacheReady");
+                    text.Append(routes[i].Name).Append("  ·  ").AppendLine(status);
+                    text.AppendLine(routes[i].Route);
+                }
             }
             text.Append(FarmText.Get("journal.rareHint", InputReader_AI.ActionHint, data.rareSeeds));
             discoveries.text=text.ToString();PaintBadges(data.achievements);

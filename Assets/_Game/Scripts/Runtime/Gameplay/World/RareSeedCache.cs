@@ -16,7 +16,7 @@ namespace MyLittleFarm.Gameplay.World
         public string LocationName=>locationName;
         public void Configure(FarmProgression_AI progress,Transform player){_progress=progress;_player=player;Refresh();}
         public bool WithinReach(Vector3 position){var delta=position-transform.position;delta.y=0;return delta.sqrMagnitude<=2.4f*2.4f;}
-        public bool Collect()=>_progress!=null&&_progress.CollectCache(cacheId);
+        public bool Collect()=>isActiveAndEnabled&&_progress!=null&&_progress.CollectCache(cacheId);
         public string Prompt
         {
             get

@@ -68,7 +68,8 @@ namespace MyLittleFarm.Gameplay.World
         public int TreeCount=>_orchard==null?0:_orchard.Capture().Count;
         public int AnimalCount=>_animals==null?0:_animals.Count;
         public int ChickenCount=>_animals==null?0:_animals.ChickenCount;
-        public bool AllSectorsOpen=>_sectors!=null&&_sectors.IsUnlocked;
+        public bool AllSectorsOpen=>_sectors!=null&&_sectors.AllLocationsOpen;
+        internal bool UsesLocationProgression => _sectors?.UsesLegacySector == false;
         public int DiscoveredCaches=>_data.caches.FindAll(c=>c.discovered).Count;
         public string FavouriteCrop
         {
@@ -116,7 +117,7 @@ namespace MyLittleFarm.Gameplay.World
             // Подключаю наблюдение за яйцами. Оно работает после найма пастуха.
             if (_animals != null)
             {
-                _animals.ShepherdObserving = () => _configured && !_restoring && _data.shepherdHired;
+                _animals.ShepherdObserving = () => _configured && !_restoring && ShepherdWorking;
                 _animals.RecordShepherdObservation = ObserveEggCollection;
             }
             var root=GetComponentInParent<GameBootstrap>();_dayNight=root==null?null:root.GetComponentInChildren<DayNightCycle>(true);
@@ -158,6 +159,8 @@ namespace MyLittleFarm.Gameplay.World
                     if(IsDecoration(action.ItemId)&&!_data.decorations.Contains(action.ItemId))_data.decorations.Add(action.ItemId);
                     break;
             }
+            if (action.ItemId == "house" && (action.Kind == "build" || action.Kind == "refund"))
+                RefreshShepherdVisual();
             Evaluate(true);Changed?.Invoke();
         }
         private static bool IsDecoration(string id)
@@ -180,8 +183,12 @@ namespace MyLittleFarm.Gameplay.World
         }
         private void ApplyVisuals()
         {
-            if(shepherdVisual!=null)shepherdVisual.SetActive(_data.shepherdHired);
+            RefreshShepherdVisual();
             if(seedCaches!=null)foreach(var cache in seedCaches)if(cache!=null)cache.Refresh();
+        }
+        private void RefreshShepherdVisual()
+        {
+            if (shepherdVisual != null) shepherdVisual.SetActive(ShepherdWorking);
         }
         public SeedCacheState Cache(string id)
         {
@@ -193,7 +200,7 @@ namespace MyLittleFarm.Gameplay.World
             if(!_configured||_restoring||Array.IndexOf(CacheIds,id)<0)return false;
             var cache=seedCaches==null?null:Array.Find(seedCaches,c=>c!=null&&c.Id==id);
             var now=DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-            if(cache==null||!cache.WithinReach(_player.position)||Cache(id).nextAvailableUnixMs>now
+            if(cache==null||!cache.isActiveAndEnabled||!cache.WithinReach(_player.position)||Cache(id).nextAvailableUnixMs>now
                 ||_inventory.GetAmount("corn_seed")>int.MaxValue-2)return false;
             var state=_data.caches.Find(c=>c.id==id);
             if(state==null){state=new SeedCacheState{id=id};_data.caches.Add(state);}
@@ -208,16 +215,33 @@ namespace MyLittleFarm.Gameplay.World
             get{if(_player==null||_market==null)return false;var delta=_player.position-_market.position;delta.y=0;
                 return delta.sqrMagnitude<=2.4f*2.4f||(_buildings!=null&&_buildings.IsNearMarket(_player.position,2.4f));}
         }
-        // Проверяю, что пастух ещё не нанят и игрок может оплатить найм у рынка.
-        public bool HireShepherd()
+        internal bool HasWorkerHousing => _buildings?.HasWorkerHousing == true;
+        private bool ShepherdWorking => _data.shepherdHired && HasWorkerHousing;
+        internal string ShepherdHireUnavailable => _data.shepherdHired ? FarmText.Get("market.alreadyHired")
+            : !HasWorkerHousing ? FarmText.Get("market.shepherdHousing") : null;
+
+        public bool HireShepherd() => NearMarket && TryHireShepherd(ShepherdPrice, out _);
+        public bool CanHireShepherd => _configured && !_restoring && NearMarket && Balance >= ShepherdPrice
+            && ShepherdHireUnavailable == null;
+
+        internal bool TryHireShepherd(int total, out string reason)
         {
-            if(!_configured||_restoring||_data.shepherdHired||!NearMarket||!_wallet.TrySpend(ShepherdPrice))return false;
-            GrantShepherd();return true;
+            reason = !_configured || _restoring || total < ShepherdPrice
+                ? FarmText.Get("market.staleOrder") : ShepherdHireUnavailable;
+            if (reason != null) return false;
+            if (total > Balance) { reason = FarmText.MissingCoins(total - Balance); return false; }
+
+            // A cart can include other upgrades. Commit the hiring and the full debit before publishing either.
+            _wallet.SetCoinsSilently(Balance - total);
+            _data.shepherdHired = true;
+            RefreshShepherdVisual();
+            GameEvents.RaiseMoneyChanged(Balance);
+            GameEvents.Record("spent", value: total);
+            return true;
         }
-        internal void GrantShepherd() { _data.shepherdHired=true;ApplyVisuals();Evaluate(true);Changed?.Invoke(); }
-        public bool CanHireShepherd=>!_data.shepherdHired&&NearMarket&&Balance>=ShepherdPrice;
         // Подписываю в журнале текущий режим и объясняю, почему он выбран.
-        public string ShepherdStatus => _data.shepherdPriority == ShepherdPriority.CollectFirst
+        public string ShepherdStatus => _data.shepherdHired && !ShepherdWorking ? FarmText.Get("journal.shepherdWaiting")
+            : _data.shepherdPriority == ShepherdPriority.CollectFirst
             ? "Сначала сбор · вы часто оставляли готовые яйца"
             : _data.shepherdAdapted ? "Сначала кормление · вы снова собираете яйца сами"
             : "Сначала кормление · наблюдает, как часто вы собираете яйца";
@@ -248,7 +272,7 @@ namespace MyLittleFarm.Gameplay.World
             if(_input!=null&&_input.JournalPressed&&journal!=null)
             { if (gameMenus != null) gameMenus.OpenJournal(); else journal.Open(); }
             if (_shepherdChanged) { _shepherdChanged = false; Changed?.Invoke(); }
-            if(_restoring||!_data.shepherdHired||_animals==null||!Application.isFocused||Time.unscaledTime<_nextCareAt)return;
+            if(_restoring||_animals==null||!Application.isFocused||Time.unscaledTime<_nextCareAt||!ShepherdWorking)return;
             _nextCareAt=Time.unscaledTime+5;
             _animals.AutomaticCare(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), _data.shepherdPriority);
         }

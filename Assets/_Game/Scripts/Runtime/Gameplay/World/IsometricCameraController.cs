@@ -70,7 +70,7 @@ namespace MyLittleFarm.Gameplay.World
             _input = input;
             _target = target;
             _yaw = initialYaw;
-            _storeZoom = Application.isPlaying && gameObject.scene.name == "Prototype";
+            _storeZoom = Application.isPlaying && FarmSceneFlow.IsFarmScene(gameObject.scene);
             var startingDistance = _storeZoom ? PlayerPrefs.GetFloat(ZoomPreference, initialDistance) : initialDistance;
             if (float.IsNaN(startingDistance) || float.IsInfinity(startingDistance)) startingDistance = initialDistance;
             _distance = Mathf.Clamp(startingDistance, minDistance, Mathf.Max(minDistance, maxDistance));

@@ -18,6 +18,7 @@ namespace MyLittleFarm.Gameplay.World
         [SerializeField] private OnboardingMarker marker;
         [SerializeField] private OnboardingOverlay overlay;
         private GridSystem _grid;
+        private InputReader_AI _input;
         private BuildSystem _buildings;
         private CropSystem_AI _crops;
         private InventorySystem_AI _inventory;
@@ -40,20 +41,23 @@ namespace MyLittleFarm.Gameplay.World
         public bool GardenPlanted => _gardenPlanted;
         public bool SaleCompleted => _saleCompleted;
         public Vector2Int GardenCell => _gardenCell;
-        public string CurrentHint => IsActive ? HintFor(_step, _gardenPlanted) : string.Empty;
+        public string CurrentHint => IsActive
+            ? HintFor(_step, _gardenPlanted, _step > 0 && _buildings?.GetBuilding(BuildingRuntimeState.StarterHouseId) != null ? 1 : 0)
+            : string.Empty;
 
-        public static string HintFor(int step, bool planted = false)
+        public static string HintFor(int step, bool planted = false, int firstStep = 0)
         {
-            switch (step)
+            var hint = step switch
             {
-                case 0: return FarmText.Get("onboarding.house", InputReader_AI.KeyLabel(InputReader_AI.Command.Build), InputReader_AI.ActionHint);
-                case 1: return FarmText.Get("onboarding.storage", InputReader_AI.KeyLabel(InputReader_AI.Command.Build));
-                case 2: return planted ? FarmText.Get("onboarding.harvest", InputReader_AI.ActionHint)
-                    : FarmText.Get("onboarding.plant", InputReader_AI.KeyLabel(InputReader_AI.Command.Seed1), InputReader_AI.ActionHint);
-                case 3: return FarmText.Get("onboarding.buy", InputReader_AI.MarketHint);
-                case 4: return FarmText.Get("onboarding.sell", InputReader_AI.MarketHint);
-                default: return string.Empty;
-            }
+                0 => FarmText.Get("onboarding.house", InputReader_AI.KeyLabel(InputReader_AI.Command.Build), InputReader_AI.ActionHint),
+                1 => FarmText.Get("onboarding.storage", InputReader_AI.KeyLabel(InputReader_AI.Command.Build)),
+                2 => planted ? FarmText.Get("onboarding.harvest", InputReader_AI.ActionHint)
+                    : FarmText.Get("onboarding.plant", InputReader_AI.KeyLabel(InputReader_AI.Command.Seed1), InputReader_AI.ActionHint),
+                3 => FarmText.Get("onboarding.buy", InputReader_AI.MarketHint),
+                4 => FarmText.Get("onboarding.sell", InputReader_AI.MarketHint),
+                _ => string.Empty
+            };
+            return hint.Length == 0 ? hint : $"{step - firstStep + 1} / {StepCount - firstStep} · {hint}";
         }
 
         public void Configure(GridSystem grid, BuildSystem buildings, CropSystem_AI crops,
@@ -61,6 +65,7 @@ namespace MyLittleFarm.Gameplay.World
         {
             _grid = grid; _buildings = buildings; _crops = crops;
             _inventory = inventory; _wallet = wallet; _player = player; _market = market;
+            _input = GetComponentInParent<GameBootstrap>()?.GetComponent<InputReader_AI>();
             if (overlay != null) overlay.Configure(this);
         }
         private void OnEnable()
@@ -155,8 +160,8 @@ namespace MyLittleFarm.Gameplay.World
         }
         private void LateUpdate()
         {
-            if (!Application.isPlaying || Time.timeScale <= 0 || !_ready || marker == null || _grid == null) return;
-            if (!IsActive) { marker.Hide(); return; }
+            if (!Application.isPlaying || !_ready || marker == null || _grid == null) return;
+            if (!IsActive || Time.timeScale <= 0 || _input?.ModalInputActive == true) { marker.Hide(); return; }
             if (Time.unscaledTime >= _nextTargetAt)
             {
                 _nextTargetAt = Time.unscaledTime + .5f;

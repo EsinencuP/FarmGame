@@ -18,6 +18,7 @@ namespace MyLittleFarm.Core
     public sealed class SaveSlotInfo
     {
         public int Index;
+        public bool IsLegacy;
         public SavePointInfo Manual, Autosave;
         public bool IsEmpty => !Manual.Exists && !Autosave.Exists;
         public SavePointInfo Latest => !Manual.CanLoad ? (Autosave.CanLoad ? Autosave : null)
@@ -35,7 +36,7 @@ namespace MyLittleFarm.Core
         private double _playTimeSeconds;
         private string _lastPreview;
         private bool _showStartupMenu;
-        private bool _savedForQuit;
+        private FarmSceneFlow.FarmLaunch? _startupLaunch;
         public int ActiveSlot { get; private set; }
         public bool HasActiveFarm => _persistenceEnabled;
         public double PlayTimeSeconds => _playTimeSeconds;
@@ -62,22 +63,25 @@ namespace MyLittleFarm.Core
                 autosave ? "autosave.json" : "manual.json");
         }
         private static bool PointExists(string path) => File.Exists(path) || File.Exists(path + ".bak");
+        private static string LegacyPath => Path.Combine(SaveRoot, "my-little-farm-save.json");
+        private static bool HasUnimportedLegacy => !PointExists(SlotPath(0, false))
+            && !PointExists(SlotPath(0, true)) && PointExists(LegacyPath);
 
         private void StartSlotPersistence()
         {
             // Capture the configured authored farm before any saved state is applied.
             _newFarm = Capture();
+            _startupLaunch = gameObject.scene.path == FarmSceneFlow.GameScene ? FarmSceneFlow.TakeFarmLaunch() : null;
             ActiveSlot = Mathf.Clamp(PlayerPrefs.GetInt(ActiveSlotKey, 0), 0, SlotCount - 1);
 #if UNITY_EDITOR
             if (!string.IsNullOrEmpty(EditorSaveRoot)) ActiveSlot = 0;
 #endif
             if (previewCamera == null && _player != null)
                 previewCamera = _player.GetComponentInParent<GameBootstrap>()?.GetComponentInChildren<Camera>(true);
-            var legacy = Path.Combine(SaveRoot, "my-little-farm-save.json");
             // Import only into an entirely empty slot 1. Original legacy primary/backup stay untouched.
-            if (!PointExists(SlotPath(0, false)) && !PointExists(SlotPath(0, true)) && PointExists(legacy))
+            if (HasUnimportedLegacy && (!_startupLaunch.HasValue || _startupLaunch.Value.Slot == 0))
             {
-                if (LoadFromPath(legacy))
+                if (LoadFromPath(LegacyPath))
                 {
                     ActiveSlot = 0;
                     if (!SaveToPath(SlotPath(0, false)))
@@ -90,7 +94,8 @@ namespace MyLittleFarm.Core
                 // Loading the legacy file was only for migration, not a silently selected active farm.
                 Restore(_newFarm);
             }
-            if (slotMenu != null) _showStartupMenu = true;
+            if (_startupLaunch.HasValue) _input.ModalInputActive = true;
+            else if (slotMenu != null) _showStartupMenu = true;
             else
             {
                 // Small script-only scenes can operate without the authored menu.
@@ -101,6 +106,20 @@ namespace MyLittleFarm.Core
 
         private void Start()
         {
+            if (_startupLaunch.HasValue)
+            {
+                var launch = _startupLaunch.Value;
+                _startupLaunch = null;
+                var loaded = launch.NewFarm ? NewFarm(launch.Slot) : LoadSlot(launch.Slot, launch.Manual);
+                if (loaded)
+                {
+                    mainMenu?.StartFarmSession();
+                    _input.ModalInputActive = false;
+                    _input.SuppressGameplayThisFrame = true;
+                }
+                else FarmSceneFlow.ReportLaunchFailure();
+                return;
+            }
             // All existing modal components have finished OnEnable before opening the startup menu.
             if (_showStartupMenu && mainMenu != null) mainMenu.OpenStartupBrowser();
             else if (_showStartupMenu && slotMenu != null) slotMenu.Open();
@@ -116,22 +135,65 @@ namespace MyLittleFarm.Core
             return result;
         }
         private SaveSlotInfo ReadSlot(int slot) => new SaveSlotInfo
-        { Index = slot, Manual = ReadPoint(slot, false), Autosave = ReadPoint(slot, true) };
-
-        private SavePointInfo ReadPoint(int slot, bool autosave)
         {
-            var path = SlotPath(slot, autosave);
+            Index = slot,
+            Manual = ReadPoint(SlotPath(slot, false), false, ReadValidatedPoint),
+            Autosave = ReadPoint(SlotPath(slot, true), true, ReadValidatedPoint)
+        };
+
+        internal static SaveSlotInfo[] ReadSelectionSlots()
+        {
+            var result = new SaveSlotInfo[SlotCount];
+            for (var slot = 0; slot < result.Length; slot++)
+            {
+                var legacy = slot == 0 && HasUnimportedLegacy;
+                result[slot] = new SaveSlotInfo
+                {
+                    Index = slot,
+                    IsLegacy = legacy,
+                    Manual = ReadPoint(legacy ? LegacyPath : SlotPath(slot, false), false, ReadPreviewPoint),
+                    Autosave = ReadPoint(SlotPath(slot, true), true, ReadPreviewPoint)
+                };
+            }
+            return result;
+        }
+
+        private SaveData ReadValidatedPoint(string path) => TryReadValidated(path, out var snapshot, true)
+            ? snapshot : null;
+
+        private static SaveData ReadPreviewPoint(string path)
+        {
+            try
+            {
+                var snapshot = ReadSnapshotFile(path);
+                if (snapshot == null || snapshot.saveVersion < 1 || snapshot.saveVersion > CurrentSaveVersion
+                    || snapshot.savedAtUnixMs <= 0 || snapshot.coins < 0
+                    || double.IsNaN(snapshot.playTimeSeconds) || double.IsInfinity(snapshot.playTimeSeconds)
+                    || snapshot.playTimeSeconds < 0 || snapshot.playTimeSeconds > 1e12) return null;
+                return snapshot;
+            }
+            catch (Exception error) when (error is ArgumentException || error is InvalidDataException
+                || error is IOException || error is UnauthorizedAccessException)
+            {
+                return null;
+            }
+        }
+
+        private static SavePointInfo ReadPoint(string path, bool autosave, Func<string, SaveData> read)
+        {
             var result = new SavePointInfo { Exists = PointExists(path), IsAutosave = autosave };
             if (!result.Exists) return result;
-            if (!TryReadValidated(path, out var snapshot, true))
+            var snapshot = read(path);
+            if (snapshot == null)
             {
-                if (!TryReadValidated(path + ".bak", out snapshot, true)) return result;
+                snapshot = read(path + ".bak");
+                if (snapshot == null) return result;
                 result.FromBackup = true;
             }
             result.CanLoad = true; result.SavedAtUnixMs = snapshot.savedAtUnixMs;
             result.PlayTimeSeconds = snapshot.playTimeSeconds; result.Coins = snapshot.coins;
-            result.Crops = snapshot.crops.Count; result.Trees = snapshot.trees.Count;
-            result.Animals = snapshot.animals.Count; result.Buildings = snapshot.buildings.Count;
+            result.Crops = snapshot.crops?.Count ?? 0; result.Trees = snapshot.trees?.Count ?? 0;
+            result.Animals = snapshot.animals?.Count ?? 0; result.Buildings = snapshot.buildings?.Count ?? 0;
             result.PreviewPng = snapshot.previewPngBase64;
             return result;
         }
@@ -151,13 +213,6 @@ namespace MyLittleFarm.Core
             }
             else GameEvents.RaiseStatusChanged("Не удалось сохранить слот " + (ActiveSlot + 1));
             return success;
-        }
-
-        internal bool TrySaveForQuit()
-        {
-            if (!_persistenceEnabled) return true;
-            _savedForQuit = SaveActivePoint(true);
-            return _savedForQuit;
         }
 
         public bool LoadSlot(int slot, bool manualOnly)
@@ -235,6 +290,14 @@ namespace MyLittleFarm.Core
         public bool ArchiveSlot(int slot)
         {
             if (!SlotIsValid(slot) || (_persistenceEnabled && slot == ActiveSlot) || (slot == 0 && _legacyUnavailable)) return false;
+            if (!ArchiveClosedSlot(slot)) return false;
+            SlotsChanged?.Invoke();
+            return true;
+        }
+
+        internal static bool ArchiveClosedSlot(int slot)
+        {
+            if (!SlotIsValid(slot) || (slot == 0 && HasUnimportedLegacy)) return false;
             var source = Path.GetFullPath(Path.GetDirectoryName(SlotPath(slot, false)));
             var root = Path.GetFullPath(Path.Combine(SaveRoot, "Saves"));
             if (!source.StartsWith(root + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase) || !Directory.Exists(source)) return false;
@@ -242,7 +305,7 @@ namespace MyLittleFarm.Core
             {
                 var recovery = Path.Combine(root, "Removed"); Directory.CreateDirectory(recovery);
                 Directory.Move(source, Path.Combine(recovery, "slot-" + (slot + 1) + "-" + Guid.NewGuid().ToString("N")));
-                SlotsChanged?.Invoke(); return true;
+                return true;
             }
             catch (Exception error) { Debug.LogWarning("Cannot remove farm slot: " + error.Message); return false; }
         }

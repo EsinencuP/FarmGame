@@ -31,6 +31,8 @@ namespace MyLittleFarm.Core
         [Header("New Game")]
         [Tooltip("Стартовый баланс до загрузки существующего сохранения.")]
         [SerializeField, Min(0)] private int startingCoins = 25;
+        [SerializeField] private Vector2Int starterHomeCell;
+        [SerializeField] private GameObject starterHomePreview;
         [Tooltip("Стартовая клетка персонажа в новой игре.")]
         [SerializeField] private Vector2Int playerStartCell = new Vector2Int(3, 0);
         [Tooltip("Высота центра персонажа над плоскостью грида при создании.")]
@@ -75,10 +77,10 @@ namespace MyLittleFarm.Core
             {
                 InitializeBakedScene();
             }
-            else if (SceneManager.GetActiveScene().name == "Prototype")
+            else if (FarmSceneFlow.IsFarmScene(SceneManager.GetActiveScene()))
             {
                 Debug.LogError(
-                    "Prototype scene is not baked. Use Tools/My Little Farm/Bake Prototype Scene in Edit Mode.",
+                    "The farm scene is not baked. Open the authored game scene in Edit Mode.",
                     this);
             }
         }
@@ -185,7 +187,7 @@ namespace MyLittleFarm.Core
             CreateHud(inventory, wallet, interaction, buildings, catalog, slots, sector, upgrades,
                 shop, onboarding);
             GameEvents.RaiseStatusChanged("Прототип готов: обработайте клетку перед персонажем");
-            if (Application.isPlaying && SceneManager.GetActiveScene().name == "Prototype")
+            if (Application.isPlaying && FarmSceneFlow.IsFarmScene(SceneManager.GetActiveScene()))
             {
                 saveSystem.StartPersistence();
             }
@@ -576,6 +578,17 @@ namespace MyLittleFarm.Core
             var buildings = RequireChild<BuildSystem>();
             buildings.Configure(input, grid, crops, wallet, cameraController.GetComponent<Camera>(), inventory: inventory);
             animals.BindBuildings(buildings);
+            if (Application.isPlaying && gameObject.scene.path == FarmSceneFlow.GameScene)
+            {
+                // Seed the new-farm snapshot. Loading a slot restores that slot's own buildings.
+                if (starterHomePreview != null) starterHomePreview.SetActive(false);
+                slots.SelectTool(QuickSlotSystem.SelectionMode.Hand);
+                buildings.Restore(new System.Collections.Generic.List<BuildingRuntimeState>
+                {
+                    new BuildingRuntimeState { id = BuildingRuntimeState.StarterHouseId, definitionId = "house",
+                        x = starterHomeCell.x, z = starterHomeCell.y }
+                });
+            }
             var selector = RequireChild<CellSelector>();
             selector.Configure(grid, player.transform, input, cameraController.GetComponent<Camera>());
             var saleCrate = FindNamedTransform("Sale Crate");
@@ -594,6 +607,7 @@ namespace MyLittleFarm.Core
             var fishing = Application.isPlaying
                 ? FishPond.Create(transform, grid, inventory, input, player, cameraController, hud.transform, stats.font) : null;
             interaction.BindFishing(fishing);
+            sector.BindLocationContent(fishing, GetComponentsInChildren<RareSeedCache>(true));
             var saveSystem = RequireChild<SaveSystem_AI>();
             saveSystem.Configure(input, player, grid, crops, inventory, wallet, buildings, catalog,
                 slots, sector, upgrades, orchard, animals, onboarding, fishing);
@@ -615,7 +629,7 @@ namespace MyLittleFarm.Core
                 FindNamedComponent<Text>("Interaction Prompt"),
                 buildings, RequireChild<BuildPromptUI>());
 
-            if (Application.isPlaying && SceneManager.GetActiveScene().name == "Prototype")
+            if (Application.isPlaying && FarmSceneFlow.IsFarmScene(SceneManager.GetActiveScene()))
             {
                 GetComponentInChildren<FarmMenuUI>(true)?.InstallDemoShortcut();
                 saveSystem.StartPersistence();

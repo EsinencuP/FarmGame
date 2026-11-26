@@ -31,13 +31,12 @@ namespace MyLittleFarm.Editor
             SceneManager.SetActiveScene(title);
             if (!title.GetRootGameObjects().Any(root => root.GetComponentInChildren<MainMenuUI>(true) != null)) CreateMenu();
             EditorSceneManager.SaveScene(title, FarmSceneFlow.MenuScene);
-            var others = EditorBuildSettings.scenes.Where(scene => scene.path != FarmSceneFlow.MenuScene && scene.path != FarmSceneFlow.GameScene);
-            EditorBuildSettings.scenes = new[] { new EditorBuildSettingsScene(FarmSceneFlow.MenuScene, true), new EditorBuildSettingsScene(FarmSceneFlow.GameScene, true) }.Concat(others).ToArray();
+            FarmFrontEndSetup.RegisterScenes();
             var entry = AssetDatabase.LoadAssetAtPath<SceneAsset>(FarmSceneFlow.MenuScene);
             EditorSceneManager.playModeStartScene = entry;
             AssetDatabase.SaveAssets();
             EditorSceneManager.OpenScene(FarmSceneFlow.MenuScene, OpenSceneMode.Single);
-            Debug.Log("Scene split complete: MainMenu is build entry 0, Prototype is gameplay 1. Original farm GUID preserved; no player data accessed.");
+            Debug.Log("Menu and farm UI authored. No player data accessed.");
         }
         private static void CreateMenu()
         {
@@ -49,7 +48,8 @@ namespace MyLittleFarm.Editor
             canvas.GetComponent<Canvas>().renderMode = RenderMode.ScreenSpaceOverlay;
             var scaler = canvas.GetComponent<CanvasScaler>(); scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize; scaler.referenceResolution = new Vector2(1920, 1080); scaler.matchWidthOrHeight = .5f;
             var font = AssetDatabase.LoadAssetAtPath<Font>("Assets/_Game/Content/UI/Nunito.ttf");
-            var background = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/_Game/Content/UI/MainMenuBackground.png");
+            var background = AssetDatabase.LoadAssetAtPath<Sprite>(FarmFrontEndSetup.MenuArtPath)
+                ?? AssetDatabase.LoadAssetAtPath<Sprite>("Assets/_Game/Content/UI/MainMenuBackground.png");
             var menu = MainMenuUI.Create(canvas.transform, font, background);
             if (File.Exists("Assets/_Game/Content/UI/MainMenuButtons/Play.png")) MainMenuButtonSetup.ApplyTo(menu);
             var events = new GameObject("Menu Event System", typeof(EventSystem), typeof(InputSystemUIInputModule)); events.GetComponent<InputSystemUIInputModule>().AssignDefaultActions();

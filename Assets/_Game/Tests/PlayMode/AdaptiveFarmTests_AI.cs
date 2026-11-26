@@ -142,6 +142,14 @@ namespace MyLittleFarm.Tests.PlayMode
             Component<WalletSystem>().SetCoins(1000);
             var booth = Farm.GetComponentsInChildren<InteractionTarget>().First(target => target.Kind == InteractionTargetKind.Market);
             Component<PlayerController>().Teleport(booth.transform.position + new Vector3(1.2f, 1, 0));
+            Assert.That(progress.HireShepherd(), Is.False);
+            Assert.That(Component<WalletSystem>().Coins, Is.EqualTo(1000));
+            var north = new GameObject("Worker housing test chunk");
+            north.transform.SetParent(Farm.transform, false);
+            north.transform.position = new Vector3(0, 0, 10);
+            Component<GridSystem>().RegisterSceneChunk(north.AddComponent<TilemapChunk>());
+            Assert.That(Component<BuildSystem>().TryPlace("house", new Vector2Int(0, 10), 0, out var housingReason),
+                Is.True, housingReason);
             Assert.That(progress.HireShepherd(), Is.True);
             Assert.That(animals.AddChicken(new Vector2Int(2, 3), now), Is.True);
             Assert.That(animals.AddChicken(new Vector2Int(3, 3), now), Is.True);

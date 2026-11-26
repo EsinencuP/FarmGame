@@ -15,7 +15,7 @@ namespace MyLittleFarm.Core
         private static void StartCapture()
         {
             if (Environment.GetEnvironmentVariable("FARMGAME_CAPTURE") != "1"
-                || UnityEngine.SceneManagement.SceneManager.GetActiveScene().name != "Prototype") return;
+                || !FarmSceneFlow.IsFarmScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene())) return;
             new GameObject("MVP Verification Capture").AddComponent<MvpRuntimeCapture>();
         }
 

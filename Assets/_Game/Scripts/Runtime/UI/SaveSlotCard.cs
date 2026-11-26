@@ -22,7 +22,7 @@ namespace MyLittleFarm.UI
         {
             ClearTexture();
             title.text = FarmText.Get(active ? "saves.slotCurrent" : "saves.slotTitle", slot.Index + 1);
-            if (delete != null) { delete.gameObject.SetActive(!slot.IsEmpty && !legacyBlocked); delete.interactable = !active; }
+            if (delete != null) { delete.gameObject.SetActive(!slot.IsEmpty && !legacyBlocked && !slot.IsLegacy); delete.interactable = !active; }
             var latest = slot.Latest;
             primary.interactable = latest != null || (slot.IsEmpty && !legacyBlocked);
             primaryLabel.text = slot.IsEmpty ? FarmText.Get("saves.new") : FarmText.Get("saves.continue");
@@ -81,7 +81,10 @@ namespace MyLittleFarm.UI
 
         public void Resize(float width, bool columns)
         {
-            Top(title.rectTransform, 16, 14, width - 32, 32);
+            title.resizeTextForBestFit = true;
+            title.resizeTextMinSize = 16;
+            title.resizeTextMaxSize = 24;
+            Top(title.rectTransform, 16, 10, width - 32, 40);
             var imageWidth = columns ? Mathf.Min(width - 32, 150 * 16f / 9f) : Mathf.Min(240, width * .36f);
             var imageHeight = imageWidth * 9f / 16f;
             var imageX = columns ? (width - imageWidth) * .5f : 16;

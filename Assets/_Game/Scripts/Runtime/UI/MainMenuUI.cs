@@ -73,7 +73,7 @@ namespace MyLittleFarm.UI
         }
         private void Launch()
         {
-            if (FarmSceneFlow.LoadGame()) interaction.interactable = false;
+            if (FarmSceneFlow.LoadSlots()) interaction.interactable = false;
             else if (!FarmSceneFlow.IsLoading) status.text = FarmText.Get("menu.loadFailed");
         }
         private void Back() { MyLittleFarm.Audio.FarmAudio.Play(MyLittleFarm.Audio.SoundId.UiBack); Show(Page.Main); }
@@ -125,7 +125,7 @@ namespace MyLittleFarm.UI
             var actionSize = illustratedButtons ? new Vector2(560, 572) : new Vector2(440, 446);
             var scale = Mathf.Min(1, size.y * (illustratedButtons ? .57f : .54f) / actionSize.y, (size.x - 32) / actionSize.x);
             actions.localScale = Vector3.one * Mathf.Max(.3f, scale);
-            FarmUITheme.Place(actions, new Vector2(.56f, 0), new Vector2(.5f, 0), new Vector2(0, size.y * (illustratedButtons ? .025f : .045f)), actionSize);
+            FarmUITheme.Place(actions, new Vector2(.29f, 0), new Vector2(.5f, 0), new Vector2(0, size.y * .055f), actionSize);
             Fit(settings.Panel, size); Fit(quitPanel, size);
             if (_creditsPanel != null) Fit(_creditsPanel, size);
         }

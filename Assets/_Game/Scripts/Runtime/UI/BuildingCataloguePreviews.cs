@@ -11,8 +11,8 @@ namespace MyLittleFarm.UI
     internal sealed class BuildingCataloguePreviews : IDisposable
     {
         private const int PreviewLayer = 31;
-        private const int Width = 256;
-        private const int Height = 172;
+        private const int Width = 512;
+        private const int Height = 344;
         private static readonly Quaternion ViewAngle = Quaternion.Euler(26, 36, 0);
         private readonly Dictionary<string, Texture2D> _textures = new();
         private readonly BuildSystem _buildings;

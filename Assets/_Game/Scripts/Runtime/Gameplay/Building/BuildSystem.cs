@@ -95,6 +95,7 @@ namespace MyLittleFarm.Gameplay.Building
         public bool IsActive { get; private set; }
         public string CurrentPrompt { get; private set; } = string.Empty;
         public int Count => _layout?.Count ?? 0;
+        internal bool HasWorkerHousing => _layout?.HasWorkerHousing() == true;
         internal int AvailableCoins => _wallet?.Coins ?? 0;
         internal ApplePresses Presses { get; private set; }
         internal ProductionBatches Production { get; private set; }
@@ -778,7 +779,7 @@ namespace MyLittleFarm.Gameplay.Building
                 new Vector2Int(definition.RotatedWidth(state.quarterTurns), definition.RotatedDepth(state.quarterTurns)), id);
             RemoveBuildingView(id);
             _wallet.AddCoins(refund);
-            GameEvents.Record("refund",value:refund);
+            GameEvents.Record("refund", state.definitionId, value: refund);
             reason = $"Постройка удалена. Возврат: {refund} монет";
             MyLittleFarm.Audio.FarmAudio.Play(MyLittleFarm.Audio.SoundId.BuildRemove, _grid.CellToWorld(new Vector2Int(state.x, state.z)));
             return true;

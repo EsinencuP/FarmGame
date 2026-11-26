@@ -303,7 +303,7 @@ namespace MyLittleFarm.Editor
             EditorUtility.SetDirty(mesh);
         }
 
-        private static void AddClippedWater(Vector3 a,Vector3 b,Vector3 c,List<Vector3> vertices,List<int> triangles)
+        internal static void AddClippedWater(Vector3 a,Vector3 b,Vector3 c,List<Vector3> vertices,List<int> triangles)
         {
             const float waterY=-.22f;
             var input=new[]{a,b,c};var clipped=new List<Vector3>();

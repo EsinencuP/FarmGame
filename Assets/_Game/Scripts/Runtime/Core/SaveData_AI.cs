@@ -49,6 +49,7 @@ namespace MyLittleFarm.Core
         public List<FeederData> feeders=new List<FeederData>();
         public List<WarehouseData> warehouses = new List<WarehouseData>();
         public bool sectorUnlocked;
+        public int ownedParcels;
         public int toolUpgradeLevel;
         public bool baseHoeGranted;
         // Номер шага короткого онбординга сохраняется вместе с остальным прогрессом.

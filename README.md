@@ -1,6 +1,6 @@
 # My Little Farm
 
-В Unity откройте [MainMenu](Assets/_Game/Scenes/MainMenu.unity) для запуска с титульного экрана или [Prototype](Assets/_Game/Scenes/Prototype.unity) для работы с фермой. Версия редактора указана в [ProjectVersion.txt](ProjectSettings/ProjectVersion.txt).
+В Unity откройте [MainMenu](Assets/_Game/Scenes/MainMenu.unity) для обычного запуска через [выбор сохранения](Assets/_Game/Scenes/SaveSelection.unity). Для работы с игровой картой откройте [GameScene](Assets/_Game/Scenes/GameScene.unity). Версия редактора указана в [ProjectVersion.txt](ProjectSettings/ProjectVersion.txt).
 
 ## Где что лежит
 

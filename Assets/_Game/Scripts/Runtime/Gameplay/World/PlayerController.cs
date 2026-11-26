@@ -55,6 +55,7 @@ namespace MyLittleFarm.Gameplay.World
         /// <summary>Высота прыжка, установленная в Inspector.</summary>
         public float JumpHeight => jumpHeight;
         public float SprintSpeed => sprintSpeed;
+        private float _nextLocationHint;
         public bool HoldingHoe {get;internal set;}
         internal bool HoldingFishingRod { get; set; }
         public Transform VisualRoot => transform.Find("Character Visual") ?? transform.Find("Nolant Visual");
@@ -159,6 +160,12 @@ namespace MyLittleFarm.Gameplay.World
             var horizontal = move * (horizontalSpeed * Time.deltaTime);
             if (_grid != null && !CanTraverse(start, horizontal))
             {
+                var targetCell = _grid.WorldToGrid(start + horizontal);
+                if (_grid.IsLocationLocked(targetCell) && Time.unscaledTime >= _nextLocationHint)
+                {
+                    _nextLocationHint = Time.unscaledTime + 2.5f;
+                    GameEvents.RaiseStatusChanged("Локация закрыта. Вход можно открыть на рынке.");
+                }
                 // A diagonal into a terrain boundary can still slide along its free side.
                 var x = new Vector3(horizontal.x, 0f, 0f);
                 var z = new Vector3(0f, 0f, horizontal.z);

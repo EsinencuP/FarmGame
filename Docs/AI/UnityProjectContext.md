@@ -1,5 +1,18 @@
 # My Little Farm — project context
 
+## Front end and save selection — 26 November 2026
+
+- Normal entry is MainMenu → SaveSelection → GameScene. SaveSelection reads slot metadata and previews from disk without starting farm systems. The selected point receives full validation in GameScene. A failed restore returns to SaveSelection before exposing the world.
+- New slots play the comic in SaveSelection and write their first autosave after the farm has loaded. The pause exit saves the active slot and returns to MainMenu.
+- The supplied Main Menu and Louding illustrations are imported at 1672×941. The loading overlay uses the asset referenced by `Resources/FarmUI/ScreenArtwork.asset`.
+
+## GameScene — 26 November 2026
+
+- The menu opens GameScene. The 150×150 world contains 225 terrain chunks, dirt trails, planted woodland, lakes and buildable clearings on the expanded outer ring. Its baked maps and meshes are independent of Prototype.
+- New slots start beside a house, chicken pen and market crate. Player-built decoration is part of the existing building system. Save v23 stores sequential access to the western fishing area and then the distant forest with rare seed caches. Walking and farm actions respect area access. Older saves preserve their buildings and can inherit access to land they owned or worked.
+- Hiring the shepherd requires a completed player-built house for worker housing. The starter house houses the player. If the last suitable house is removed, work pauses until housing is restored. The existing hired flag and learned priorities persist in the save.
+- Editor spot checks covered the menu and prologue route and layouts at Full HD, QHD, 1280×800 and 2560×1080. The expanded world has pending extended play and performance acceptance. Follow the repository cadence for suites and Windows Player.
+
 ## University release candidate — 22 November 2026
 
 - Seven-page comic on new slots, keyboard and on-screen navigation, credits, session summary, action feedback and audio are integrated. The current save version is v21.

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using MyLittleFarm.Core;
 using MyLittleFarm.Gameplay.Animals;
 using MyLittleFarm.Gameplay.Building;
 using MyLittleFarm.Gameplay.Farming;
@@ -101,7 +102,10 @@ namespace MyLittleFarm.UI
             foreach (var offer in market.Offers(MyLittleFarm.Gameplay.Economy.FarmMarket_AI.Category.Upgrades))
                 text.Append(offer.Name).Append(" · ").Append(offer.Price).Append(" монет").Append(offer.Available ? "" : " · " + offer.Unavailable).Append('\n').Append(offer.Description).Append("\n\n");
             text.Append($"Покупка улучшений и найм — в окне рынка.\nПодойдите к рынку и нажмите {MyLittleFarm.Core.InputReader_AI.MarketHint}.");
-            text.Append("\n\nРыбалка · подойдите к знаку на восточном берегу озера. Забросьте удочку, дождитесь поклёвки и подсеките. Рыбу можно продать на рынке.");
+            text.Append(gameObject.scene.path == FarmSceneFlow.GameScene
+                ? "\n\nРыбалка · откройте Озёрную долину на рынке. Знак рыбалки находится на восточном берегу западного пруда."
+                : "\n\nРыбалка · подойдите к знаку на восточном берегу озера.");
+            text.Append(" Забросьте удочку, дождитесь поклёвки и подсеките. Рыбу можно продать на рынке.");
             text.Append($"\n\nКОРМУШКА\n{FarmText.Coins(BuildingDefinition.FeederPrice)}, 12 пшеницы, радиус 6 м. Кормит кур и коров после сбора продукта. Пастух берёт корм сначала здесь, затем в инвентаре; молоко собирается вручную.\n");
             text.Append("\n\nПРОИЗВОДСТВО\n\n");
             foreach(var recipe in MyLittleFarm.Gameplay.Building.ProductionRecipe.All)

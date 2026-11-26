@@ -151,7 +151,8 @@ namespace MyLittleFarm.UI
             }
             description.text = FarmText.Get("inventory.quantity", inventory.GetAmount(_selected))
                 + "\n" + (seed ? FarmText.Get("inventory.seedHelp") : FarmText.Get("inventory.sellHelp"))
-                + "\n\n" + (catalog.IsRareSeed(_selected) ? FarmText.Get("inventory.rareSeed") : FarmText.Get(_market ? "inventory.buyPrice" : "inventory.salePrice", FarmText.Coins(_market ? item.BuyPrice : item.SellPrice)));
+                + "\n\n" + (catalog.IsRareSeed(_selected) ? FarmText.Get(gameObject.scene.path == FarmSceneFlow.GameScene
+                    ? "inventory.forestSeed" : "inventory.rareSeed") : FarmText.Get(_market ? "inventory.buyPrice" : "inventory.salePrice", FarmText.Coins(_market ? item.BuyPrice : item.SellPrice)));
             if (sapling && orchard.TryGetSapling(_selected, out var tree))
                 description.text = (orchard.IsFree(tree) ? "Яблоня доступна бесплатно без ограничения." : "В наличии: " + inventory.GetAmount(_selected) + ". На посадку расходуется один саженец.")
                     + "\n\nВыберите дерево. Посадка · " + InputReader_AI.KeyLabel(InputReader_AI.Command.Apple) + ".\nПосле сбора дерево остаётся и плодоносит повторно.";

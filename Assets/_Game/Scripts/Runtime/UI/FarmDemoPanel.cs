@@ -217,7 +217,7 @@ namespace MyLittleFarm.UI
 
         private void BuySector()
         {
-            if (_sector.IsUnlocked) Report("Сектор уже открыт");
+            if (_sector.AllLocationsOpen) Report("Все локации открыты");
             else if (!_sector.CanPurchase) Report("Сектор сейчас недоступен");
             else Report(_sector.TryPurchase() ? "Сектор открыт" : "Недостаточно монет");
         }

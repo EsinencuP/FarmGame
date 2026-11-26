@@ -44,7 +44,9 @@ namespace MyLittleFarm.Gameplay.World
         {
             var shore = new Vector2Int(-13, 8);
             var water = new Vector2Int(-15, 8);
-            if (!grid.IsWalkable(shore) || grid.GetCellType(water) != CellType.Water) return null;
+            var bank = grid.GetTerrainCell(shore);
+            if (bank.type is CellType.Water or CellType.Rock or CellType.OutOfBounds
+                || !bank.Allows(CellPermissions.Walk, true) || grid.GetTerrainCell(water).type != CellType.Water) return null;
             var station = new GameObject("Fishing at West Pond");
             station.transform.SetParent(parent, false);
             station.transform.position = grid.GridToWorld(shore);
@@ -117,7 +119,7 @@ namespace MyLittleFarm.Gameplay.World
             {
                 var delta = _player.position - transform.position;
                 delta.y = 0f;
-                return delta.sqrMagnitude <= Reach * Reach;
+                return isActiveAndEnabled && delta.sqrMagnitude <= Reach * Reach;
             }
         }
 
